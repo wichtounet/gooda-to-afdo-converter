@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include "generator.hpp"
 
@@ -30,10 +31,11 @@ void write_string (const std::string& value){
     memcpy (&buffer[1], value.c_str(), length);
 }
 
-void write_header(){
-    gcov_write_unsigned(GCOV_DATA_MAGIC);
-    gcov_write_unsigned(GCOV_VERSION);
-    gcov_write_unsigned(0); //The stamp is not important for AFDO
+template<typename Type, typename Lambda>
+void write_collection(const std::vector<Type>& values, Lambda functor){
+    gcov_write_unsigned(values.size());
+
+    std::for_each(values.begin(), values.end(), functor);
 }
 
 void write_section_header(gcov_unsigned_t tag){
@@ -42,59 +44,51 @@ void write_section_header(gcov_unsigned_t tag){
     gcov_write_unsigned(0); //Skipped by AFDO
 }
 
+void write_header(){
+    gcov_write_unsigned(GCOV_DATA_MAGIC);
+    gcov_write_unsigned(GCOV_VERSION);
+    gcov_write_unsigned(0); //The stamp is not important for AFDO
+}
+
 void write_file_name_table(converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_FILE_NAMES);
 
-    //The number of files
-    gcov_write_unsigned(data.file_names.size());
-
-    for(auto& file : data.file_names){
-        write_string(file);
-    }
+    write_collection(data.file_names, write_string);
 }
 
 void write_function_table(converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_FUNCTION);
-    
-    //The number of functions 
-    gcov_write_unsigned(data.functions.size());
 
-    for(auto& function : data.functions){
+    write_collection(data.functions, [&data](const converter::Function& function){
         write_string(function.name);
+
         gcov_write_unsigned(data.get_file_index(function.file));
         gcov_write_counter(function.total_count);
         gcov_write_counter(function.entry_count);
 
-        //The number of stacks
-        gcov_write_counter(function.stacks.size());
-
-        for(auto& stack : function.stacks){
-            //The number of stacks
-            gcov_write_unsigned(stack.stack.size());
-
-            for(auto& s : stack.stack){
+        write_collection(function.stacks, [&data](const converter::Stack& stack){
+            write_collection(stack.stack, [&data](const converter::CallSitePos& s){
                 gcov_write_unsigned(data.get_file_index(s.func));
                 gcov_write_unsigned(data.get_file_index(s.file));
                 gcov_write_unsigned(s.line);
                 gcov_write_unsigned(s.discr);
-            }
-
+            });
+            
             gcov_write_counter(stack.count);
             gcov_write_counter(stack.num_inst);
-        }
-    }
+        });
+    });
 }
 
 void write_module_info(converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING);
-    
-    //The number of modules
-    gcov_write_unsigned(data.modules.size());
 
-    for(auto& module : data.modules){
+    write_collection(data.modules, [&data](const converter::Module& module){
         write_string(module.name);
+
         gcov_write_unsigned(module.exported);
         gcov_write_unsigned(module.has_asm);
+        
         gcov_write_unsigned(module.num_aux_modules);
         gcov_write_unsigned(module.num_quote_paths);
         gcov_write_unsigned(module.num_bracket_paths);
@@ -102,10 +96,8 @@ void write_module_info(converter::Data& data){
         gcov_write_unsigned(module.num_cpp_includes);
         gcov_write_unsigned(module.num_cl_args);
 
-        for(auto& string : module.strings){
-            write_string(string);
-        }
-    }
+        std::for_each(module.strings.begin(), module.strings.end(), write_string);
+    });
 }
 
 } //end of anonymous namespace
