@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "utils.hpp"
+
 void print_usage();
 
 int main(int argc, char **argv){
@@ -10,9 +12,17 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    std::string directory(argv[0]);
+    std::string directory(argv[1]);
+
+    if(!converter::exists(directory)){
+        std::cout << "\"" << directory << "\" does not exists" << std::endl;
+        return 1;
+    }
     
-    std::cout << directory << std::endl;
+    if(!converter::is_directory(directory)){
+        std::cout << "\"" << directory << "\" is not a directory" << std::endl;
+        return 1;
+    }
 
     return 0;
 }
