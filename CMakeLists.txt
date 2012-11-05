@@ -25,6 +25,10 @@ set(EXECUTABLE_OUTPUT_PATH bin)
 # All the headers are in the include directory
 include_directories(include)
 
+include_directories($ENV{GCC_SRC}/gcc/)
+include_directories($ENV{GCC_SRC}/include/)
+include_directories($ENV{GCC_BUILD})
+
 # Create the executable
 
 file(
@@ -34,6 +38,8 @@ file(
 )
 
 add_executable(converter ${source_files})
+
+TARGET_LINK_LIBRARIES(converter gcov)
 
 # Specifications for the installation
 
