@@ -9,6 +9,8 @@
 
 namespace converter {
 
+static const unsigned int WS_SIZE = 128;
+
 struct CallSitePos {
     std::string func;
     std::string file;
@@ -43,10 +45,16 @@ struct Module {
     std::vector<std::string> strings;
 };
 
+struct WorkingSet {
+    gcov_unsigned_t num_counter;
+    gcov_type min_counter;
+};
+
 struct Data {
     std::vector<std::string> file_names;
     std::vector<Function> functions;
     std::vector<Module> modules;
+    WorkingSet working_set[WS_SIZE];
 
     gcov_unsigned_t get_file_index(const std::string& file);
     void add_file_name(const std::string& file);

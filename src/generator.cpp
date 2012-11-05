@@ -102,6 +102,15 @@ void write_module_info(converter::Data& data){
     });
 }
 
+void write_working_set(converter::Data& data){
+    write_section_header(GCOV_TAG_AFDO_WORKING_SET);
+
+    std::for_each(data.working_set, data.working_set + converter::WS_SIZE, [](const converter::WorkingSet& ws){
+        gcov_write_unsigned(ws.num_counter);
+        gcov_write_counter(ws.min_counter);
+    });
+}
+
 } //end of anonymous namespace
 
 void converter::generate_afdo(Data& data, const std::string& file){
@@ -116,9 +125,11 @@ void converter::generate_afdo(Data& data, const std::string& file){
     gcov_rewrite();
 
     write_header();
+
     write_file_name_table(data);
     write_function_table(data);
     write_module_info(data);
+    write_working_set(data);
 
     gcov_close();
 }
