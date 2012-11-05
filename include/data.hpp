@@ -30,9 +30,23 @@ struct Function {
     std::vector<Stack> stacks;
 };
 
+struct Module {
+    std::string name;
+    gcov_unsigned_t exported;
+    gcov_unsigned_t has_asm;
+    gcov_unsigned_t num_aux_modules;
+    gcov_unsigned_t num_quote_paths;
+    gcov_unsigned_t num_bracket_paths;
+    gcov_unsigned_t num_cpp_defines;
+    gcov_unsigned_t num_cpp_includes;
+    gcov_unsigned_t num_cl_args;
+    std::vector<std::string> strings;
+};
+
 struct Data {
     std::vector<std::string> file_names;
     std::vector<Function> functions;
+    std::vector<Module> modules;
 
     gcov_unsigned_t get_file_index(const std::string& file);
     void add_file_name(const std::string& file);
