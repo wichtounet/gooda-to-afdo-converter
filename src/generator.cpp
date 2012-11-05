@@ -63,6 +63,7 @@ void write_function_table(converter::Data& data){
         write_string(function.name);
 
         gcov_write_unsigned(data.get_file_index(function.file));
+
         gcov_write_counter(function.total_count);
         gcov_write_counter(function.entry_count);
 
@@ -70,6 +71,7 @@ void write_function_table(converter::Data& data){
             write_collection(stack.stack, [&data](const converter::CallSitePos& s){
                 gcov_write_unsigned(data.get_file_index(s.func));
                 gcov_write_unsigned(data.get_file_index(s.file));
+                
                 gcov_write_unsigned(s.line);
                 gcov_write_unsigned(s.discr);
             });
