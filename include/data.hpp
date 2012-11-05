@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "gcov_types.hpp"
 
@@ -31,6 +32,13 @@ struct Function {
 
 struct Data {
     std::vector<std::string> file_names;
+    std::vector<Function> functions;
+
+    gcov_unsigned_t get_file_index(const std::string& file);
+    void add_file_name(const std::string& file);
+    
+    private:
+        std::unordered_map<std::string, gcov_unsigned_t> file_index;
 };
 
 }

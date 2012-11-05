@@ -53,6 +53,34 @@ void write_function_table(converter::Data& data){
     //The header of the section
     gcov_write_unsigned(GCOV_TAG_AFDO_FUNCTION);
     gcov_write_unsigned(0); //Skipped by AFDO
+    
+    //The number of functions 
+    gcov_write_unsigned(data.functions.size());
+
+    for(auto& function : data.functions){
+        write_string(function.name);
+        gcov_write_unsigned(data.get_file_index(function.file));
+        gcov_write_counter(function.total_count);
+        gcov_write_counter(function.entry_count);
+
+        //The number of stacks
+        gcov_write_counter(function.stacks.size());
+
+        for(auto& stack : function.stacks){
+            //The number of stacks
+            gcov_write_unsigned(stack.stack.size());
+
+            for(auto& s : stack.stack){
+                gcov_write_unsigned(data.get_file_index(s.func));
+                gcov_write_unsigned(data.get_file_index(s.file));
+                gcov_write_unsigned(s.line);
+                gcov_write_unsigned(s.discr);
+            }
+
+            gcov_write_counter(stack.count);
+            gcov_write_counter(stack.num_inst);
+        }
+    }
 }
 
 } //end of anonymous namespace
@@ -65,10 +93,12 @@ void converter::generate_afdo(Data& data, const std::string& file){
         return;
     }
 
+    //Put GCOV in write mode
     gcov_rewrite();
 
     write_header();
     write_file_name_table(data);
+    write_function_table(data);
 
     gcov_close();
 }
