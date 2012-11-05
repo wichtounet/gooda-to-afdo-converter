@@ -56,7 +56,7 @@ struct Data {
     std::vector<Module> modules;
     WorkingSet working_set[WS_SIZE];
 
-    gcov_unsigned_t get_file_index(const std::string& file);
+    gcov_unsigned_t get_file_index(const std::string& file) const;
     void add_file_name(const std::string& file);
     
     private:

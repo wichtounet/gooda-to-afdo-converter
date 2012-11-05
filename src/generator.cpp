@@ -50,13 +50,13 @@ void write_header(){
     gcov_write_unsigned(0); //The stamp is not important for AFDO
 }
 
-void write_file_name_table(converter::Data& data){
+void write_file_name_table(const converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_FILE_NAMES);
 
     write_collection(data.file_names, write_string);
 }
 
-void write_function_table(converter::Data& data){
+void write_function_table(const converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_FUNCTION);
 
     write_collection(data.functions, [&data](const converter::Function& function){
@@ -82,7 +82,7 @@ void write_function_table(converter::Data& data){
     });
 }
 
-void write_module_info(converter::Data& data){
+void write_module_info(const converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING);
 
     write_collection(data.modules, [&data](const converter::Module& module){
@@ -102,7 +102,7 @@ void write_module_info(converter::Data& data){
     });
 }
 
-void write_working_set(converter::Data& data){
+void write_working_set(const converter::Data& data){
     write_section_header(GCOV_TAG_AFDO_WORKING_SET);
 
     std::for_each(data.working_set, data.working_set + converter::WS_SIZE, [](const converter::WorkingSet& ws){
@@ -113,7 +113,7 @@ void write_working_set(converter::Data& data){
 
 } //end of anonymous namespace
 
-void converter::generate_afdo(Data& data, const std::string& file){
+void converter::generate_afdo(const Data& data, const std::string& file){
     std::cout << "Generate AFDO profile in \"" << file << "\"" << std::endl;
 
     if(!gcov_open(file.c_str())){

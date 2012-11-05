@@ -2,10 +2,10 @@
 
 #include "data.hpp"
 
-gcov_unsigned_t converter::Data::get_file_index(const std::string& file){
+gcov_unsigned_t converter::Data::get_file_index(const std::string& file) const {
     assert(file_index.count(file));
 
-    return file_index[file];
+    return file_index.at(file);
 }
 
 void converter::Data::add_file_name(const std::string& file){
