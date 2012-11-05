@@ -49,6 +49,12 @@ void write_file_name_table(converter::Data& data){
     }
 }
 
+void write_function_table(converter::Data& data){
+    //The header of the section
+    gcov_write_unsigned(GCOV_TAG_AFDO_FUNCTION);
+    gcov_write_unsigned(0); //Skipped by AFDO
+}
+
 } //end of anonymous namespace
 
 void converter::generate_afdo(Data& data, const std::string& file){
