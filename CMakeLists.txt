@@ -19,7 +19,7 @@ else()
     MESSAGE(FATAL_ERROR "ERROR: gooda-to-afdo-converter can only be compiled with GCC")
 endif()
 
-# The compiler and the tests should go to the bin directory
+# The executable should go to the bin directory
 set(EXECUTABLE_OUTPUT_PATH bin)
 
 # All the headers are in the include directory
