@@ -20,8 +20,10 @@
 namespace {
 
 void write_string (const std::string& value){
-    unsigned length = value.size();
-    unsigned alloc = (length + 4) >> 2;
+    unsigned length = value.length();
+    unsigned alloc = (length + 4) >> 2; //Size of \0 terminated string
+
+    //TODO Necessary to check that...
     
     gcov_unsigned_t *buffer;
     buffer = gcov_write_words (1 + alloc);
