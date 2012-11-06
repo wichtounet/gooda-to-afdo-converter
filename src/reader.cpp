@@ -7,6 +7,8 @@
 
 #include "reader.hpp"
 
+#define FUNCTION_NAME 2
+
 namespace {
 
 typedef std::string::const_iterator string_iter;
@@ -18,7 +20,7 @@ void remove_quotes(std::string& str){
     }
 }
 
-std::string get_item(std::vector<string_view>& contents, int index){
+std::string get_string(std::vector<string_view>& contents, int index){
     auto& item = contents[index];
     
     std::string value(item.begin(), item.end());
@@ -88,7 +90,7 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
         auto contents = parse_gooda_hotspot_line(line);
 
         converter::Function function;
-        function.name = get_item(contents, 2);
+        function.name = get_string(contents, FUNCTION_NAME);
         function.file = "unknown";
         function.total_count = 0;
         function.entry_count = 0;
