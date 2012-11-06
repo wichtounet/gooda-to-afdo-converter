@@ -90,10 +90,20 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
             auto contents = parse_gooda_hotspot_line(line);
 
             std::cout << "Hotspot function " << contents[2] << std::endl;
+
+            Function function;
+            function.name = contents[2];
+            function.file = "unknown";
+
+            data.add_file_name(function.file);
+
+            data.functions.push_back(function);
         }
 
         std::getline(hotspot_file, line);
     }
+
+    std::cout << "Found " << data.functions.size() << " hotspot functions" << std::endl;
 
     return true;
 }
