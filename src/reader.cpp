@@ -12,6 +12,8 @@
 #define UNHALTED_CORE_CYCLES 7
 #define INSTRUCTION_RETIRED 9
 
+#define HOTSPOT_CSV "/function_hotspots.csv"
+
 namespace {
 
 typedef std::string::const_iterator string_iter;
@@ -55,12 +57,8 @@ gcov_type get_counter(std::vector<string_view>& contents, int index){
     return boost::lexical_cast<gcov_type>(value);
 }
 
-} //End of anonymous namespace
-
-bool converter::read_spreadsheets(const std::string& directory, converter::Data& data){
-    std::cout << "Import spreadsheets from " << directory << std::endl;
-
-    std::string hotspot_file_name = directory + "/function_hotspots.csv";
+bool read_hotspot(const std::string& directory, converter::Data& data){
+    std::string hotspot_file_name = directory + HOTSPOT_CSV;
 
     std::ifstream hotspot_file;
     hotspot_file.open (hotspot_file_name, std::ios::in);
@@ -116,6 +114,19 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
     }
 
     std::cout << "Found " << data.functions.size() << " hotspot functions" << std::endl;
+
+    return true;
+}
+
+} //End of anonymous namespace
+
+bool converter::read_spreadsheets(const std::string& directory, converter::Data& data){
+    std::cout << "Import spreadsheets from " << directory << std::endl;
+
+    //Import the hotspot functions
+    if(!read_hotspot(directory, data)){
+        return false;
+    }
 
     return true;
 }
