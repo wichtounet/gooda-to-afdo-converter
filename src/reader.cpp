@@ -18,7 +18,7 @@ typedef std::string::const_iterator string_iter;
 typedef boost::iterator_range<string_iter> string_view;
 
 void remove_quotes(std::string& str){
-    if(str.size() < 2 && str[0] == '"' && str[str.length() - 1] == '"'){
+    if(str.size() >= 2 && str[0] == '"' && str[str.length() - 1] == '"'){
         str = str.substr(1, str.length() - 2);
     }
 }
