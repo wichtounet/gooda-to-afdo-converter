@@ -89,11 +89,11 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
         if(!line.empty()){
             auto contents = parse_gooda_hotspot_line(line);
 
-            std::cout << "Hotspot function " << contents[2] << std::endl;
-
-            Function function;
+            converter::Function function;
             function.name = contents[2];
             function.file = "unknown";
+            function.total_count = 0;
+            function.entry_count = 0;
 
             data.add_file_name(function.file);
 

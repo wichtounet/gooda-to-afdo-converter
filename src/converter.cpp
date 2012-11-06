@@ -1,10 +1,36 @@
 #include <iostream>
+#include <chrono>
 
 #include "utils.hpp"
 #include "reader.hpp"
 #include "generator.hpp"
 
-void print_usage();
+namespace {
+
+//Chrono typedefs
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::milliseconds milliseconds;
+
+void print_usage(){
+    std::cout << "Usage: converter spreadsheets_directory" << std::endl;
+}
+
+void process(const std::string& directory){
+    Clock::time_point t0 = Clock::now();
+
+    converter::Data data;
+
+    if(converter::read_spreadsheets(directory, data)){
+        converter::generate_afdo(data, "generated.afdo");
+    }
+    
+    Clock::time_point t1 = Clock::now();
+    milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
+
+    std::cout << "Conversion took " << ms.count() << "ms" << std::endl;
+}
+
+} //end of anonymous namespace
 
 int main(int argc, char **argv){
     if(argc == 1){
@@ -26,15 +52,7 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    converter::Data data;
-
-    if(converter::read_spreadsheets(directory, data)){
-        converter::generate_afdo(data, "generated.afdo");
-    }
+    process(directory);
 
     return 0;
-}
-
-void print_usage(){
-    std::cout << "Usage: converter spreadsheets_directory" << std::endl;
 }
