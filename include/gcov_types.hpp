@@ -1,6 +1,8 @@
 #ifndef CONVERTER_GCOV_TYPES_HPP
 #define CONVERTER_GCOV_TYPES_HPP
 
+#include "tm.h"
+
 /* 
  * It is necessary to copy these types here as the GCOV header cannot be included twice
  */

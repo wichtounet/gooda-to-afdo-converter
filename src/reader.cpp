@@ -4,10 +4,13 @@
 #include <cstring>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "reader.hpp"
 
 #define FUNCTION_NAME 2
+#define UNHALTED_CORE_CYCLES 7
+#define INSTRUCTION_RETIRED 9
 
 namespace {
 
@@ -18,6 +21,17 @@ void remove_quotes(std::string& str){
     if(str.size() < 2 && str[0] == '"' && str[str.length() - 1] == '"'){
         str = str.substr(1, str.length() - 2);
     }
+}
+
+std::vector<string_view> parse_gooda_hotspot_line(const std::string& line){
+    //Keep only the interesting part
+    std::string contents_line = line.substr(2, line.size() - 5);
+
+    std::vector<string_view> contents;
+
+    boost::split(contents, contents_line, [](char c){return c == ',';});
+
+    return contents;
 }
 
 std::string get_string(std::vector<string_view>& contents, int index){
@@ -31,15 +45,14 @@ std::string get_string(std::vector<string_view>& contents, int index){
     return value;
 }
 
-std::vector<string_view> parse_gooda_hotspot_line(const std::string& line){
-    //Keep only the interesting part
-    std::string contents_line = line.substr(2, line.size() - 5);
+gcov_type get_counter(std::vector<string_view>& contents, int index){
+    auto& item = contents[index];
+    
+    std::string value(item.begin(), item.end());
 
-    std::vector<string_view> contents;
+    boost::trim(value);
 
-    boost::split(contents, contents_line, [](char c){return c == ',';});
-
-    return contents;
+    return boost::lexical_cast<gcov_type>(value);
 }
 
 } //End of anonymous namespace
@@ -92,7 +105,7 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
         converter::Function function;
         function.name = get_string(contents, FUNCTION_NAME);
         function.file = "unknown";
-        function.total_count = 0;
+        function.total_count = get_counter(contents, UNHALTED_CORE_CYCLES);
         function.entry_count = 0;
 
         data.add_file_name(function.file);
