@@ -163,6 +163,8 @@ void read_src_file(const std::string& directory, std::size_t i, converter::gooda
 } //end of anonymous namespace
 
 converter::gooda_report converter::read_spreadsheets(const std::string& directory){
+    std::cout << "Import spreadsheets from " << directory << std::endl;
+
     converter::gooda_report report;
 
     if(read_hotspot(directory, report)){

@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "utils.hpp"
+#include "gooda_reader.hpp"
 #include "reader.hpp"
 #include "generator.hpp"
 
@@ -18,11 +19,14 @@ void print_usage(){
 void process(const std::string& directory){
     Clock::time_point t0 = Clock::now();
 
+    converter::gooda_report report;
+    converter::read_spreadsheets(directory);
+
     converter::Data data;
 
-    if(converter::read_spreadsheets(directory, data)){
-        converter::generate_afdo(data, "generated.afdo");
-    }
+    //Read the report and generate AFDO file
+    converter::read_report(report, data);
+    converter::generate_afdo(data, "generated.afdo");
     
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);

@@ -4,10 +4,11 @@
 #include <string>
 
 #include "data.hpp"
+#include "gooda_report.hpp"
 
 namespace converter {
 
-bool read_spreadsheets(const std::string& directory, Data& data);
+void read_report(const gooda_report& report, Data& data);
 
 }
 
