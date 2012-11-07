@@ -50,7 +50,7 @@ class gooda_report {
     public:
         std::size_t functions() const;
 
-        void add_hotspot_function(gooda_line&& line);
+        void add_hotspot_function(const gooda_line& line);
         const gooda_line& hotspot_function(std::size_t i) const;
         
         gooda_file& src_file(std::size_t i);

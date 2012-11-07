@@ -54,7 +54,7 @@ std::size_t converter::gooda_report::functions() const {
     return hotspot_file.lines.size();
 }
         
-void converter::gooda_report::add_hotspot_function(gooda_line&& line){
+void converter::gooda_report::add_hotspot_function(const gooda_line& line){
     hotspot_file.lines.push_back(line);
 }
         

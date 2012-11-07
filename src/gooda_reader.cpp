@@ -79,6 +79,8 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
         //Parse the contents of the line
         parse_gooda_line(hotspot_line.line, hotspot_line.contents);
 
+        report.add_hotspot_function(hotspot_line);
+
         //Next line
         std::getline(hotspot_file, line);
     }
