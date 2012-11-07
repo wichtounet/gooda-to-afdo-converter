@@ -8,7 +8,7 @@
 
 namespace converter {
 
-void read_report(const gooda_report& report, Data& data);
+void read_report(const gooda_report& report, afdo_data& data);
 
 }
 

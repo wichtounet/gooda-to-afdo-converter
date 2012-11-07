@@ -7,7 +7,7 @@
 
 namespace converter {
 
-void generate_afdo(const Data& data, const std::string& file);
+void generate_afdo(const afdo_data& data, const std::string& file);
 
 }
 

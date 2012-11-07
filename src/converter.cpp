@@ -22,7 +22,7 @@ void process(const std::string& directory){
     converter::gooda_report report;
     converter::read_spreadsheets(directory);
 
-    converter::Data data;
+    converter::afdo_data data;
 
     //Read the report and generate AFDO file
     converter::read_report(report, data);

@@ -11,28 +11,28 @@ namespace converter {
 
 static const unsigned int WS_SIZE = 128;
 
-struct CallSitePos {
+struct afdo_pos {
     std::string func;
     std::string file;
     gcov_unsigned_t line;
     gcov_unsigned_t discr;
 };
 
-struct Stack {
-    std::vector<CallSitePos> stack;
+struct afdo_stack {
+    std::vector<afdo_pos> stack;
     gcov_type count;
     gcov_type num_inst;
 };
 
-struct Function {
+struct afdo_function {
     std::string name;
     std::string file;
     gcov_type total_count;
     gcov_type entry_count;
-    std::vector<Stack> stacks;
+    std::vector<afdo_stack> stacks;
 };
 
-struct Module {
+struct afdo_module {
     std::string name;
     gcov_unsigned_t exported;
     gcov_unsigned_t has_asm;
@@ -45,16 +45,16 @@ struct Module {
     std::vector<std::string> strings;
 };
 
-struct WorkingSet {
+struct afdo_working_set {
     gcov_unsigned_t num_counter;
     gcov_type min_counter;
 };
 
-struct Data {
+struct afdo_data {
     std::vector<std::string> file_names;
-    std::vector<Function> functions;
-    std::vector<Module> modules;
-    WorkingSet working_set[WS_SIZE];
+    std::vector<afdo_function> functions;
+    std::vector<afdo_module> modules;
+    afdo_working_set working_set[WS_SIZE];
 
     gcov_unsigned_t get_file_index(const std::string& file) const;
     void add_file_name(const std::string& file);
