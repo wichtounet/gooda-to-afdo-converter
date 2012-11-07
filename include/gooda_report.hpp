@@ -35,17 +35,18 @@ class gooda_line {
         std::vector<string_view> contents;
 };
 
-struct gooda_file {
-    typedef std::vector<gooda_line>::iterator iterator;
-    typedef std::vector<gooda_line>::const_iterator const_iterator;
+class gooda_file {
+    public:
+        typedef std::vector<gooda_line>::iterator iterator;
+        typedef std::vector<gooda_line>::const_iterator const_iterator;
 
-    std::vector<gooda_line> lines;
+        std::vector<gooda_line> lines;
 
-    iterator begin();
-    iterator end();
+        iterator begin();
+        iterator end();
 
-    const_iterator begin() const;
-    const_iterator end() const;
+        const_iterator begin() const;
+        const_iterator end() const;
 };
 
 class gooda_report {
