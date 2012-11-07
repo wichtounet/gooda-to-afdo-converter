@@ -174,6 +174,8 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
                 //Get the entry basic block
                 if(boost::starts_with(disassembly, " Basic Block 1 <")){
                     function.entry_count = get_counter(contents, ASM_UNHALTED_CORE_CYCLES);
+
+                    break;
                 }
 
                 std::getline(asm_file, line);
