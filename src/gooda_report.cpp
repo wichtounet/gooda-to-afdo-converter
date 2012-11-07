@@ -13,6 +13,8 @@ void remove_quotes(std::string& str){
 
 } //end of anonymous namespace
 
+converter::gooda_line::gooda_line(const std::string& line) : line(line) {}
+
 std::string converter::gooda_line::get_string(std::size_t index) const {
     auto& item = contents[index];
 

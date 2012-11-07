@@ -24,13 +24,15 @@ typedef boost::iterator_range<string_iter> string_view;
 
 namespace converter {
 
-struct gooda_line {
-    std::string line;
-    std::vector<string_view> contents;
+class gooda_line {
+    public:
+        gooda_line(const std::string& line);
 
-    std::string get_string(std::size_t index) const;
-    unsigned long get_counter(std::size_t index) const;
-
+        std::string get_string(std::size_t index) const;
+        unsigned long get_counter(std::size_t index) const;
+    
+        std::string line;
+        std::vector<string_view> contents;
 };
 
 struct gooda_file {

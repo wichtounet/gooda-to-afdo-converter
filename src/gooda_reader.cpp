@@ -73,8 +73,7 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
     std::getline(hotspot_file, line);
     
     while(!line.empty()){
-        converter::gooda_line hotspot_line;
-        hotspot_line.line = line;
+        converter::gooda_line hotspot_line(line);
 
         //Parse the contents of the line
         parse_gooda_line(hotspot_line.line, hotspot_line.contents);
@@ -112,8 +111,7 @@ void read_asm_file(const std::string& directory, std::size_t i, converter::gooda
         std::getline(asm_file, line);
 
         while(line.size() > 3){
-            converter::gooda_line asm_line;
-            asm_line.line = line;
+            converter::gooda_line asm_line(line);
 
             //Parse the contents of the line
             parse_gooda_line(asm_line.line, asm_line.contents);
@@ -148,8 +146,7 @@ void read_src_file(const std::string& directory, std::size_t i, converter::gooda
         std::getline(src_file, line);
 
         while(line.size() > 3){
-            converter::gooda_line src_line;
-            src_line.line = line;
+            converter::gooda_line src_line(line);
 
             //Parse the contents of the line
             parse_gooda_line(src_line.line, src_line.contents);
