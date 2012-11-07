@@ -14,6 +14,10 @@
 #define HS_UNHALTED_CORE_CYCLES 7
 #define HS_INSTRUCTION_RETIRED 9
 
+//asm indices
+#define ASM_DISASSEMBLY 6
+#define ASM_UNHALTED_CORE_CYCLES 7
+
 #define HOTSPOT_CSV "/function_hotspots.csv"
 
 #define ASM_FOLDER "/asm/"
@@ -118,7 +122,6 @@ bool read_hotspot(const std::string& directory, converter::Data& data){
         function.name = get_string(contents, HS_FUNCTION_NAME);
         function.file = "unknown";
         function.total_count = get_counter(contents, HS_UNHALTED_CORE_CYCLES);
-        function.entry_count = 0;
 
         data.add_file_name(function.file);
 
@@ -143,6 +146,8 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
     }
 
     for(std::size_t i = 0; i < data.functions.size(); ++i){
+        auto& function = data.functions[i];
+
         std::string asm_file_name = directory + ASM_FOLDER + std::to_string(i) + ASM_CSV;
 
         if(converter::exists(asm_file_name)){
@@ -164,10 +169,17 @@ bool converter::read_spreadsheets(const std::string& directory, converter::Data&
             while(line.size() > 3){
                 auto contents = parse_gooda_line(line);
 
+                auto disassembly = get_string(contents, ASM_DISASSEMBLY);
+
+                //Get the entry basic block
+                if(boost::starts_with(disassembly, " Basic Block 1 <")){
+                    function.entry_count = get_counter(contents, ASM_UNHALTED_CORE_CYCLES);
+                }
+
                 std::getline(asm_file, line);
             }
 
-            std::cout << data.functions[i].name << ":" << data.functions[i].total_count << std::endl;
+            std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
         }
     }
 
