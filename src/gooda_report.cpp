@@ -15,8 +15,6 @@ void remove_quotes(std::string& str){
 
 } //end of anonymous namespace
 
-converter::gooda_line::gooda_line(const std::string& line) : line(line) {}
-
 std::string converter::gooda_line::get_string(std::size_t index) const {
     auto& item = contents[index];
 
@@ -48,6 +46,18 @@ converter::gooda_line& converter::gooda_file::new_line(){
     return lines[i];
 }
 
+std::size_t converter::gooda_file::size() const {
+    return lines.size();
+}
+
+converter::gooda_line& converter::gooda_file::line(std::size_t i){
+    return lines[i];
+}
+
+const converter::gooda_line& converter::gooda_file::line(std::size_t i) const {
+    return lines[i];
+}
+
 converter::gooda_file::iterator converter::gooda_file::begin(){
     return lines.begin();
 }
@@ -65,7 +75,7 @@ converter::gooda_file::const_iterator converter::gooda_file::end() const {
 }
 
 std::size_t converter::gooda_report::functions() const {
-    return hotspot_file.lines.size();
+    return hotspot_file.size();
 }
         
 converter::gooda_file& converter::gooda_report::src_file(std::size_t i){
@@ -97,5 +107,5 @@ converter::gooda_line& converter::gooda_report::new_hotspot_function(){
 }
 
 const converter::gooda_line& converter::gooda_report::hotspot_function(std::size_t i) const {
-    return hotspot_file.lines[i];
+    return hotspot_file.line(i);
 }

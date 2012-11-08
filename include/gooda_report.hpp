@@ -24,11 +24,9 @@ typedef boost::iterator_range<string_iter> string_view;
 
 namespace converter {
 
+    //TODO Better encapsulation of this class
 class gooda_line {
     public:
-        gooda_line(){}
-        gooda_line(const std::string& line);
-
         std::string get_string(std::size_t index) const;
         unsigned long get_counter(std::size_t index) const;
     
@@ -41,8 +39,6 @@ class gooda_file {
         typedef std::vector<gooda_line>::iterator iterator;
         typedef std::vector<gooda_line>::const_iterator const_iterator;
 
-        std::vector<gooda_line> lines;
-
         iterator begin();
         iterator end();
 
@@ -50,6 +46,14 @@ class gooda_file {
         const_iterator end() const;
         
         gooda_line& new_line();
+
+        std::size_t size() const;
+        
+        gooda_line& line(std::size_t i);
+        const gooda_line& line(std::size_t i) const;
+
+    private:
+        std::vector<gooda_line> lines;
 };
 
 class gooda_report {
