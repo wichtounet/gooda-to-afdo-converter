@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "gooda_reader.hpp"
@@ -51,7 +52,27 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     //Keep only the interesting part
     line = line.substr(2, line.size() - 5);
 
-    boost::split(contents, line, [](char c){return c == ',';});
+    //boost::split(contents, line, [](char c){return c == ',';});
+    
+    boost::tokenizer<boost::escaped_list_separator<char>, std::string::const_iterator, string_view> tokenizer(line.begin(), line.end());
+    contents.assign(tokenizer.begin(), tokenizer.end());
+    
+    /*for (auto it = tokenizer.begin(), it_end = tokenizer.end(); it != it_end; ++it){
+        std::ptrdiff_t offset = it.base() - it->size();
+        contents.push_back(string_view(it.base() - (it->size() + 1), 1 + it.base() - 2));
+    }*/
+    
+    /*for(auto it = tokenizer.begin(); it != tokenizer.end(); ++it){
+        std::cout << *it << std::endl;
+    }
+
+    std::cout << std::endl;*/
+    
+    /*for(std::size_t j = 0; j < contents.size(); ++j){
+        std::cout << j << ":" << contents[j] << std::endl;
+    }
+    
+    std::cout << contents[99999] << std::endl;*/
 }
 
 bool read_hotspot(const std::string& directory, converter::gooda_report& report){
@@ -75,11 +96,6 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
     int i = 0;
     
     while(!line.empty()){
-        /*if(i > 0){
-            for(std::size_t j = 0; j < report.hotspot_function(i - 1).contents.size(); ++j){
-                std::cout << j << ":" << report.hotspot_function(i - 1).contents[j] << std::endl;
-            }
-        }*/
 
         //converter::gooda_line hotspot_line(line);
         auto& hotspot_line = report.new_hotspot_function();
@@ -90,10 +106,6 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
 
         //Next line
         std::getline(hotspot_file, line);
-            
-        /*for(std::size_t j = 0; j < report.hotspot_function(i).contents.size(); ++j){
-            std::cout << j << ":" << report.hotspot_function(i).contents[j] << std::endl;
-        }*/
 
         ++i;
     }

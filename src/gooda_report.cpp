@@ -5,16 +5,6 @@
 
 #include "gooda_report.hpp"
 
-namespace {
-    
-void remove_quotes(std::string& str){
-    if(str.size() >= 2 && str[0] == '"' && str[str.length() - 1] == '"'){
-        str = str.substr(1, str.length() - 2);
-    }
-}
-
-} //end of anonymous namespace
-
 std::string converter::gooda_line::get_string(std::size_t index) const {
     auto& item = contents[index];
 
@@ -22,7 +12,6 @@ std::string converter::gooda_line::get_string(std::size_t index) const {
     std::string value = v;
 
     boost::trim(value);
-    remove_quotes(value);
 
     return value;
 }
@@ -34,6 +23,14 @@ unsigned long converter::gooda_line::get_counter(std::size_t index) const {
     std::string value = v;
 
     boost::trim(value);
+    
+    /*
+    for(std::size_t j = 0; j < contents.size(); ++j){
+        std::cout << j << ":" << contents[j] << std::endl;
+    }
+    
+    std::cout << index << ":" << value << std::endl;
+    */
 
     return boost::lexical_cast<unsigned long>(value);
 }

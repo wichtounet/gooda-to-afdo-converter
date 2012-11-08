@@ -8,7 +8,8 @@
 #include <boost/algorithm/string.hpp>
 
 typedef std::string::const_iterator string_iter;
-typedef boost::iterator_range<string_iter> string_view;
+//typedef boost::iterator_range<string_iter> string_view;
+typedef std::string string_view;
 
 //Hotspot indices
 #define HS_FUNCTION_NAME 2
