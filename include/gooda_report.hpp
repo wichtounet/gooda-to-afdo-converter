@@ -26,6 +26,7 @@ namespace converter {
 
 class gooda_line {
     public:
+        gooda_line(){}
         gooda_line(const std::string& line);
 
         std::string get_string(std::size_t index) const;
@@ -47,13 +48,15 @@ class gooda_file {
 
         const_iterator begin() const;
         const_iterator end() const;
+        
+        gooda_line& new_line();
 };
 
 class gooda_report {
     public:
         std::size_t functions() const;
 
-        void add_hotspot_function(const gooda_line& line);
+        gooda_line& new_hotspot_function();
         const gooda_line& hotspot_function(std::size_t i) const;
         
         gooda_file& src_file(std::size_t i);

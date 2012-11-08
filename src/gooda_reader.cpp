@@ -71,17 +71,31 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
 
     //The first hotspot line
     std::getline(hotspot_file, line);
+
+    int i = 0;
     
     while(!line.empty()){
-        converter::gooda_line hotspot_line(line);
+        /*if(i > 0){
+            for(std::size_t j = 0; j < report.hotspot_function(i - 1).contents.size(); ++j){
+                std::cout << j << ":" << report.hotspot_function(i - 1).contents[j] << std::endl;
+            }
+        }*/
+
+        //converter::gooda_line hotspot_line(line);
+        auto& hotspot_line = report.new_hotspot_function();
+        hotspot_line.line = line;
 
         //Parse the contents of the line
         parse_gooda_line(hotspot_line.line, hotspot_line.contents);
 
-        report.add_hotspot_function(hotspot_line);
-
         //Next line
         std::getline(hotspot_file, line);
+            
+        /*for(std::size_t j = 0; j < report.hotspot_function(i).contents.size(); ++j){
+            std::cout << j << ":" << report.hotspot_function(i).contents[j] << std::endl;
+        }*/
+
+        ++i;
     }
 
     std::cout << "Found " << report.functions() << " hotspot functions" << std::endl;
@@ -101,7 +115,7 @@ void read_asm_file(const std::string& directory, std::size_t i, converter::gooda
             return;
         }
 
-        converter::gooda_file gooda_file = report.asm_file(i);
+        auto& gooda_file = report.asm_file(i);
 
         skip_headers(asm_file);
 
@@ -111,12 +125,11 @@ void read_asm_file(const std::string& directory, std::size_t i, converter::gooda
         std::getline(asm_file, line);
 
         while(line.size() > 3){
-            converter::gooda_line asm_line(line);
+            auto& asm_line = gooda_file.new_line();
+            asm_line.line = line;
 
             //Parse the contents of the line
             parse_gooda_line(asm_line.line, asm_line.contents);
-
-            gooda_file.lines.push_back(asm_line);
 
             //Next line
             std::getline(asm_file, line);
@@ -136,7 +149,7 @@ void read_src_file(const std::string& directory, std::size_t i, converter::gooda
             return;
         }
 
-        converter::gooda_file gooda_file = report.src_file(i);
+        auto& gooda_file = report.src_file(i);
 
         skip_headers(src_file);
 
@@ -146,12 +159,11 @@ void read_src_file(const std::string& directory, std::size_t i, converter::gooda
         std::getline(src_file, line);
 
         while(line.size() > 3){
-            converter::gooda_line src_line(line);
+            auto& src_line = gooda_file.new_line();
+            src_line.line = line;
 
             //Parse the contents of the line
             parse_gooda_line(src_line.line, src_line.contents);
-
-            gooda_file.lines.push_back(src_line);
 
             //Next line
             std::getline(src_file, line);

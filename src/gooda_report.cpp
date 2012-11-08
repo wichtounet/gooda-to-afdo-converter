@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -18,7 +20,8 @@ converter::gooda_line::gooda_line(const std::string& line) : line(line) {}
 std::string converter::gooda_line::get_string(std::size_t index) const {
     auto& item = contents[index];
 
-    std::string value(item.begin(), item.end());
+    std::string v(item.begin(), item.end());
+    std::string value = v;
 
     boost::trim(value);
     remove_quotes(value);
@@ -29,11 +32,20 @@ std::string converter::gooda_line::get_string(std::size_t index) const {
 unsigned long converter::gooda_line::get_counter(std::size_t index) const {
     auto& item = contents[index];
 
-    std::string value(item.begin(), item.end());
+    std::string v(item.begin(), item.end());
+    std::string value = v;
 
     boost::trim(value);
 
     return boost::lexical_cast<unsigned long>(value);
+}
+
+converter::gooda_line& converter::gooda_file::new_line(){
+    int i = lines.size();
+
+    lines.resize(i + 1);
+
+    return lines[i];
 }
 
 converter::gooda_file::iterator converter::gooda_file::begin(){
@@ -54,10 +66,6 @@ converter::gooda_file::const_iterator converter::gooda_file::end() const {
 
 std::size_t converter::gooda_report::functions() const {
     return hotspot_file.lines.size();
-}
-        
-void converter::gooda_report::add_hotspot_function(const gooda_line& line){
-    hotspot_file.lines.push_back(line);
 }
         
 converter::gooda_file& converter::gooda_report::src_file(std::size_t i){
@@ -82,6 +90,10 @@ bool converter::gooda_report::has_src_file(std::size_t i) const {
 
 bool converter::gooda_report::has_asm_file(std::size_t i) const {
     return asm_files.find(i) != asm_files.end();
+}
+
+converter::gooda_line& converter::gooda_report::new_hotspot_function(){
+    return hotspot_file.new_line();
 }
 
 const converter::gooda_line& converter::gooda_report::hotspot_function(std::size_t i) const {

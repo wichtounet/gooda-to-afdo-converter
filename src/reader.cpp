@@ -37,7 +37,7 @@ void read_src_file(const converter::gooda_report& report, std::size_t i, convert
         for(auto& line : file){
             auto line_number = line.get_counter(SRC_LINE);
 
-            std::cout << line_number << std::endl;
+            //std::cout << line_number << std::endl;
         }
     }
 }
@@ -47,7 +47,7 @@ void read_src_file(const converter::gooda_report& report, std::size_t i, convert
 void converter::read_report(const gooda_report& report, converter::afdo_data& data){
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
-
+    
         converter::afdo_function function;
         function.name = line.get_string(HS_FUNCTION_NAME);
         function.file = "unknown";

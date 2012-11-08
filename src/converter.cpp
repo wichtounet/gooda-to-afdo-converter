@@ -19,8 +19,8 @@ void print_usage(){
 void process(const std::string& directory){
     Clock::time_point t0 = Clock::now();
 
-    converter::gooda_report report;
-    converter::read_spreadsheets(directory);
+    //Read the Gooda Spreadsheets
+    auto report = converter::read_spreadsheets(directory);
 
     converter::afdo_data data;
 
