@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "data.hpp"
+#include "afdo_data.hpp"
 
 gcov_unsigned_t converter::afdo_data::get_file_index(const std::string& file) const {
     assert(file_index.count(file));
