@@ -24,7 +24,8 @@ typedef boost::iterator_range<string_iter> string_view;
 
 namespace converter {
 
-    //TODO Better encapsulation of this class
+//TODO Better encapsulation of this class
+
 class gooda_line {
     public:
         std::string get_string(std::size_t index) const;
