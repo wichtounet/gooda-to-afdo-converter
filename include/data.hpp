@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <array>
 
 #include "gcov_types.hpp"
 
@@ -54,7 +55,7 @@ struct afdo_data {
     std::vector<std::string> file_names;
     std::vector<afdo_function> functions;
     std::vector<afdo_module> modules;
-    afdo_working_set working_set[WS_SIZE];
+    std::array<afdo_working_set, WS_SIZE> working_set;
 
     gcov_unsigned_t get_file_index(const std::string& file) const;
     void add_file_name(const std::string& file);

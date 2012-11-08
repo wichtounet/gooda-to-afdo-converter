@@ -107,7 +107,7 @@ void write_module_info(const converter::afdo_data& data){
 void write_working_set(const converter::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_WORKING_SET);
 
-    std::for_each(data.working_set, data.working_set + converter::WS_SIZE, [](const converter::afdo_working_set& ws){
+    std::for_each(data.working_set.begin(), data.working_set.end(), [](const converter::afdo_working_set& ws){
         gcov_write_unsigned(ws.num_counter);
         gcov_write_counter(ws.min_counter);
     });
