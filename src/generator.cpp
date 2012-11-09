@@ -19,37 +19,62 @@
 
 namespace {
 
-void write_string (const std::string& value){
-    unsigned length = value.length();
-    unsigned alloc = (length + 4) >> 2; //Size of \0 terminated string
-
-    //TODO Necessary to check that...
-    
+void gooda_gcov_write_string (const char *string){
+    unsigned length = 0;
+    unsigned alloc = 0;
     gcov_unsigned_t *buffer;
+
+    if (string)
+    {   
+        length = strlen (string);
+        alloc = (length + 4) >> 2;
+    }   
+
     buffer = gcov_write_words (1 + alloc);
 
     buffer[0] = alloc;
     buffer[alloc] = 0;
-    memcpy (&buffer[1], value.c_str(), length);
+    memcpy (&buffer[1], string, length);
+}
+
+void write_string (const std::string& value){
+    //std::cout << value << std::endl;
+
+    gooda_gcov_write_string(value.c_str());
+}
+
+void write_unsigned(gcov_unsigned_t value){
+    //std::cout << value << std::endl;
+
+    gcov_write_unsigned(value);
+}
+
+void write_counter(gcov_type value){
+    //std::cout << value << std::endl;
+
+    gcov_write_counter(value);
 }
 
 template<typename Type, typename Lambda>
 void write_collection(const std::vector<Type>& values, Lambda functor){
-    gcov_write_unsigned(values.size());
+    write_unsigned(values.size());
 
     std::for_each(values.begin(), values.end(), functor);
 }
 
-void write_section_header(gcov_unsigned_t tag){
-    //The header of the section
-    gcov_write_unsigned(tag);
-    gcov_write_unsigned(0); //Skipped by AFDO
+void write_header(){
+    gcov_write_tag_length(GCOV_DATA_MAGIC, GCOV_VERSION);
+    
+    //The stamp is not important for AFDO
+    write_unsigned(0);
 }
 
-void write_header(){
-    gcov_write_unsigned(GCOV_DATA_MAGIC);
-    gcov_write_unsigned(GCOV_VERSION);
-    gcov_write_unsigned(0); //The stamp is not important for AFDO
+void write_section_header(gcov_unsigned_t tag){
+    //The header of the section
+    write_unsigned(tag);
+
+    //The size of the section, skipped by AFDO
+    write_unsigned(0);
 }
 
 void write_file_name_table(const converter::afdo_data& data){
@@ -64,22 +89,22 @@ void write_function_table(const converter::afdo_data& data){
     write_collection(data.functions, [&data](const converter::afdo_function& function){
         write_string(function.name);
 
-        gcov_write_unsigned(data.get_file_index(function.file));
+        write_unsigned(data.get_file_index(function.file));
 
-        gcov_write_counter(function.total_count);
-        gcov_write_counter(function.entry_count);
+        write_counter(function.total_count);
+        write_counter(function.entry_count);
 
         write_collection(function.stacks, [&data](const converter::afdo_stack& stack){
             write_collection(stack.stack, [&data](const converter::afdo_pos& s){
-                gcov_write_unsigned(data.get_file_index(s.func));
-                gcov_write_unsigned(data.get_file_index(s.file));
+                write_unsigned(data.get_file_index(s.func));
+                write_unsigned(data.get_file_index(s.file));
                 
-                gcov_write_unsigned(s.line);
-                gcov_write_unsigned(s.discr);
+                write_unsigned(s.line);
+                write_unsigned(s.discr);
             });
             
-            gcov_write_counter(stack.count);
-            gcov_write_counter(stack.num_inst);
+            write_counter(stack.count);
+            write_counter(stack.num_inst);
         });
     });
 }
@@ -90,15 +115,15 @@ void write_module_info(const converter::afdo_data& data){
     write_collection(data.modules, [&data](const converter::afdo_module& module){
         write_string(module.name);
 
-        gcov_write_unsigned(module.exported);
-        gcov_write_unsigned(module.has_asm);
+        write_unsigned(module.exported);
+        write_unsigned(module.has_asm);
         
-        gcov_write_unsigned(module.num_aux_modules);
-        gcov_write_unsigned(module.num_quote_paths);
-        gcov_write_unsigned(module.num_bracket_paths);
-        gcov_write_unsigned(module.num_cpp_defines);
-        gcov_write_unsigned(module.num_cpp_includes);
-        gcov_write_unsigned(module.num_cl_args);
+        write_unsigned(module.num_aux_modules);
+        write_unsigned(module.num_quote_paths);
+        write_unsigned(module.num_bracket_paths);
+        write_unsigned(module.num_cpp_defines);
+        write_unsigned(module.num_cpp_includes);
+        write_unsigned(module.num_cl_args);
 
         std::for_each(module.strings.begin(), module.strings.end(), write_string);
     });
@@ -108,8 +133,8 @@ void write_working_set(const converter::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_WORKING_SET);
 
     std::for_each(data.working_set.begin(), data.working_set.end(), [](const converter::afdo_working_set& ws){
-        gcov_write_unsigned(ws.num_counter);
-        gcov_write_counter(ws.min_counter);
+        write_unsigned(ws.num_counter);
+        write_counter(ws.min_counter);
     });
 }
 
@@ -133,5 +158,6 @@ void converter::generate_afdo(const afdo_data& data, const std::string& file){
     write_module_info(data);
     write_working_set(data);
 
+    write_unsigned(0);
     gcov_close();
 }

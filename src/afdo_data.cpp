@@ -2,6 +2,10 @@
 
 #include "afdo_data.hpp"
 
+converter::afdo_data::afdo_data() : working_set(WS_SIZE) {
+    //Nothing to init
+}
+
 gcov_unsigned_t converter::afdo_data::get_file_index(const std::string& file) const {
     assert(file_index.count(file));
 

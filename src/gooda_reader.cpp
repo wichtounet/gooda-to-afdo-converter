@@ -54,8 +54,8 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
 
     //boost::split(contents, line, [](char c){return c == ',';});
     
-    boost::tokenizer<boost::escaped_list_separator<char>, std::string::const_iterator, string_view> tokenizer(line.begin(), line.end());
-    contents.assign(tokenizer.begin(), tokenizer.end());
+    boost::tokenizer<boost::escaped_list_separator<char>, std::string::const_iterator, string_view> tok(line.begin(), line.end());
+    contents.assign(tok.begin(), tok.end());
     
     /*for (auto it = tokenizer.begin(), it_end = tokenizer.end(); it != it_end; ++it){
         std::ptrdiff_t offset = it.base() - it->size();
@@ -96,8 +96,6 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
     int i = 0;
     
     while(!line.empty()){
-
-        //converter::gooda_line hotspot_line(line);
         auto& hotspot_line = report.new_hotspot_function();
         hotspot_line.line = line;
 
