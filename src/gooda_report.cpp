@@ -18,6 +18,8 @@ std::string converter::gooda_line::get_string(std::size_t index) const {
 
 unsigned long converter::gooda_line::get_counter(std::size_t index) const {
     auto& item = contents[index];
+    
+    //std::cout << index << ":" << item << std::endl;
 
     std::string v(item.begin(), item.end());
     std::string value = v;

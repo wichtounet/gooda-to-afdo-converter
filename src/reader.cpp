@@ -23,8 +23,6 @@ void read_asm_file(const converter::gooda_report& report, std::size_t i, convert
                 break;
             }
         }
-
-        std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
     }
 }
 
@@ -37,7 +35,19 @@ void read_src_file(const converter::gooda_report& report, std::size_t i, convert
         for(auto& line : file){
             auto line_number = line.get_counter(SRC_LINE);
 
-            //std::cout << line_number << std::endl;
+            converter::afdo_stack stack;
+            stack.count = line.get_counter(SRC_UNHALTED_CORE_CYCLES);
+            stack.num_inst = 1; 
+
+            converter::afdo_pos position;
+            position.func = function.name;
+            position.file = function.file;
+            position.line = line_number;
+            position.discr = 1;
+
+            stack.stack.push_back(position);
+
+            function.stacks.push_back(std::move(stack));
         }
     }
 }
@@ -54,6 +64,7 @@ void converter::read_report(const gooda_report& report, converter::afdo_data& da
         function.total_count = line.get_counter(HS_UNHALTED_CORE_CYCLES);
 
         data.add_file_name(function.file);
+        data.add_file_name(function.name);
 
         data.functions.push_back(function);
         
