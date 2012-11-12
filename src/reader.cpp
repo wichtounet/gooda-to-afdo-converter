@@ -17,14 +17,14 @@ void read_asm_file(const converter::gooda_report& report, std::size_t i, convert
             auto disassembly = line.get_string(ASM_DISASSEMBLY);
             
             //Get the entry basic block
-            if(boost::starts_with(disassembly, " Basic Block 1 <")){
+            if(boost::starts_with(disassembly, "Basic Block 1 <")){
                 function.entry_count = line.get_counter(ASM_UNHALTED_CORE_CYCLES);
 
                 break;
             }
         }
 
-        //std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
+        std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
     }
 }
 
@@ -60,4 +60,6 @@ void converter::read_report(const gooda_report& report, converter::afdo_data& da
         read_asm_file(report, i, data);
         read_src_file(report, i, data);
     }
+
+    //Note: No need to fill the working set because it is not used by GCC
 }
