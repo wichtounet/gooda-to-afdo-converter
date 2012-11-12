@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "gooda_reader.hpp"
@@ -52,27 +51,59 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     //Keep only the interesting part
     line = line.substr(2, line.size() - 5);
 
-    //boost::split(contents, line, [](char c){return c == ',';});
-    
-    boost::tokenizer<boost::escaped_list_separator<char>, std::string::const_iterator, string_view> tok(line.begin(), line.end());
-    contents.assign(tok.begin(), tok.end());
-    
-    /*for (auto it = tokenizer.begin(), it_end = tokenizer.end(); it != it_end; ++it){
-        std::ptrdiff_t offset = it.base() - it->size();
-        contents.push_back(string_view(it.base() - (it->size() + 1), 1 + it.base() - 2));
-    }*/
-    
-    /*for(auto it = tokenizer.begin(); it != tokenizer.end(); ++it){
-        std::cout << *it << std::endl;
+    auto it = line.begin();
+    auto end = line.end();
+
+    unsigned long length = 0;
+
+    while(true){
+        auto c = *it;
+
+        if(c == ','){
+            contents.push_back({it - length, it});
+            length = 0;
+        } else if(c == '\"'){
+            length = 0;
+
+            do {
+                ++it;
+                c = *it;
+                ++length;
+
+                if(c == '\\'){
+                    ++it;
+                    ++length;
+                }
+            } while(c != '\"');
+
+            contents.push_back({it - length + 1, it});
+            
+            while(c != ',' && it != end){
+                ++it;
+                c = *it;
+            }
+
+            length = 0;
+        } else {
+            ++length;
+        }
+        
+        ++it;
+
+        if(it == end){
+            if(length > 0){
+                contents.push_back({it - length, it});
+            }
+
+            break;
+        }
     }
 
-    std::cout << std::endl;*/
+    /*std::cout << line << std::endl;
     
-    /*for(std::size_t j = 0; j < contents.size(); ++j){
+    for(std::size_t j = 0; j < contents.size(); ++j){
         std::cout << j << ":" << contents[j] << std::endl;
-    }
-    
-    std::cout << contents[99999] << std::endl;*/
+    }*/
 }
 
 bool read_hotspot(const std::string& directory, converter::gooda_report& report){
