@@ -24,7 +24,7 @@ void read_asm_file(const converter::gooda_report& report, std::size_t i, convert
             }
         }
 
-        std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
+        //std::cout << function.name << ":" << function.total_count << ":" << function.entry_count << std::endl;
     }
 }
 

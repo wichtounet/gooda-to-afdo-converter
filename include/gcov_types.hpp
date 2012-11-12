@@ -1,6 +1,9 @@
 #ifndef CONVERTER_GCOV_TYPES_HPP
 #define CONVERTER_GCOV_TYPES_HPP
 
+#include "tconfig.h"
+#include "tsystem.h"
+#include "coretypes.h"
 #include "tm.h"
 
 /* 

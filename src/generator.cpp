@@ -1,15 +1,20 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
+#include <cassert>
 
 #include "generator.hpp"
 
 //Necessary for gcc_assert
+#include "tconfig.h"
 #include "tsystem.h"
+#include "coretypes.h"
+#include "tm.h"
 
 #define IN_LIBGCOV 1
-#define GCOV_LINKAGE /* nothing */
+#define GCOV_LINKAGE // nothing
 #include "gcov-io.h"
-#include "gcov-io.c"
+//#include "gcov-io.c"
 
 //TODO Once GCC patched, these defines should be removed
 #define GCOV_TAG_AFDO_FILE_NAMES ((gcov_unsigned_t)0xaa000000)
@@ -17,12 +22,15 @@
 #define GCOV_TAG_AFDO_MODULE_GROUPING ((gcov_unsigned_t)0xae000000)
 #define GCOV_TAG_AFDO_WORKING_SET ((gcov_unsigned_t)0xaf000000)
 
+//Should be only temporary
+std::ofstream gcov_file;
+
 namespace {
 
 void gooda_gcov_write_string (const char *string){
     unsigned length = 0;
     unsigned alloc = 0;
-    gcov_unsigned_t *buffer;
+    //gcov_unsigned_t *buffer;
 
     if (string)
     {   
@@ -30,29 +38,51 @@ void gooda_gcov_write_string (const char *string){
         alloc = (length + 4) >> 2;
     }   
 
-    buffer = gcov_write_words (1 + alloc);
+    //buffer = gcov_write_words (1 + alloc);
+    
+    gcov_file.write(reinterpret_cast<const char*>(&alloc), sizeof(alloc));
 
-    buffer[0] = alloc;
-    buffer[alloc] = 0;
-    memcpy (&buffer[1], string, length);
+    char* buffer = new char[alloc * 4];
+
+    for(unsigned int i = alloc - 1; i > length; --i){
+        buffer[i] = 0;
+    }
+
+    //buffer[0] = alloc;
+    //buffer[alloc - 1] = 0;
+    memcpy (&buffer[0], string, length);
+    
+    gcov_file.write(buffer, alloc * 4);
+
+    delete[] buffer;
 }
 
 void write_string (const std::string& value){
     //std::cout << value << std::endl;
 
     gooda_gcov_write_string(value.c_str());
+
+    //assert(!gcov_is_error());
 }
 
 void write_unsigned(gcov_unsigned_t value){
     //std::cout << value << std::endl;
+    
+    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
 
-    gcov_write_unsigned(value);
+    //gcov_write_unsigned(value);
+
+    //assert(!gcov_is_error());
 }
 
 void write_counter(gcov_type value){
     //std::cout << value << std::endl;
+    
+    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
 
-    gcov_write_counter(value);
+    //gcov_write_counter(value);
+
+    //assert(!gcov_is_error());
 }
 
 template<typename Type, typename Lambda>
@@ -63,7 +93,10 @@ void write_collection(const std::vector<Type>& values, Lambda functor){
 }
 
 void write_header(){
-    gcov_write_tag_length(GCOV_DATA_MAGIC, GCOV_VERSION);
+    write_unsigned(GCOV_DATA_MAGIC);
+    write_unsigned(GCOV_VERSION);
+    //gcov_write_tag_length(GCOV_DATA_MAGIC, GCOV_VERSION);
+    //assert(!gcov_is_error());
     
     //The stamp is not important for AFDO
     write_unsigned(0);
@@ -143,13 +176,21 @@ void write_working_set(const converter::afdo_data& data){
 void converter::generate_afdo(const afdo_data& data, const std::string& file){
     std::cout << "Generate AFDO profile in \"" << file << "\"" << std::endl;
 
-    if(!gcov_open(file.c_str())){
+    gcov_file.open(file.c_str(), std::ios::binary | std::ios::out );
+
+    /*if(!gcov_open(file.c_str())){
+        std::cout << "Cannot open file for writing" << std::endl;
+        return;
+    }*/
+
+    if(!gcov_file){
         std::cout << "Cannot open file for writing" << std::endl;
         return;
     }
 
     //Put GCOV in write mode
-    gcov_rewrite();
+    //gcov_rewrite();
+    //assert(!gcov_is_error());
 
     write_header();
 
@@ -158,6 +199,6 @@ void converter::generate_afdo(const afdo_data& data, const std::string& file){
     write_module_info(data);
     write_working_set(data);
 
-    write_unsigned(0);
-    gcov_close();
+    //write_unsigned(0);
+    //gcov_close();
 }
