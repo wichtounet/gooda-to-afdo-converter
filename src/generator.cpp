@@ -41,7 +41,13 @@ void write_unsigned(gcov_unsigned_t value){
 void write_counter(gcov_type value){
     //std::cout << value << std::endl;
     
-    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+    //gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+
+    gcov_unsigned_t lo = value >> 0;
+    gcov_unsigned_t hi = value >> 32;
+
+    write_unsigned(lo);
+    write_unsigned(hi);
 }
 
 void gooda_gcov_write_string (const char *string){
