@@ -73,4 +73,5 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
     }
 
     //Note: No need to fill the working set because it is not used by GCC
+    //It will be automatically written empty by the AFDO generator
 }
