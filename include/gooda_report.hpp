@@ -17,6 +17,7 @@ typedef boost::iterator_range<string_iter> string_view;
 #define HS_UNHALTED_CORE_CYCLES 7
 
 //asm indices
+#define ASM_FILE 3
 #define ASM_DISASSEMBLY 6
 #define ASM_UNHALTED_CORE_CYCLES 7
 

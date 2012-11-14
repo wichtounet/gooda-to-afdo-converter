@@ -13,12 +13,21 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         auto& function = data.functions[i];
         auto& file = report.asm_file(i);
 
+        bool bb_found = false;
+
         for(auto& line : file){
             auto disassembly = line.get_string(ASM_DISASSEMBLY);
             
             //Get the entry basic block
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
                 function.entry_count = line.get_counter(ASM_UNHALTED_CORE_CYCLES);
+
+                bb_found = true;
+            } else if(bb_found){
+                auto file_name = line.get_string(ASM_FILE);
+
+                function.file = file_name;
+                data.add_file_name(file_name);
 
                 break;
             }
