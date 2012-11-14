@@ -62,9 +62,13 @@ class gooda_file {
 class gooda_report {
     public:
         std::size_t functions() const;
+        std::size_t processes() const;
 
         gooda_line& new_hotspot_function();
         const gooda_line& hotspot_function(std::size_t i) const;
+
+        gooda_line& new_process();
+        const gooda_line& process(std::size_t i) const;
         
         gooda_file& src_file(std::size_t i);
         const gooda_file& src_file(std::size_t i) const;
@@ -77,6 +81,7 @@ class gooda_report {
 
     private:
         gooda_file hotspot_file;
+        gooda_file process_file;
         
         std::unordered_map<std::size_t, gooda_file> src_files;
         std::unordered_map<std::size_t, gooda_file> asm_files;

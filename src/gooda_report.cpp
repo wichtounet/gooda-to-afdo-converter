@@ -76,6 +76,10 @@ converter::gooda_file::const_iterator converter::gooda_file::end() const {
 std::size_t converter::gooda_report::functions() const {
     return hotspot_file.size();
 }
+
+std::size_t converter::gooda_report::processes() const {
+    return process_file.size();
+}
         
 converter::gooda_file& converter::gooda_report::src_file(std::size_t i){
     return src_files[i];
@@ -99,6 +103,14 @@ bool converter::gooda_report::has_src_file(std::size_t i) const {
 
 bool converter::gooda_report::has_asm_file(std::size_t i) const {
     return asm_files.find(i) != asm_files.end();
+}
+
+converter::gooda_line& converter::gooda_report::new_process(){
+    return process_file.new_line();
+}
+
+const converter::gooda_line& converter::gooda_report::process(std::size_t i) const {
+    return process_file.line(i);
 }
 
 converter::gooda_line& converter::gooda_report::new_hotspot_function(){

@@ -10,6 +10,7 @@
 #include "utils.hpp"
 
 #define HOTSPOT_CSV "/function_hotspots.csv"
+#define PROCESS_CSV "/process.csv"
 
 #define ASM_FOLDER "/asm/"
 #define ASM_CSV "_asm.csv"
@@ -104,6 +105,44 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     for(std::size_t j = 0; j < contents.size(); ++j){
         std::cout << j << ":" << contents[j] << std::endl;
     }*/
+}
+
+bool read_processes(const std::string& directory, converter::gooda_report& report){
+    std::string process_file_name = directory + PROCESS_CSV;
+
+    std::ifstream process_file;
+    process_file.open (process_file_name, std::ios::in);
+
+    if(!process_file.is_open()){
+        std::cout << "Unable to open \"" << process_file_name << "\"" << std::endl;
+        return false;
+    }
+
+    skip_headers(process_file);
+
+    std::string line;
+
+    //The first process line
+    std::getline(process_file, line);
+
+    int i = 0;
+    
+    while(line.size() > 2){
+        auto& process_line = report.new_process();
+        process_line.line = line;
+
+        //Parse the contents of the line
+        parse_gooda_line(process_line.line, process_line.contents);
+
+        //Next line
+        std::getline(process_file, line);
+
+        ++i;
+    }
+
+    std::cout << "Found " << report.processes() << " processes" << std::endl;
+
+    return true;
 }
 
 bool read_hotspot(const std::string& directory, converter::gooda_report& report){
@@ -218,6 +257,8 @@ converter::gooda_report converter::read_spreadsheets(const std::string& director
     std::cout << "Import spreadsheets from " << directory << std::endl;
 
     converter::gooda_report report;
+
+    read_processes(directory, report);
 
     if(read_hotspot(directory, report)){
         for(std::size_t i = 0; i < report.functions(); ++i){
