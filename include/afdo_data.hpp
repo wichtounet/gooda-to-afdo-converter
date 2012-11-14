@@ -8,7 +8,7 @@
 
 #include "gcov_types.hpp"
 
-namespace converter {
+namespace gooda {
 
 static const unsigned int WS_SIZE = 128;
 

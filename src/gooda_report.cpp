@@ -5,7 +5,7 @@
 
 #include "gooda_report.hpp"
 
-std::string converter::gooda_line::get_string(std::size_t index) const {
+std::string gooda::gooda_line::get_string(std::size_t index) const {
     auto& item = contents[index];
 
     std::string v(item.begin(), item.end());
@@ -16,7 +16,7 @@ std::string converter::gooda_line::get_string(std::size_t index) const {
     return value;
 }
 
-unsigned long converter::gooda_line::get_counter(std::size_t index) const {
+unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
     auto& item = contents[index];
     
     //std::cout << index << ":" << item << std::endl;
@@ -37,7 +37,7 @@ unsigned long converter::gooda_line::get_counter(std::size_t index) const {
     return boost::lexical_cast<unsigned long>(value);
 }
 
-converter::gooda_line& converter::gooda_file::new_line(){
+gooda::gooda_line& gooda::gooda_file::new_line(){
     int i = lines.size();
 
     lines.resize(i + 1);
@@ -45,78 +45,78 @@ converter::gooda_line& converter::gooda_file::new_line(){
     return lines[i];
 }
 
-std::size_t converter::gooda_file::size() const {
+std::size_t gooda::gooda_file::size() const {
     return lines.size();
 }
 
-converter::gooda_line& converter::gooda_file::line(std::size_t i){
+gooda::gooda_line& gooda::gooda_file::line(std::size_t i){
     return lines[i];
 }
 
-const converter::gooda_line& converter::gooda_file::line(std::size_t i) const {
+const gooda::gooda_line& gooda::gooda_file::line(std::size_t i) const {
     return lines[i];
 }
 
-converter::gooda_file::iterator converter::gooda_file::begin(){
+gooda::gooda_file::iterator gooda::gooda_file::begin(){
     return lines.begin();
 }
 
-converter::gooda_file::iterator converter::gooda_file::end(){
+gooda::gooda_file::iterator gooda::gooda_file::end(){
     return lines.end();
 }
 
-converter::gooda_file::const_iterator converter::gooda_file::begin() const {
+gooda::gooda_file::const_iterator gooda::gooda_file::begin() const {
     return lines.cbegin();
 }
 
-converter::gooda_file::const_iterator converter::gooda_file::end() const {
+gooda::gooda_file::const_iterator gooda::gooda_file::end() const {
     return lines.cend();
 }
 
-std::size_t converter::gooda_report::functions() const {
+std::size_t gooda::gooda_report::functions() const {
     return hotspot_file.size();
 }
 
-std::size_t converter::gooda_report::processes() const {
+std::size_t gooda::gooda_report::processes() const {
     return process_file.size();
 }
         
-converter::gooda_file& converter::gooda_report::src_file(std::size_t i){
+gooda::gooda_file& gooda::gooda_report::src_file(std::size_t i){
     return src_files[i];
 }
 
-converter::gooda_file& converter::gooda_report::asm_file(std::size_t i){
+gooda::gooda_file& gooda::gooda_report::asm_file(std::size_t i){
     return asm_files[i];
 }
 
-const converter::gooda_file& converter::gooda_report::asm_file(std::size_t i) const {
+const gooda::gooda_file& gooda::gooda_report::asm_file(std::size_t i) const {
     return asm_files.at(i);
 }
 
-const converter::gooda_file& converter::gooda_report::src_file(std::size_t i) const {
+const gooda::gooda_file& gooda::gooda_report::src_file(std::size_t i) const {
     return src_files.at(i);
 }
 
-bool converter::gooda_report::has_src_file(std::size_t i) const {
+bool gooda::gooda_report::has_src_file(std::size_t i) const {
     return src_files.find(i) != src_files.end();
 }
 
-bool converter::gooda_report::has_asm_file(std::size_t i) const {
+bool gooda::gooda_report::has_asm_file(std::size_t i) const {
     return asm_files.find(i) != asm_files.end();
 }
 
-converter::gooda_line& converter::gooda_report::new_process(){
+gooda::gooda_line& gooda::gooda_report::new_process(){
     return process_file.new_line();
 }
 
-const converter::gooda_line& converter::gooda_report::process(std::size_t i) const {
+const gooda::gooda_line& gooda::gooda_report::process(std::size_t i) const {
     return process_file.line(i);
 }
 
-converter::gooda_line& converter::gooda_report::new_hotspot_function(){
+gooda::gooda_line& gooda::gooda_report::new_hotspot_function(){
     return hotspot_file.new_line();
 }
 
-const converter::gooda_line& converter::gooda_report::hotspot_function(std::size_t i) const {
+const gooda::gooda_line& gooda::gooda_report::hotspot_function(std::size_t i) const {
     return hotspot_file.line(i);
 }

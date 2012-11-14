@@ -8,7 +8,7 @@
 
 namespace {
 
-void read_asm_file(const converter::gooda_report& report, std::size_t i, converter::afdo_data& data){
+void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
     if(report.has_asm_file(i)){
         auto& function = data.functions[i];
         auto& file = report.asm_file(i);
@@ -26,7 +26,7 @@ void read_asm_file(const converter::gooda_report& report, std::size_t i, convert
     }
 }
 
-void read_src_file(const converter::gooda_report& report, std::size_t i, converter::afdo_data& data){
+void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
     if(report.has_src_file(i)){
         auto& function = data.functions[i];
 
@@ -35,11 +35,11 @@ void read_src_file(const converter::gooda_report& report, std::size_t i, convert
         for(auto& line : file){
             auto line_number = line.get_counter(SRC_LINE);
 
-            converter::afdo_stack stack;
+            gooda::afdo_stack stack;
             stack.count = line.get_counter(SRC_UNHALTED_CORE_CYCLES);
             stack.num_inst = 1; 
 
-            converter::afdo_pos position;
+            gooda::afdo_pos position;
             position.func = function.name;
             position.file = function.file;
             position.line = line_number;
@@ -54,11 +54,11 @@ void read_src_file(const converter::gooda_report& report, std::size_t i, convert
 
 } //End of anonymous namespace
 
-void converter::read_report(const gooda_report& report, converter::afdo_data& data){
+void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
     
-        converter::afdo_function function;
+        gooda::afdo_function function;
         function.name = line.get_string(HS_FUNCTION_NAME);
         function.file = "unknown";
         function.total_count = line.get_counter(HS_UNHALTED_CORE_CYCLES);

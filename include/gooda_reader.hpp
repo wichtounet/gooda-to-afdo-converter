@@ -5,7 +5,7 @@
 
 #include "gooda_report.hpp"
 
-namespace converter {
+namespace gooda {
 
 //TODO It would probably be necessary to avoid the copy implied by return
 

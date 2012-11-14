@@ -24,7 +24,7 @@ typedef boost::iterator_range<string_iter> string_view;
 #define SRC_LINE 0
 #define SRC_UNHALTED_CORE_CYCLES 2
 
-namespace converter {
+namespace gooda {
 
 //TODO Better encapsulation of this class
 

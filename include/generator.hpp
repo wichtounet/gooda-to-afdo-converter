@@ -5,7 +5,7 @@
 
 #include "afdo_data.hpp"
 
-namespace converter {
+namespace gooda {
 
 void generate_afdo(const afdo_data& data, const std::string& file);
 

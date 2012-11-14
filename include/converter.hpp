@@ -6,7 +6,7 @@
 #include "afdo_data.hpp"
 #include "gooda_report.hpp"
 
-namespace converter {
+namespace gooda {
 
 void read_report(const gooda_report& report, afdo_data& data);
 

@@ -107,7 +107,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     }*/
 }
 
-bool read_processes(const std::string& directory, converter::gooda_report& report){
+bool read_processes(const std::string& directory, gooda::gooda_report& report){
     std::string process_file_name = directory + PROCESS_CSV;
 
     std::ifstream process_file;
@@ -145,7 +145,7 @@ bool read_processes(const std::string& directory, converter::gooda_report& repor
     return true;
 }
 
-bool read_hotspot(const std::string& directory, converter::gooda_report& report){
+bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
     std::string hotspot_file_name = directory + HOTSPOT_CSV;
 
     std::ifstream hotspot_file;
@@ -183,10 +183,10 @@ bool read_hotspot(const std::string& directory, converter::gooda_report& report)
     return true;
 }
 
-void read_asm_file(const std::string& directory, std::size_t i, converter::gooda_report& report){
+void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
     std::string asm_file_name = directory + ASM_FOLDER + std::to_string(i) + ASM_CSV;
 
-    if(converter::exists(asm_file_name)){
+    if(gooda::exists(asm_file_name)){
         std::ifstream asm_file;
         asm_file.open (asm_file_name, std::ios::in);
 
@@ -217,10 +217,10 @@ void read_asm_file(const std::string& directory, std::size_t i, converter::gooda
     }
 }
 
-void read_src_file(const std::string& directory, std::size_t i, converter::gooda_report& report){
+void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
     std::string src_file_name = directory + SRC_FOLDER + std::to_string(i) + SRC_CSV;
 
-    if(converter::exists(src_file_name)){
+    if(gooda::exists(src_file_name)){
         std::ifstream src_file;
         src_file.open (src_file_name, std::ios::in);
 
@@ -253,10 +253,10 @@ void read_src_file(const std::string& directory, std::size_t i, converter::gooda
 
 } //end of anonymous namespace
 
-converter::gooda_report converter::read_spreadsheets(const std::string& directory){
+gooda::gooda_report gooda::read_spreadsheets(const std::string& directory){
     std::cout << "Import spreadsheets from " << directory << std::endl;
 
-    converter::gooda_report report;
+    gooda::gooda_report report;
 
     read_processes(directory, report);
 

@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace converter {
+namespace gooda {
 
 bool exists(const std::string& file);
 bool is_directory(const std::string& file);

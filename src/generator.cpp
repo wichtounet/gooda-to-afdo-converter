@@ -136,16 +136,16 @@ void write_section_header(gcov_unsigned_t tag){
     write_unsigned(0);
 }
 
-void write_file_name_table(const converter::afdo_data& data){
+void write_file_name_table(const gooda::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_FILE_NAMES);
 
     write_collection(data.file_names, write_string);
 }
 
-void write_function_table(const converter::afdo_data& data){
+void write_function_table(const gooda::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_FUNCTION);
 
-    write_collection(data.functions, [&data](const converter::afdo_function& function){
+    write_collection(data.functions, [&data](const gooda::afdo_function& function){
         write_string(function.name);
 
         write_unsigned(data.get_file_index(function.file));
@@ -153,8 +153,8 @@ void write_function_table(const converter::afdo_data& data){
         write_counter(function.total_count);
         write_counter(function.entry_count);
 
-        write_collection(function.stacks, [&data](const converter::afdo_stack& stack){
-            write_collection(stack.stack, [&data](const converter::afdo_pos& s){
+        write_collection(function.stacks, [&data](const gooda::afdo_stack& stack){
+            write_collection(stack.stack, [&data](const gooda::afdo_pos& s){
                 write_unsigned(data.get_file_index(s.func));
                 write_unsigned(data.get_file_index(s.file));
                 
@@ -168,10 +168,10 @@ void write_function_table(const converter::afdo_data& data){
     });
 }
 
-void write_module_info(const converter::afdo_data& data){
+void write_module_info(const gooda::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING);
 
-    write_collection(data.modules, [&data](const converter::afdo_module& module){
+    write_collection(data.modules, [&data](const gooda::afdo_module& module){
         write_string(module.name);
 
         write_unsigned(module.exported);
@@ -188,10 +188,10 @@ void write_module_info(const converter::afdo_data& data){
     });
 }
 
-void write_working_set(const converter::afdo_data& data){
+void write_working_set(const gooda::afdo_data& data){
     write_section_header(GCOV_TAG_AFDO_WORKING_SET);
 
-    std::for_each(data.working_set.begin(), data.working_set.end(), [](const converter::afdo_working_set& ws){
+    std::for_each(data.working_set.begin(), data.working_set.end(), [](const gooda::afdo_working_set& ws){
         write_unsigned(ws.num_counter);
         write_counter(ws.min_counter);
     });
@@ -199,7 +199,7 @@ void write_working_set(const converter::afdo_data& data){
 
 } //end of anonymous namespace
 
-void converter::generate_afdo(const afdo_data& data, const std::string& file){
+void gooda::generate_afdo(const afdo_data& data, const std::string& file){
     std::cout << "Generate AFDO profile in \"" << file << "\"" << std::endl;
 
     gcov_file.open(file.c_str(), std::ios::binary | std::ios::out );
