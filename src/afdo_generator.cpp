@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstring>
 
-#include "generator.hpp"
+#include "afdo_generator.hpp"
 
 //Necessary for gcc_assert
 //#include "tconfig.h"
