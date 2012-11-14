@@ -3,7 +3,7 @@
 
 #include "utils.hpp"
 #include "gooda_reader.hpp"
-#include "reader.hpp"
+#include "converter.hpp"
 #include "generator.hpp"
 
 namespace {
