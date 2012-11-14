@@ -1,14 +1,17 @@
 #ifndef CONVERTER_GCOV_TYPES_HPP
 #define CONVERTER_GCOV_TYPES_HPP
 
-#include "tconfig.h"
-#include "tsystem.h"
-#include "coretypes.h"
-#include "tm.h"
+typedef unsigned int gcov_unsigned_t;
+typedef unsigned long gcov_type;
 
 /* 
  * It is necessary to copy these types here as the GCOV header cannot be included twice
  */
+
+/*#include "tconfig.h"
+#include "tsystem.h"
+#include "coretypes.h"
+#include "tm.h"
 
 #if BITS_PER_UNIT == 8
 typedef unsigned gcov_unsigned_t __attribute__ ((mode (SI)));
@@ -42,6 +45,6 @@ typedef signed gcov_type __attribute__ ((mode (QI)));
 typedef unsigned gcov_type_unsigned __attribute__ ((mode (QI)));
 #endif
 #endif
-#endif
+#endif*/
 
 #endif

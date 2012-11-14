@@ -2,19 +2,24 @@
 #include <fstream>
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 
 #include "generator.hpp"
 
 //Necessary for gcc_assert
-#include "tconfig.h"
-#include "tsystem.h"
-#include "coretypes.h"
-#include "tm.h"
+//#include "tconfig.h"
+//#include "tsystem.h"
+//#include "coretypes.h"
+//#include "tm.h"
 
 #define IN_LIBGCOV 1
 #define GCOV_LINKAGE // nothing
-#include "gcov-io.h"
+//#include "gcov-io.h"
 //#include "gcov-io.c"
+
+#include "gcov-iov.h"
+
+#define GCOV_DATA_MAGIC ((gcov_unsigned_t)0x67636461) /* "gcda" */
 
 //TODO Once GCC patched, these defines should be removed
 #define GCOV_TAG_AFDO_FILE_NAMES ((gcov_unsigned_t)0xaa000000)
@@ -26,6 +31,18 @@
 std::ofstream gcov_file;
 
 namespace {
+
+void write_unsigned(gcov_unsigned_t value){
+    //std::cout << value << std::endl;
+    
+    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+}
+
+void write_counter(gcov_type value){
+    //std::cout << value << std::endl;
+    
+    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+}
 
 void gooda_gcov_write_string (const char *string){
     unsigned length = 0;
@@ -57,30 +74,33 @@ void gooda_gcov_write_string (const char *string){
     delete[] buffer;
 }
 
+
+/*static void write_int32(uint32_t i) {
+      fwrite(&i, 4, 1, output_file);
+}
+
+static void write_int64(uint64_t i) {
+      uint32_t lo = i >>  0;
+        uint32_t hi = i >> 32;
+          write_int32(lo);
+            write_int32(hi);
+}
+
+static uint32_t length_of_string(const char *s) {
+      return (strlen(s) / 4) + 1;
+}
+
+static void write_string(const char *s) {
+      uint32_t len = length_of_string(s);
+        write_int32(len);
+          fwrite(s, strlen(s), 1, output_file);
+            fwrite("\0\0\0\0", 4 - (strlen(s) % 4), 1, output_file);
+}*/
+
 void write_string (const std::string& value){
     //std::cout << value << std::endl;
 
     gooda_gcov_write_string(value.c_str());
-
-    //assert(!gcov_is_error());
-}
-
-void write_unsigned(gcov_unsigned_t value){
-    //std::cout << value << std::endl;
-    
-    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
-
-    //gcov_write_unsigned(value);
-
-    //assert(!gcov_is_error());
-}
-
-void write_counter(gcov_type value){
-    //std::cout << value << std::endl;
-    
-    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
-
-    //gcov_write_counter(value);
 
     //assert(!gcov_is_error());
 }
