@@ -52,7 +52,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             position.func = function.name;
             position.file = function.file;
             position.line = line_number;
-            position.discr = 1;
+            position.discr = 0;
 
             stack.stack.push_back(position);
 
