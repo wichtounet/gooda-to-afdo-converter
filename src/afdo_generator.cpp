@@ -121,29 +121,27 @@ void write_collection(const std::vector<Type>& values, Lambda functor){
 void write_header(){
     write_unsigned(GCOV_DATA_MAGIC);
     write_unsigned(GCOV_VERSION);
-    //gcov_write_tag_length(GCOV_DATA_MAGIC, GCOV_VERSION);
-    //assert(!gcov_is_error());
     
     //The stamp is not important for AFDO
     write_unsigned(0);
 }
 
-void write_section_header(gcov_unsigned_t tag){
+void write_section_header(gcov_unsigned_t tag, unsigned int length){
     //The header of the section
     write_unsigned(tag);
 
-    //The size of the section, skipped by AFDO
-    write_unsigned(0);
+    //The size of the section, skipped by AFDO, but important to make a GCOV-valid file
+    write_unsigned(length);
 }
 
 void write_file_name_table(const gooda::afdo_data& data){
-    write_section_header(GCOV_TAG_AFDO_FILE_NAMES);
+    write_section_header(GCOV_TAG_AFDO_FILE_NAMES, data.length_file_section);
 
     write_collection(data.file_names, write_string);
 }
 
 void write_function_table(const gooda::afdo_data& data){
-    write_section_header(GCOV_TAG_AFDO_FUNCTION);
+    write_section_header(GCOV_TAG_AFDO_FUNCTION, data.length_function_section);
 
     write_collection(data.functions, [&data](const gooda::afdo_function& function){
         write_string(function.name);
@@ -169,7 +167,7 @@ void write_function_table(const gooda::afdo_data& data){
 }
 
 void write_module_info(const gooda::afdo_data& data){
-    write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING);
+    write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING, data.length_modules_section);
 
     write_collection(data.modules, [&data](const gooda::afdo_module& module){
         write_string(module.name);
@@ -189,7 +187,7 @@ void write_module_info(const gooda::afdo_data& data){
 }
 
 void write_working_set(const gooda::afdo_data& data){
-    write_section_header(GCOV_TAG_AFDO_WORKING_SET);
+    write_section_header(GCOV_TAG_AFDO_WORKING_SET, data.length_working_set_section);
 
     std::for_each(data.working_set.begin(), data.working_set.end(), [](const gooda::afdo_working_set& ws){
         write_unsigned(ws.num_counter);
