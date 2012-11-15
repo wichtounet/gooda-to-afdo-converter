@@ -20,4 +20,10 @@ void gooda::dump_afdo(const afdo_data& data){
             }
         }
     }
+
+    std::cout << "Length" << std::endl;
+    std::cout << "   File Name Table: " << (data.length_file_section * 4) << "B" << std::endl;
+    std::cout << "   Function Table: " << (data.length_function_section * 4) << "B" << std::endl;
+    std::cout << "   Modules Table: " << (data.length_modules_section * 4) << "B" << std::endl;
+    std::cout << "   Working Set Table: " << (data.length_working_set_section * 4) << "B" << std::endl;
 }
