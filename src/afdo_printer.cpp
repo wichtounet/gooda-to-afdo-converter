@@ -1,10 +1,25 @@
 #include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <cassert>
-#include <cstring>
+#include <sstream>
 
 #include "afdo_printer.hpp"
+
+std::string pretty_size(unsigned int size){
+    std::stringstream stream;
+    std::string unit = "B";
+
+    if(size > 1024){
+       size /= 1024; 
+       unit = "KB";
+    }
+    
+    if(size > 1024){
+       size /= 1024; 
+       unit = "MB";
+    }
+
+    stream << size << unit;
+    return stream.str();
+}
 
 void gooda::dump_afdo(const afdo_data& data){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
@@ -22,8 +37,8 @@ void gooda::dump_afdo(const afdo_data& data){
     }
 
     std::cout << "Length" << std::endl;
-    std::cout << "   File Name Table: " << (data.length_file_section * 4) << "B" << std::endl;
-    std::cout << "   Function Table: " << (data.length_function_section * 4) << "B" << std::endl;
-    std::cout << "   Modules Table: " << (data.length_modules_section * 4) << "B" << std::endl;
-    std::cout << "   Working Set Table: " << (data.length_working_set_section * 4) << "B" << std::endl;
+    std::cout << "   File Name Table: " << pretty_size(data.length_file_section * 4) << std::endl;
+    std::cout << "   Function Table: " << pretty_size(data.length_function_section * 4) << std::endl;
+    std::cout << "   Modules Table: " << pretty_size(data.length_modules_section * 4) << std::endl;
+    std::cout << "   Working Set Table: " << pretty_size(data.length_working_set_section * 4) << std::endl;
 }
