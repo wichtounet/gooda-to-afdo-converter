@@ -1,5 +1,5 @@
-#ifndef CONVERTER_GENERATOR_HPP
-#define CONVERTER_GENERATOR_HPP
+#ifndef GOODA_GENERATOR_HPP
+#define GOODA_GENERATOR_HPP
 
 #include <string>
 

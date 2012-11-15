@@ -1,5 +1,5 @@
-#ifndef CONVERTER_GCOV_TYPES_HPP
-#define CONVERTER_GCOV_TYPES_HPP
+#ifndef GOODA_GCOV_TYPES_HPP
+#define GOODA_GCOV_TYPES_HPP
 
 typedef unsigned int gcov_unsigned_t;
 typedef unsigned long gcov_type;

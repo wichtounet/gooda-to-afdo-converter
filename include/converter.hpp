@@ -1,5 +1,5 @@
-#ifndef CONVERTER_READER_HPP
-#define CONVERTER_READER_HPP
+#ifndef GOODA_READER_HPP
+#define GOODA_READER_HPP
 
 #include <string>
 

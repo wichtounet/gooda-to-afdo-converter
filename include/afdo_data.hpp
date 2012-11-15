@@ -1,5 +1,5 @@
-#ifndef CONVERTER_DATA_HPP
-#define CONVERTER_DATA_HPP
+#ifndef GOODA_DATA_HPP
+#define GOODA_DATA_HPP
 
 #include <vector>
 #include <string>

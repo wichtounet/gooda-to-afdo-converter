@@ -1,5 +1,5 @@
-#ifndef CONVERTER_UTILS_HPP
-#define CONVERTER_UTILS_HPP
+#ifndef GOODA_UTILS_HPP
+#define GOODA_UTILS_HPP
 
 #include <string>
 
