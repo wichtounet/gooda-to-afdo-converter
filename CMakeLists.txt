@@ -17,6 +17,19 @@ else()
     MESSAGE(FATAL_ERROR "ERROR: gooda-to-afdo-converter can only be compiled with GCC")
 endif()
 
+# Add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile @ONLY)
+    add_custom_target(doc ${DOXYGEN_EXECUTABLE}
+        ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
+        WORKING_DIRECTORY doc
+        COMMENT "Generating API documentation with
+        Doxygen" VERBATIM
+        )
+endif(DOXYGEN_FOUND)
+
 # The executable should go to the bin directory
 set(EXECUTABLE_OUTPUT_PATH bin)
 
