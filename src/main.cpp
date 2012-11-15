@@ -9,6 +9,7 @@
 #include "gooda_reader.hpp"
 #include "converter.hpp"
 #include "afdo_generator.hpp"
+#include "afdo_printer.hpp"
     
 namespace po = boost::program_options;
 
@@ -28,7 +29,12 @@ void process(const std::string& directory, po::variables_map& vm){
 
     //Read the report and generate AFDO file
     gooda::read_report(report, data);
-    gooda::generate_afdo(data, "generated.afdo");
+
+    if(vm.count("dump")){
+        gooda::dump_afdo(data);
+    } else {
+        gooda::generate_afdo(data, "generated.afdo");
+    }
     
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
@@ -44,6 +50,7 @@ int main(int argc, char **argv){
 
         description.add_options()
             ("help,h", "Display this help message")
+            ("dump", "Dump the AFDO on standard output")
             ("input-file", po::value<std::string>()->required(), "Directory containing the spreadsheets");
 
         po::positional_options_description p;
