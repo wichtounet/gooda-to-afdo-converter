@@ -33,7 +33,7 @@ void process(const std::string& directory, po::variables_map& vm){
     if(vm.count("dump")){
         gooda::dump_afdo(data);
     } else {
-        gooda::generate_afdo(data, "generated.afdo");
+        gooda::generate_afdo(data, vm["output"].as<std::string>());
     }
     
     Clock::time_point t1 = Clock::now();
@@ -50,6 +50,7 @@ int main(int argc, char **argv){
 
         description.add_options()
             ("help,h", "Display this help message")
+            ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("dump", "Dump the AFDO on standard output")
             ("input-file", po::value<std::string>()->required(), "Directory containing the spreadsheets");
 
