@@ -61,6 +61,55 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
     }
 }
 
+unsigned int sizeof_string(const std::string& str){
+    return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
+}
+
+void compute_lengths(gooda::afdo_data& data){
+    //The counts
+    ++data.length_file_section;
+    ++data.length_function_section;
+    ++data.length_modules_section;
+
+    for(auto& file_name : data.file_names){
+        data.length_file_section += sizeof_string(file_name);
+    }
+
+    for(auto& function : data.functions){
+        //function name
+        data.length_function_section += sizeof_string(function.name);
+        
+        //file (1), total_count (2) and entry_count (2)
+        data.length_function_section += 5;
+        
+        //the number of stacks (1)
+        data.length_function_section += 1;
+        
+        //The size for each stack (number of pos (1), count (2), num_inst (2))
+        data.length_function_section += 5 * function.stacks.size();
+
+        for(auto& stack : function.stacks){
+            //file (1), func (1), line (1), discr (1)
+            data.length_function_section += 4 * stack.stack.size();
+        }
+    }
+
+    for(auto& module : data.modules){
+        //Module name
+        data.length_modules_section += sizeof_string(module.name);
+
+        //8 unsigned for the data
+        data.length_modules_section += 8;
+
+        for(auto& str : module.strings){
+            data.length_modules_section += sizeof_string(str);
+        }
+    }
+
+    //num_counter (1), min_counter (2)
+    data.length_working_set_section = data.working_set.size() * 3;
+}
+
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
@@ -80,6 +129,8 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
         read_asm_file(report, i, data);
         read_src_file(report, i, data);
     }
+
+    compute_lengths(data);
 
     //Note: No need to fill the working set because it is not used by GCC
     //It will be automatically written empty by the AFDO generator
