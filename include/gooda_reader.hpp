@@ -5,6 +5,11 @@
 
 #include "gooda_report.hpp"
 
+/*!
+ * \file gooda_reader.hpp
+ * \brief Contains functions necessary to read Gooda spreadsheets. 
+ */
+
 namespace gooda {
 
 //TODO It would probably be necessary to avoid the copy implied by return

@@ -8,6 +8,11 @@
 
 #include "gcov_types.hpp"
 
+/*!
+ * \file afdo_data.hpp
+ * \brief Contains the data structures that are used to hold AFDO data. 
+ */
+
 namespace gooda {
 
 static const unsigned int WS_SIZE = 128;

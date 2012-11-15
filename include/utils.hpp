@@ -3,6 +3,11 @@
 
 #include <string>
 
+/*!
+ * \file utils.hpp
+ * \brief Contains utility functions. 
+ */
+
 namespace gooda {
 
 /*!
@@ -14,7 +19,7 @@ bool exists(const std::string& file);
 
 /*!
  * \brief Test if a file is a directory. 
- * \param The file to test. 
+ * \param file The file to test. 
  * \return true if the file is a directory, false otherwise. 
  */
 bool is_directory(const std::string& file);

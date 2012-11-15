@@ -5,6 +5,11 @@
 
 #include "afdo_data.hpp"
 
+/*!
+ * \file afdo_generator.hpp
+ * \brief Contains the functions necessary to write the AFDO file. 
+ */
+
 namespace gooda {
 
 /*!

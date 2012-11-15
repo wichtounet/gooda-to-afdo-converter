@@ -6,6 +6,12 @@
 #include "afdo_data.hpp"
 #include "gooda_report.hpp"
 
+/*!
+ * \file converter.hpp
+ * \brief Contains the necessary functions to convert Gooda Spreadsheets 
+ * to AFDO file. 
+ */
+
 namespace gooda {
 
 /*!

@@ -8,6 +8,11 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/range/iterator_range.hpp>
 
+/*!
+ * \file gooda_report.hpp
+ * \brief Contains the data structures holding the Gooda report. 
+ */
+
 typedef std::string::const_iterator string_iter;
 typedef boost::iterator_range<string_iter> string_view;
 //typedef std::string string_view;

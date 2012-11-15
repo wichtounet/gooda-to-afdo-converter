@@ -5,6 +5,11 @@
 
 #include "afdo_data.hpp"
 
+/*!
+ * \file afdo_printer.hpp
+ * \brief Contains functions necessary to dump AFDO data. 
+ */
+
 namespace gooda {
 
 /*!
