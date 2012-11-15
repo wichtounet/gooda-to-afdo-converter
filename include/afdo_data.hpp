@@ -15,8 +15,16 @@
 
 namespace gooda {
 
+/*!
+ * \var WS_SIZE
+ * \brief The size of the Working Set Histogram. 
+ */
 static const unsigned int WS_SIZE = 128;
 
+/*!
+ * \struct afdo_pos
+ * \brief The position of an instruction. 
+ */
 struct afdo_pos {
     std::string func = "";
     std::string file = "";
@@ -24,12 +32,20 @@ struct afdo_pos {
     gcov_unsigned_t discr = 0;
 };
 
+/*!
+ * \struct afdo_stack
+ * \brief An inline stack. 
+ */
 struct afdo_stack {
     std::vector<afdo_pos> stack;
     gcov_type count = 0;
     gcov_type num_inst = 0;
 };
 
+/*!
+ * \struct afdo_function
+ * \brief Structure holding the profile of a function. 
+ */
 struct afdo_function {
     std::string name = "";
     std::string file = "";
@@ -38,6 +54,10 @@ struct afdo_function {
     std::vector<afdo_stack> stacks;
 };
 
+/*!
+ * \struct afdo_module
+ * \brief Structure holding the information of module. 
+ */
 struct afdo_module {
     std::string name = "";
     gcov_unsigned_t exported = 0;
@@ -51,6 +71,10 @@ struct afdo_module {
     std::vector<std::string> strings;
 };
 
+/*!
+ * \struct afdo_working_set
+ * \brief Structure holding one bucket of the working set. 
+ */
 struct afdo_working_set {
     gcov_unsigned_t num_counter;
     gcov_type min_counter;

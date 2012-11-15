@@ -34,6 +34,10 @@ namespace gooda {
 
 //TODO Better encapsulation of this class
 
+/*!
+ * \struct gooda_line
+ * \brief A line of a Gooda Spreadsheets.
+ */
 class gooda_line {
     public:
         std::string get_string(std::size_t index) const;
@@ -43,6 +47,10 @@ class gooda_line {
         std::vector<string_view> contents;
 };
 
+/*!
+ * \struct gooda_file
+ * \brief The contents of a specific Gooda file. 
+ */
 class gooda_file {
     public:
         typedef std::vector<gooda_line>::iterator iterator;
@@ -65,6 +73,10 @@ class gooda_file {
         std::vector<gooda_line> lines;
 };
 
+/*!
+ * \struct gooda_report 
+ * \brief The contents of a whole Gooda report. 
+ */
 class gooda_report {
     public:
         std::size_t functions() const;
