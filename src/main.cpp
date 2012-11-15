@@ -1,10 +1,16 @@
 #include <iostream>
 #include <chrono>
 
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+
 #include "utils.hpp"
 #include "gooda_reader.hpp"
 #include "converter.hpp"
 #include "afdo_generator.hpp"
+    
+namespace po = boost::program_options;
 
 namespace {
 
@@ -12,11 +18,7 @@ namespace {
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds milliseconds;
 
-void print_usage(){
-    std::cout << "Usage: converter spreadsheets_directory" << std::endl;
-}
-
-void process(const std::string& directory){
+void process(const std::string& directory, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
     //Read the Gooda Spreadsheets
@@ -37,26 +39,44 @@ void process(const std::string& directory){
 } //end of anonymous namespace
 
 int main(int argc, char **argv){
-    if(argc == 1){
-        std::cout << "Not enough arguments" << std::endl;
-        print_usage();
+    try {
+        po::options_description description("converter [options] spreadsheets_directory");
 
+        description.add_options()
+            ("help,h", "Display this help message")
+            ("input-file", po::value<std::string>()->required(), "Directory containing the spreadsheets");
+
+        po::positional_options_description p;
+        p.add("input-file", -1);
+
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).options(description).positional(p).run(), vm);
+
+        if(vm.count("help")){
+            std::cout << description;
+            return 0;
+        }
+        
+        //Must be done after the test for help to handle required arguments
+        po::notify(vm);
+
+        std::string directory = vm["input-file"].as<std::string>();
+
+        if(!gooda::exists(directory)){
+            std::cerr << "Error \"" << directory << "\" does not exists" << std::endl;
+            return 1;
+        }
+
+        if(!gooda::is_directory(directory)){
+            std::cerr << "Error: \"" << directory << "\" is not a directory" << std::endl;
+            return 1;
+        }
+
+        process(directory, vm);
+    } catch (std::exception& e ) {
+        std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-
-    std::string directory(argv[1]);
-
-    if(!gooda::exists(directory)){
-        std::cout << "\"" << directory << "\" does not exists" << std::endl;
-        return 1;
-    }
-    
-    if(!gooda::is_directory(directory)){
-        std::cout << "\"" << directory << "\" is not a directory" << std::endl;
-        return 1;
-    }
-
-    process(directory);
 
     return 0;
 }

@@ -37,7 +37,7 @@ file(
 
 add_executable(converter ${source_files})
 
-#TARGET_LINK_LIBRARIES(converter mudflap)
+TARGET_LINK_LIBRARIES(converter boost_program_options)
 #TARGET_LINK_LIBRARIES(converter gcov)
 
 # Specifications for the installation
