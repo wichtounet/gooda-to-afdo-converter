@@ -7,6 +7,10 @@
 
 namespace gooda {
 
+/*!
+ * \brief Dump all the AFDO representation to the standard output
+ * \param data The AFDO data. 
+ */
 void dump_afdo(const afdo_data& data);
 
 }
