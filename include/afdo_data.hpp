@@ -51,6 +51,10 @@ struct afdo_working_set {
     gcov_type min_counter;
 };
 
+/*!
+ * \struct afdo_data
+ * \brief Structure holding the AFDO profile
+ */
 struct afdo_data {
     std::vector<std::string> file_names;
     std::vector<afdo_function> functions;

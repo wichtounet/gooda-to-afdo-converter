@@ -7,6 +7,11 @@
 
 namespace gooda {
 
+/*!
+ * \brief Generate the AFDO file corresponding to the given data. 
+ * \param data The AFDO report. 
+ * \param file The path to the file to write to. 
+ */
 void generate_afdo(const afdo_data& data, const std::string& file);
 
 }
