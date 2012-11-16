@@ -107,8 +107,7 @@ int main(int argc, char **argv){
             }
 
             std::cout << "Profile the given application (Gooda needs to be run in root)" << std::endl;
-            auto output = gooda::exec_command(command);
-            std::cout << output << std::endl;
+            gooda::exec_command(command);
 
             return 0;
         }

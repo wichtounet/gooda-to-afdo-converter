@@ -22,22 +22,8 @@ bool gooda::is_directory(const std::string& file){
     return S_ISDIR(st.st_mode);
 }
 
-std::string gooda::exec_command(const std::string& command) {
-    std::stringstream output;
-
-    char buffer[1024];
-
-    /*FILE* stream = popen(command.c_str(), "r");
-
-    while (fgets(buffer, 1024, stream) != NULL) {
-        output << buffer;
-    }
-
-    pclose(stream);*/
-
-    system(command.c_str());
-
-    return output.str();
+int gooda::exec_command(const std::string& command) {
+    return system(command.c_str());
 }
 
 int gooda::processor_model(){

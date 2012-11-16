@@ -25,11 +25,11 @@ bool exists(const std::string& file);
 bool is_directory(const std::string& file);
 
 /*!
- * \brief Execute a command and return the output of the command. 
+ * \brief Execute a command and return the return code of the command. 
  * \param command The command to execute.  
- * \return The standard output of the executed command. 
+ * \return The return code of the command. 
  */
-std::string exec_command(const std::string& command);
+int exec_command(const std::string& command);
 
 int processor_model();
 
