@@ -53,7 +53,7 @@ int main(int argc, char **argv){
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("dump", "Dump the AFDO on standard output")
             ("profile,p", "Profile the given application")
-            ("input-file", po::value<std::vector<std::string>>()->required(), "Directory containing the spreadsheets");
+            ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
 
         po::positional_options_description p;
         p.add("input-file", -1);
@@ -126,6 +126,13 @@ int main(int argc, char **argv){
         }
 
         auto input_files = vm["input-file"].as<std::vector<std::string>>();
+
+        //Test that there is a least one file
+        if(input_files.empty()){
+            std::cerr << "Error: No spreadsheets directory provided" << std::endl;
+
+            return 1;
+        }
         
         //Verify that only one directory is provided
         if(input_files.size() > 1){
