@@ -52,6 +52,7 @@ int main(int argc, char **argv){
             ("help,h", "Display this help message")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("dump", "Dump the AFDO on standard output")
+            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation, if not filled, assumed to be in Gooda directory")
             ("profile,p", "Profile the given application")
             ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
 
@@ -94,14 +95,17 @@ int main(int argc, char **argv){
             }
 
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
-
-            std::string command = "sudo bash -c \"" + script + " ";
+            
+            std::string command;
+            if(vm.count("gooda")){
+                std::string command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
+            } else {
+                std::string command = "sudo bash scripts/" + script + " ";
+            }
 
             for(auto& option : further_options){
                 command += option + " ";
             }
-
-            command += "\"";
 
             std::cout << "Profile the given application (Gooda needs to be run in root)" << std::endl;
             auto output = gooda::exec_command(command);
