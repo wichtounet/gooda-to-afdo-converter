@@ -88,14 +88,12 @@ struct afdo_data {
     std::vector<std::string> file_names;
     std::vector<afdo_function> functions;
     std::vector<afdo_module> modules;
-    std::vector<afdo_working_set> working_set;
+    std::array<afdo_working_set, WS_SIZE + 1> working_set;
 
     unsigned int length_file_section = 0;
     unsigned int length_function_section = 0;
     unsigned int length_modules_section = 0;
     unsigned int length_working_set_section = 0;
-
-    afdo_data();
 
     gcov_unsigned_t get_file_index(const std::string& file) const;
     void add_file_name(const std::string& file);

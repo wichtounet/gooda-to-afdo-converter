@@ -2,10 +2,6 @@
 
 #include "afdo_data.hpp"
 
-gooda::afdo_data::afdo_data() : working_set(WS_SIZE + 1) {
-    //Nothing to init
-}
-
 gcov_unsigned_t gooda::afdo_data::get_file_index(const std::string& file) const {
     assert(file_index.count(file));
 
