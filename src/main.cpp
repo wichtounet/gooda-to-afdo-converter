@@ -125,6 +125,12 @@ int main(int argc, char **argv){
             return 1;
         }
 
+        if(!vm.count("input-file")){
+            std::cerr << "Error: No spreadsheets directory provided" << std::endl;
+
+            return 1;
+        }
+
         auto input_files = vm["input-file"].as<std::vector<std::string>>();
 
         //Test that there is a least one file
