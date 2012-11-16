@@ -27,13 +27,15 @@ std::string gooda::exec_command(const std::string& command) {
 
     char buffer[1024];
 
-    FILE* stream = popen(command.c_str(), "r");
+    /*FILE* stream = popen(command.c_str(), "r");
 
     while (fgets(buffer, 1024, stream) != NULL) {
         output << buffer;
     }
 
-    pclose(stream);
+    pclose(stream);*/
+
+    system(command.c_str());
 
     return output.str();
 }
