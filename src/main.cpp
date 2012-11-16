@@ -95,19 +95,30 @@ int main(int argc, char **argv){
 
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
             
-            std::string command;
+            std::string profile_command;
             if(vm.count("gooda")){
-                command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
+                profile_command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
             } else {
-                command = "sudo bash scripts/" + script + " ";
+                profile_command = "sudo bash scripts/" + script + " ";
             }
 
+            //Append the application
             for(auto& option : further_options){
-                command += option + " ";
+                profile_command += option + " ";
             }
 
-            std::cout << "Profile the given application (Gooda needs to be run in root)" << std::endl;
-            gooda::exec_command(command);
+            std::cout << "Profile the given application (perf needs to be run in root)" << std::endl;
+            gooda::exec_command(profile_command);
+            
+            std::string gooda_command;
+            if(vm.count("gooda")){
+                gooda_command = "sudo " + vm["gooda"].as<std::string>() + "/gooda";
+            } else {
+                gooda_command = "sudo ./gooda";
+            }
+
+            std::cout << "Run Gooda (Gooda needs to be run in root)" << std::endl;
+            gooda::exec_command(gooda_command);
 
             return 0;
         }
