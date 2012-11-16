@@ -82,10 +82,10 @@ int main(int argc, char **argv){
 
             if(processor_model == 0x2A || processor_model == 0x2D){
                 std::cout << "Detected processor as \"Sandy Bridge\"" << std::endl;
-                script = "run_record_cyc_ivb.sh";
+                script = "run_record_cyc_snb.sh";
             } else if(processor_model == 0x3A){
                 std::cout << "Detected processor as \"Ivy Bridge\"" << std::endl;
-                script = "run_record_cyc_snb.sh";
+                script = "run_record_cyc_ivb.sh";
             } else if(processor_model == 0x25 || processor_model == 0x2C || processor_model == 0x2F){
                 std::cout << "Detected processor as \"Westmere\"" << std::endl;
                 script = "run_record_cyc_wsm_ep.sh";
