@@ -2,7 +2,7 @@
 
 #include "afdo_data.hpp"
 
-gooda::afdo_data::afdo_data() : working_set(WS_SIZE) {
+gooda::afdo_data::afdo_data() : working_set(WS_SIZE + 1) {
     //Nothing to init
 }
 

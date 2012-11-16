@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <map>
 
 #include "converter.hpp"
 #include "utils.hpp"
@@ -110,6 +111,49 @@ void compute_lengths(gooda::afdo_data& data){
     data.length_working_set_section = data.working_set.size() * 3;
 }
 
+void compute_working_set(gooda::afdo_data& data){
+    std::map<std::size_t, std::size_t> histogram;
+    std::size_t total_count = 0;
+
+    for(auto& function : data.functions){
+        for(auto& stack : function.stacks){
+            histogram[stack.count] += stack.num_inst;
+            total_count += stack.count;
+        }
+    }
+
+    auto rit = histogram.rbegin();
+    auto rend = histogram.rend();
+
+    unsigned int bucket_num = 0;
+    std::size_t accumulated_count = 0;
+    std::size_t accumulated_inst = 0;
+    std::size_t one_bucket_count = total_count / (gooda::WS_SIZE + 1);
+
+    while(rit != rend && bucket_num < gooda::WS_SIZE){
+        auto count = rit->first;
+        auto inst = rit->second;
+
+        while(count * inst + accumulated_count > one_bucket_count * (bucket_num + 1)){
+            auto offset = (one_bucket_count * (bucket_num + 1) - accumulated_count) / count;
+
+            accumulated_inst += offset;
+            accumulated_count += offset * count;
+
+            inst -= offset;
+
+            data.working_set[bucket_num].num_counter = accumulated_inst;
+            data.working_set[bucket_num].min_counter = count;
+            ++bucket_num;
+        }
+
+        accumulated_inst += inst;
+        accumulated_count += inst * count;
+
+        ++rit;
+    }
+}
+
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
@@ -129,6 +173,8 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
         read_asm_file(report, i, data);
         read_src_file(report, i, data);
     }
+
+    compute_working_set(data);
 
     compute_lengths(data);
 
