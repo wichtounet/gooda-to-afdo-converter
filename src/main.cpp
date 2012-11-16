@@ -95,11 +95,13 @@ int main(int argc, char **argv){
 
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
 
-            std::string command = "sudo " + script + " ";
+            std::string command = "sudo bash -c \"" + script + " ";
 
             for(auto& option : further_options){
                 command += option + " ";
             }
+
+            command += "\"";
 
             std::cout << "Profile the given application (Gooda needs to be run in root)" << std::endl;
             auto output = gooda::exec_command(command);
