@@ -121,7 +121,7 @@ int main(int argc, char **argv){
             gooda::exec_command(gooda_command);
 
             //Process the spreadsheets to generate AFDO
-            process("Spreadsheets", vm); 
+            process("spreadsheets", vm); 
 
             return 0;
         }
