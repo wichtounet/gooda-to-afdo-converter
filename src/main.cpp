@@ -77,7 +77,16 @@ int main(int argc, char **argv){
                 return -1;
             }
 
-            std::cout << processor_model << std::endl;
+            if(processor_model == 0x2A || processor_model == 0x2D){
+                std::cout << "Detected processor as \"Sandy Bridge\"" << std::endl;
+            } else if(processor_model == 0x3A){
+                std::cout << "Detected processor as \"Ivy Bridge\"" << std::endl;
+            } else if(processor_model == 0x25 || processor_model == 0x2C || processor_model == 0x2F){
+                std::cout << "Detected processor as \"Westmere\"" << std::endl;
+            } else {
+                std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
+                return -1;
+            }
 
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
 
