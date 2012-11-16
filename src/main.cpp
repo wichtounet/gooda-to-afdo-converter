@@ -120,6 +120,9 @@ int main(int argc, char **argv){
             std::cout << "Run Gooda (Gooda needs to be run in root)" << std::endl;
             gooda::exec_command(gooda_command);
 
+            //Process the spreadsheets to generate AFDO
+            process("Spreadsheets", vm); 
+
             return 0;
         }
         
