@@ -70,6 +70,15 @@ int main(int argc, char **argv){
 
         //Profiling mode
         if(vm.count("profile")){
+            auto processor_model = gooda::processor_model();
+
+            if(processor_model == -1){
+                std::cerr << "Cannot find your processor model. Please provide it with the --model option. " << std::endl;
+                return -1;
+            }
+
+            std::cout << processor_model << std::endl;
+
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
 
             std::string command;

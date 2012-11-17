@@ -31,6 +31,8 @@ bool is_directory(const std::string& file);
  */
 std::string exec_command(const std::string& command);
 
+int processor_model();
+
 }
 
 #endif

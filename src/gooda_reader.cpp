@@ -3,9 +3,6 @@
 #include <sstream>
 #include <cstring>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include "gooda_reader.hpp"
 #include "utils.hpp"
 
