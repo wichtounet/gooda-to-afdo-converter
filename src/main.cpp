@@ -72,7 +72,15 @@ int main(int argc, char **argv){
         if(vm.count("profile")){
             auto further_options = po::collect_unrecognized(parsed.options, po::include_positional);
 
-            //TODO
+            std::string command;
+
+            for(auto& option : further_options){
+                command += option + " ";
+            }
+
+            std::cout << "Profile the given application" << std::endl;
+            auto output = gooda::exec_command(command);
+            std::cout << output << std::endl;
 
             return 0;
         }

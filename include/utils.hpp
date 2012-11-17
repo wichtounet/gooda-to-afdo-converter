@@ -24,6 +24,13 @@ bool exists(const std::string& file);
  */
 bool is_directory(const std::string& file);
 
+/*!
+ * \brief Execute a command and return the output of the command. 
+ * \param command The command to execute.  
+ * \return The standard output of the executed command. 
+ */
+std::string exec_command(const std::string& command);
+
 }
 
 #endif
