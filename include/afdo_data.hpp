@@ -39,6 +39,7 @@ struct afdo_pos {
 struct afdo_stack {
     std::vector<afdo_pos> stack;
     gcov_type count = 0;
+    gcov_type cache_misses = 0;
     gcov_type num_inst = 0;
 };
 

@@ -28,7 +28,7 @@ void gooda::dump_afdo(const afdo_data& data){
         std::cout << function.name << " (" << function.file << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
         for(auto& stack : function.stacks){
-            std::cout << "   Stack of " << stack.num_inst << " instructions [" << stack.count << "]" << std::endl;
+            std::cout << "   Stack of " << stack.num_inst << " instructions [count=" << stack.count << ", misses=" << stack.cache_misses << "]" << std::endl;
 
             for(auto& pos : stack.stack){
                 std::cout << "      Instruction at line " << pos.line << " (" << pos.file << "), discr=" << pos.discr << std::endl;
