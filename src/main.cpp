@@ -33,7 +33,7 @@ void process(const std::string& directory, po::variables_map& vm){
     if(vm.count("dump")){
         gooda::dump_afdo(data);
     } else {
-        gooda::generate_afdo(data, vm["output"].as<std::string>());
+        gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
     }
     
     Clock::time_point t1 = Clock::now();
@@ -53,6 +53,7 @@ int main(int argc, char **argv){
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("dump", "Dump the AFDO on standard output")
             ("gooda", po::value<std::string>(), "Set the path to the Gooda installation, if not filled, assumed to be in Gooda directory")
+            ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
             ("profile,p", "Profile the given application")
             ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
 

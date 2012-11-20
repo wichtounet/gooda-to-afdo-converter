@@ -140,10 +140,10 @@ void write_file_name_table(const gooda::afdo_data& data){
     write_collection(data.file_names, write_string);
 }
 
-void write_function_table(const gooda::afdo_data& data){
+void write_function_table(const gooda::afdo_data& data, boost::program_options::variables_map& vm){
     write_section_header(GCOV_TAG_AFDO_FUNCTION, data.length_function_section);
 
-    write_collection(data.functions, [&data](const gooda::afdo_function& function){
+    write_collection(data.functions, [&data,&vm](const gooda::afdo_function& function){
         write_string(function.name);
 
         write_unsigned(data.get_file_index(function.file));
@@ -151,7 +151,7 @@ void write_function_table(const gooda::afdo_data& data){
         write_counter(function.total_count);
         write_counter(function.entry_count);
 
-        write_collection(function.stacks, [&data](const gooda::afdo_stack& stack){
+        write_collection(function.stacks, [&data,&vm](const gooda::afdo_stack& stack){
             write_collection(stack.stack, [&data](const gooda::afdo_pos& s){
                 write_unsigned(data.get_file_index(s.func));
                 write_unsigned(data.get_file_index(s.file));
@@ -162,6 +162,10 @@ void write_function_table(const gooda::afdo_data& data){
             
             write_counter(stack.count);
             write_counter(stack.num_inst);
+
+            if(vm.count("cache-misses")){
+                write_counter(stack.cache_misses);
+            }
         });
     });
 }
@@ -197,7 +201,7 @@ void write_working_set(const gooda::afdo_data& data){
 
 } //end of anonymous namespace
 
-void gooda::generate_afdo(const afdo_data& data, const std::string& file){
+void gooda::generate_afdo(const afdo_data& data, const std::string& file, boost::program_options::variables_map& vm){
     std::cout << "Generate AFDO profile in \"" << file << "\"" << std::endl;
 
     gcov_file.open(file.c_str(), std::ios::binary | std::ios::out );
@@ -219,7 +223,7 @@ void gooda::generate_afdo(const afdo_data& data, const std::string& file){
     write_header();
 
     write_file_name_table(data);
-    write_function_table(data);
+    write_function_table(data, vm);
     write_module_info(data);
     write_working_set(data);
 
