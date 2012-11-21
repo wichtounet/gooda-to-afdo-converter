@@ -66,6 +66,10 @@ unsigned int sizeof_string(const std::string& str){
     return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
 }
 
+/*!
+ * \brief Compute the length of each section of the AFDO data file. 
+ * \param data the Data file
+ */
 void compute_lengths(gooda::afdo_data& data){
     //The counts
     ++data.length_file_section;
