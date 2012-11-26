@@ -101,6 +101,9 @@ class gooda_report {
         bool has_src_file(std::size_t i) const;
         bool has_asm_file(std::size_t i) const;
 
+        gooda_file& get_hotspot_file();
+        gooda_file& get_process_file();
+
     private:
         gooda_file hotspot_file;
         gooda_file process_file;

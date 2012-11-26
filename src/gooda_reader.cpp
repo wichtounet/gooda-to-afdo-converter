@@ -76,7 +76,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     }*/
 }
 
-void skip_headers(std::ifstream& file){
+void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
     std::string line;
 
     //Introduction of the array
@@ -115,7 +115,7 @@ bool read_processes(const std::string& directory, gooda::gooda_report& report){
         return false;
     }
 
-    skip_headers(process_file);
+    skip_headers(process_file, report.get_process_file());
 
     std::string line;
 
@@ -153,7 +153,7 @@ bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
         return false;
     }
 
-    skip_headers(hotspot_file);
+    skip_headers(hotspot_file, report.get_hotspot_file());
 
     std::string line;
 
@@ -194,7 +194,7 @@ void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_rep
 
         auto& gooda_file = report.asm_file(i);
 
-        skip_headers(asm_file);
+        skip_headers(asm_file, gooda_file);
 
         std::string line;
 
@@ -228,7 +228,7 @@ void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_rep
 
         auto& gooda_file = report.src_file(i);
 
-        skip_headers(src_file);
+        skip_headers(src_file, gooda_file);
 
         std::string line;
 

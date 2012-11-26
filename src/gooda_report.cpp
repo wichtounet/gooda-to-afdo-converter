@@ -128,3 +128,11 @@ gooda::gooda_line& gooda::gooda_report::new_hotspot_function(){
 const gooda::gooda_line& gooda::gooda_report::hotspot_function(std::size_t i) const {
     return hotspot_file.line(i);
 }
+
+gooda::gooda_file& gooda::gooda_report::get_hotspot_file(){
+    return hotspot_file;
+}
+
+gooda::gooda_file& gooda::gooda_report::get_process_file(){
+    return process_file;
+}
