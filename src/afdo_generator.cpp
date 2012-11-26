@@ -17,7 +17,8 @@
 //#include "gcov-io.h"
 //#include "gcov-io.c"
 
-#include "gcov-iov.h"
+//#include "gcov-iov.h" //TODO Only temporary
+#define GCOV_VERSION ((gcov_unsigned_t)0x3430372a)  /* 407* */
 
 #define GCOV_DATA_MAGIC ((gcov_unsigned_t)0x67636461) /* "gcda" */
 

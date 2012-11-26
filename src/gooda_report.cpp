@@ -73,6 +73,14 @@ gooda::gooda_file::const_iterator gooda::gooda_file::end() const {
     return lines.cend();
 }
 
+unsigned int& gooda::gooda_file::column(const std::string& column){
+    return columns[column];
+}
+
+const unsigned int& gooda::gooda_file::column(const std::string& column) const {
+    return columns.at(column);
+}
+
 std::size_t gooda::gooda_report::functions() const {
     return hotspot_file.size();
 }

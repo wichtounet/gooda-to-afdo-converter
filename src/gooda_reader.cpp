@@ -17,34 +17,6 @@
 
 namespace {
 
-void skip_headers(std::ifstream& file){
-    std::string line;
-
-    //Introduction of the array
-    std::getline(file, line);
-
-    //Headers
-    std::getline(file, line);
-    
-    //Events
-    std::getline(file, line);
-    
-    //MSR Programming
-    std::getline(file, line);
-    
-    //Period
-    std::getline(file, line);
-    
-    //Multiplex
-    std::getline(file, line);
-    
-    //Penalty
-    std::getline(file, line);
-    
-    //Cycles
-    std::getline(file, line);
-}
-
 void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     //Keep only the interesting part
     line = line.substr(2, line.size() - 5);
@@ -102,6 +74,34 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     for(std::size_t j = 0; j < contents.size(); ++j){
         std::cout << j << ":" << contents[j] << std::endl;
     }*/
+}
+
+void skip_headers(std::ifstream& file){
+    std::string line;
+
+    //Introduction of the array
+    std::getline(file, line);
+
+    //Headers
+    std::getline(file, line);
+    
+    //Events
+    std::getline(file, line);
+    
+    //MSR Programming
+    std::getline(file, line);
+    
+    //Period
+    std::getline(file, line);
+    
+    //Multiplex
+    std::getline(file, line);
+    
+    //Penalty
+    std::getline(file, line);
+    
+    //Cycles
+    std::getline(file, line);
 }
 
 bool read_processes(const std::string& directory, gooda::gooda_report& report){

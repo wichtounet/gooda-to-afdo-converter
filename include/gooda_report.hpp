@@ -69,8 +69,12 @@ class gooda_file {
         gooda_line& line(std::size_t i);
         const gooda_line& line(std::size_t i) const;
 
+        unsigned int& column(const std::string& column);
+        const unsigned int& column(const std::string& column) const;
+
     private:
         std::vector<gooda_line> lines;
+        std::unordered_map<std::string, unsigned int> columns;
 };
 
 /*!
