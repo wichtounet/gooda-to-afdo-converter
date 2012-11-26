@@ -163,6 +163,13 @@ void compute_working_set(gooda::afdo_data& data){
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
+
+        auto string_cycles = line.get_string(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
+
+        //Some functions are filled empty by Gooda for some reason
+        if(string_cycles.empty()){
+            continue;
+        }
     
         gooda::afdo_function function;
         function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
