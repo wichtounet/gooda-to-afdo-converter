@@ -136,3 +136,11 @@ gooda::gooda_file& gooda::gooda_report::get_hotspot_file(){
 gooda::gooda_file& gooda::gooda_report::get_process_file(){
     return process_file;
 }
+
+const gooda::gooda_file& gooda::gooda_report::get_hotspot_file() const {
+    return hotspot_file;
+}
+
+const gooda::gooda_file& gooda::gooda_report::get_process_file() const {
+    return process_file;
+}

@@ -17,15 +17,15 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         bool bb_found = false;
 
         for(auto& line : file){
-            auto disassembly = line.get_string(ASM_DISASSEMBLY);
+            auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
             //Get the entry basic block
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
-                function.entry_count = line.get_counter(ASM_UNHALTED_CORE_CYCLES);
+                function.entry_count = line.get_counter(file.column(UNHALTED_CORE_CYCLES));
 
                 bb_found = true;
             } else if(bb_found){
-                auto file_name = line.get_string(ASM_FILE);
+                auto file_name = line.get_string(file.column(FILE));
 
                 function.file = file_name;
                 data.add_file_name(file_name);
@@ -43,10 +43,10 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         auto& file = report.src_file(i);
 
         for(auto& line : file){
-            auto line_number = line.get_counter(SRC_LINE);
+            auto line_number = line.get_counter(file.column(LINE));
 
             gooda::afdo_stack stack;
-            stack.count = line.get_counter(SRC_UNHALTED_CORE_CYCLES);
+            stack.count = line.get_counter(file.column(UNHALTED_CORE_CYCLES));
             stack.num_inst = 1; 
 
             gooda::afdo_pos position;
@@ -165,9 +165,9 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
         auto& line = report.hotspot_function(i);
     
         gooda::afdo_function function;
-        function.name = line.get_string(HS_FUNCTION_NAME);
+        function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
         function.file = "unknown";
-        function.total_count = line.get_counter(HS_UNHALTED_CORE_CYCLES);
+        function.total_count = line.get_counter(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
 
         data.add_file_name(function.file);
         data.add_file_name(function.name);

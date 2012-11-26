@@ -17,18 +17,11 @@ typedef std::string::const_iterator string_iter;
 typedef boost::iterator_range<string_iter> string_view;
 //typedef std::string string_view;
 
-//Hotspot indices
-#define HS_FUNCTION_NAME 2
-#define HS_UNHALTED_CORE_CYCLES 7
-
-//asm indices
-#define ASM_FILE 3
-#define ASM_DISASSEMBLY 6
-#define ASM_UNHALTED_CORE_CYCLES 7
-
-//src indices
-#define SRC_LINE 0
-#define SRC_UNHALTED_CORE_CYCLES 2
+#define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
+#define FUNCTION_NAME "Function Name"
+#define FILE "Principal File"
+#define DISASSEMBLY "Disassembly"
+#define LINE "Line Number"
 
 namespace gooda {
 
@@ -102,7 +95,10 @@ class gooda_report {
         bool has_asm_file(std::size_t i) const;
 
         gooda_file& get_hotspot_file();
+        const gooda_file& get_hotspot_file() const;
+
         gooda_file& get_process_file();
+        const gooda_file& get_process_file() const;
 
     private:
         gooda_file hotspot_file;

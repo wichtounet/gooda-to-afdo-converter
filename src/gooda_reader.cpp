@@ -58,7 +58,9 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
             ++length;
         }
         
-        ++it;
+        if(it != end){
+            ++it;
+        }
 
         if(it == end){
             if(length > 0){
@@ -84,6 +86,18 @@ void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
 
     //Headers
     std::getline(file, line);
+    
+    std::vector<string_view> headers; 
+    parse_gooda_line(line, headers);
+
+    for(std::size_t i = 0; i < headers.size(); ++i){
+        auto& header = headers[i];
+
+        std::string v(header.begin(), header.end());
+        boost::trim(v);
+
+        gooda_file.column(v) = i;
+    }
     
     //Events
     std::getline(file, line);
