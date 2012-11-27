@@ -53,12 +53,16 @@ int main(int argc, char **argv){
 
         description.add_options()
             ("help,h", "Display this help message")
-            ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
+            
             ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("dump", "Dump the AFDO on standard output")
-            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation, if not filled, assumed to be in Gooda directory")
+            ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
+
             ("profile,p", "Profile the given application")
+            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
+            ("lbr", "Performs precise profile with LBR")
+
             ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
 
         po::positional_options_description p;
