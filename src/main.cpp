@@ -102,14 +102,25 @@ int main(int argc, char **argv){
             return -1;
         }
 
-        auto further_options = po::collect_unrecognized(parsed->options, po::include_positional);
+        //Try to find the Gooda directory
+        std::string gooda_dir;
+        const char* gooda_dir_val = ::getenv("GOODA_DIR");
+        if(!gooda_dir_val){
+            gooda_dir = "";
+        } else {
+            gooda_dir = gooda_dir_val;
+        }
 
         std::string profile_command;
         if(vm.count("gooda")){
             profile_command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
-        } else {
+        } else if(gooda_dir.empty()){
             profile_command = "sudo bash scripts/" + script + " ";
+        } else {
+            profile_command = "sudo bash " + gooda_dir + "/scripts/" + script + " ";
         }
+
+        auto further_options = po::collect_unrecognized(parsed->options, po::include_positional);
 
         //Append the application
         for(auto& option : further_options){
@@ -122,8 +133,10 @@ int main(int argc, char **argv){
         std::string gooda_command;
         if(vm.count("gooda")){
             gooda_command = "sudo " + vm["gooda"].as<std::string>() + "/gooda";
-        } else {
+        } else if(gooda_dir.empty()){
             gooda_command = "sudo ./gooda";
+        } else {
+            gooda_command = "sudo " + gooda_dir + "/gooda";
         }
 
         std::cout << "Run Gooda (Gooda needs to be run in root)" << std::endl;
