@@ -11,7 +11,7 @@
 
 namespace {
 
-void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
+void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
     if(report.has_asm_file(i)){
         auto& function = data.functions[i];
         auto& file = report.asm_file(i);
@@ -23,7 +23,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             
             //Get the entry basic block
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
-                function.entry_count = line.get_counter(file.column(UNHALTED_CORE_CYCLES));
+                function.entry_count = line.get_counter(file.column(counter));
 
                 bb_found = true;
             } else if(bb_found){
@@ -38,7 +38,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
     }
 }
 
-void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
+void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
     if(report.has_src_file(i)){
         auto& function = data.functions[i];
 
@@ -48,7 +48,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             auto line_number = line.get_counter(file.column(LINE));
 
             gooda::afdo_stack stack;
-            stack.count = line.get_counter(file.column(UNHALTED_CORE_CYCLES));
+            stack.count = line.get_counter(file.column(counter));
             stack.num_inst = 1; 
 
             gooda::afdo_pos position;
@@ -162,13 +162,16 @@ void compute_working_set(gooda::afdo_data& data){
 
 } //End of anonymous namespace
 
-void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
+void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+    auto counter = UNHALTED_CORE_CYCLES;
+
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
-        auto string_cycles = line.get_string(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
+        auto string_cycles = line.get_string(report.get_hotspot_file().column(counter));
 
         //Some functions are filled empty by Gooda for some reason
+        //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
         if(string_cycles.empty()){
             continue;
         }
@@ -176,15 +179,15 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data){
         gooda::afdo_function function;
         function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
         function.file = "unknown";
-        function.total_count = line.get_counter(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
+        function.total_count = line.get_counter(report.get_hotspot_file().column(counter));
 
         data.add_file_name(function.file);
         data.add_file_name(function.name);
 
         data.functions.push_back(function);
         
-        read_asm_file(report, i, data);
-        read_src_file(report, i, data);
+        read_asm_file(report, i, data, counter);
+        read_src_file(report, i, data, counter);
     }
 
     compute_working_set(data);

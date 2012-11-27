@@ -27,9 +27,10 @@ void process(const std::string& directory, po::variables_map& vm){
 
     gooda::afdo_data data;
 
-    //Read the report and generate AFDO file
-    gooda::read_report(report, data);
+    //Convert the Gooda report to AFDO
+    gooda::read_report(report, data, vm);
 
+    //Execute the specified action
     if(vm.count("dump")){
         gooda::dump_afdo_light(data);
     } else if(vm.count("full-dump")){
