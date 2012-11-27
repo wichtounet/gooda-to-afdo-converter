@@ -99,6 +99,7 @@ int main(int argc, char **argv){
             script = "run_record_cyc_wsm_ep.sh";
         } else {
             std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
+            std::cerr << "Only Westmere, Sandy Bridge and Ivy Bridge are currently supported" << std::endl;
             return -1;
         }
 
