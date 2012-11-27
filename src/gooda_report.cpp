@@ -83,7 +83,7 @@ unsigned int& gooda::gooda_file::column(const std::string& column){
     return columns[column];
 }
 
-const unsigned int& gooda::gooda_file::column(const std::string& column) const {
+int gooda::gooda_file::column(const std::string& column) const {
     return columns.at(column);
 }
 
