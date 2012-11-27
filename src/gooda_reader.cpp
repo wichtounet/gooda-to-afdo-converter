@@ -140,10 +140,10 @@ bool read_processes(const std::string& directory, gooda::gooda_report& report){
     
     while(line.size() > 2){
         auto& process_line = report.new_process();
-        process_line.line = line;
+        process_line.line() = line;
 
         //Parse the contents of the line
-        parse_gooda_line(process_line.line, process_line.contents);
+        parse_gooda_line(process_line.line(), process_line.contents());
 
         //Next line
         std::getline(process_file, line);
@@ -178,10 +178,10 @@ bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
     
     while(!line.empty()){
         auto& hotspot_line = report.new_hotspot_function();
-        hotspot_line.line = line;
+        hotspot_line.line() = line;
 
         //Parse the contents of the line
-        parse_gooda_line(hotspot_line.line, hotspot_line.contents);
+        parse_gooda_line(hotspot_line.line(), hotspot_line.contents());
 
         //Next line
         std::getline(hotspot_file, line);
@@ -217,10 +217,10 @@ void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_rep
 
         while(line.size() > 3){
             auto& asm_line = gooda_file.new_line();
-            asm_line.line = line;
+            asm_line.line() = line;
 
             //Parse the contents of the line
-            parse_gooda_line(asm_line.line, asm_line.contents);
+            parse_gooda_line(asm_line.line(), asm_line.contents());
 
             //Next line
             std::getline(asm_file, line);
@@ -251,10 +251,10 @@ void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_rep
 
         while(line.size() > 3){
             auto& src_line = gooda_file.new_line();
-            src_line.line = line;
+            src_line.line() = line;
 
             //Parse the contents of the line
-            parse_gooda_line(src_line.line, src_line.contents);
+            parse_gooda_line(src_line.line(), src_line.contents());
 
             //Next line
             std::getline(src_file, line);

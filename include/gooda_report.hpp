@@ -15,7 +15,6 @@
 
 typedef std::string::const_iterator string_iter;
 typedef boost::iterator_range<string_iter> string_view;
-//typedef std::string string_view;
 
 #define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
 #define FUNCTION_NAME "Function Name"
@@ -24,8 +23,6 @@ typedef boost::iterator_range<string_iter> string_view;
 #define LINE "Line Number"
 
 namespace gooda {
-
-//TODO Better encapsulation of this class
 
 /*!
  * \struct gooda_line
@@ -36,8 +33,15 @@ class gooda_line {
         std::string get_string(std::size_t index) const;
         unsigned long get_counter(std::size_t index) const;
     
-        std::string line;
-        std::vector<string_view> contents;
+        std::string& line();
+        const std::string& line() const;
+        
+        std::vector<string_view>& contents();
+        const std::vector<string_view>& contents() const;
+
+    private:
+        std::string m_line;
+        std::vector<string_view> m_contents;
 };
 
 /*!

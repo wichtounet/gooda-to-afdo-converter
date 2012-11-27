@@ -5,8 +5,24 @@
 
 #include "gooda_report.hpp"
 
+std::string& gooda::gooda_line::line(){
+    return m_line;
+}
+
+const std::string& gooda::gooda_line::line() const {
+    return m_line;
+}
+
+std::vector<string_view>& gooda::gooda_line::contents(){
+    return m_contents;
+}
+
+const std::vector<string_view>& gooda::gooda_line::contents() const {
+    return m_contents;
+}
+
 std::string gooda::gooda_line::get_string(std::size_t index) const {
-    auto& item = contents[index];
+    auto& item = m_contents[index];
 
     std::string v(item.begin(), item.end());
     std::string value = v;
@@ -17,22 +33,12 @@ std::string gooda::gooda_line::get_string(std::size_t index) const {
 }
 
 unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
-    auto& item = contents[index];
-    
-    //std::cout << index << ":" << item << std::endl;
+    auto& item = m_contents[index];
 
     std::string v(item.begin(), item.end());
     std::string value = v;
 
     boost::trim(value);
-    
-    /*
-    for(std::size_t j = 0; j < contents.size(); ++j){
-        std::cout << j << ":" << contents[j] << std::endl;
-    }
-    
-    std::cout << index << ":" << value << std::endl;
-    */
 
     return boost::lexical_cast<unsigned long>(value);
 }
