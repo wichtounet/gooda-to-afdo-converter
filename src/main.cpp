@@ -99,6 +99,7 @@ int main(int argc, char **argv){
             script = "run_record_cyc_wsm_ep.sh";
         } else {
             std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
+            return -1;
         }
 
         auto further_options = po::collect_unrecognized(parsed->options, po::include_positional);
