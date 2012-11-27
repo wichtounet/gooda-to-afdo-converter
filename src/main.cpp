@@ -54,6 +54,7 @@ int main(int argc, char **argv){
         description.add_options()
             ("help,h", "Display this help message")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
+            ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("dump", "Dump the AFDO on standard output")
             ("gooda", po::value<std::string>(), "Set the path to the Gooda installation, if not filled, assumed to be in Gooda directory")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
@@ -127,8 +128,11 @@ int main(int argc, char **argv){
         std::cout << "Run Gooda (Gooda needs to be run in root)" << std::endl;
         gooda::exec_command(gooda_command);
 
-        //Process the spreadsheets to generate AFDO
-        process("spreadsheets", vm); 
+        //If no option is specified, just as as a wrapper of Gooda
+        if(vm.count("afdo")){
+            //Process the spreadsheets to generate AFDO
+            process("spreadsheets", vm); 
+        }
 
         return 0;
     }
