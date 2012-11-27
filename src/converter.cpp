@@ -163,7 +163,13 @@ void compute_working_set(gooda::afdo_data& data){
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
-    auto counter = UNHALTED_CORE_CYCLES;
+    //Choose the correct counter
+    std::string counter;
+    if(vm.count("lbr")){
+        counter = BB_EXEC;
+    } else {
+        counter = UNHALTED_CORE_CYCLES;
+    }
 
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
