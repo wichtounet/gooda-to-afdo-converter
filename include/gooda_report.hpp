@@ -5,16 +5,13 @@
 #include <vector>
 #include <unordered_map>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/range/iterator_range.hpp>
+#include "gooda_file.hpp"
+#include "gooda_line.hpp"
 
 /*!
  * \file gooda_report.hpp
  * \brief Contains the data structures holding the Gooda report. 
  */
-
-typedef std::string::const_iterator string_iter;
-typedef boost::iterator_range<string_iter> string_view;
 
 #define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
 #define FUNCTION_NAME "Function Name"
@@ -23,145 +20,6 @@ typedef boost::iterator_range<string_iter> string_view;
 #define LINE "Line Number"
 
 namespace gooda {
-
-/*!
- * \struct gooda_line
- * \brief A line of a Gooda Spreadsheets.
- *
- * A gooda_line is a made of the original line that was parsed and of a list
- * of positions in that line that make the columns. For performance reasons, the
- * string of each column are not extracted until it is necessary. For the same reasons, 
- * there are only converted to counter when necessary. 
- */
-class gooda_line {
-    public:
-        /*!
-         * \brief Return a string representation of the value in the given column.
-         * \param index The column index. 
-         * \return The string value at the given column.
-         */
-        std::string get_string(std::size_t index) const;
-        
-        /*!
-         * \brief Return a numeric representation of the value in the given column.
-         * \param index The column index. 
-         * \return The counter value at the given column.
-         */
-        unsigned long get_counter(std::size_t index) const;
-    
-        /*!
-         * \brief Returns the original line that was parsed. 
-         * \return The original line that was parsed.
-         */
-        std::string& line();
-
-        /*!
-         * \brief Returns the original line that was parsed. 
-         * \return The original line that was parsed.
-         */
-        const std::string& line() const;
-        
-        /*!
-         * \brief Returns the list of the column positions. 
-         * \return A std::vector containing the column positions.
-         */
-        std::vector<string_view>& contents();
-        
-        /*!
-         * \brief Returns the list of the column positions. 
-         * \return A std::vector containing the column positions.
-         */
-        const std::vector<string_view>& contents() const;
-
-    private:
-        std::string m_line;
-        std::vector<string_view> m_contents;
-};
-
-/*!
- * \struct gooda_file
- * \brief The contents of a specific Gooda file. 
- */
-class gooda_file {
-    public:
-        /*!
-         * \brief Iterator on the lines of the file.
-         */
-        typedef std::vector<gooda_line>::iterator iterator;
-        
-        /*!
-         * \brief Const-iterator on the lines of the file.
-         */
-        typedef std::vector<gooda_line>::const_iterator const_iterator;
-
-        /*!
-         * \brief Return an iterator to the first line of the file. 
-         * \return An iterator to the first line of the file.
-         */
-        iterator begin();
-
-        /*!
-         * \brief Return an iterator one past the last line of the file. 
-         * \return An iterator one past the last line of the file. 
-         */
-        iterator end();
-
-        /*!
-         * \brief Return an iterator to the first line of the file. 
-         * \return An iterator to the first line of the file.
-         */
-        const_iterator begin() const;
-
-        /*!
-         * \brief Return an iterator one past the last line of the file. 
-         * \return An iterator one past the last line of the file. 
-         */
-        const_iterator end() const;
-        
-        /*!
-         * \brief Creates and returns a new line.
-         * \return A newly created gooda_line. 
-         */
-        gooda_line& new_line();
-
-        /*!
-         * \brief Returns the number of line of the file.
-         * \return the number of line of the file.
-         */
-        std::size_t size() const;
-        
-        /*!
-         * \brief Return the ith line of the file.
-         * \param i The index of the line to return. 
-         * \return The ith gooda_line.
-         */
-        gooda_line& line(std::size_t i);
-        
-        /*!
-         * \brief Return the ith line of the file.
-         * \param i The index of the line to return. 
-         * \return The ith gooda_line.
-         */
-        const gooda_line& line(std::size_t i) const;
-
-        /*!
-         * \brief Return the index at which the given column is. 
-         * \param column The textual name of the column ("Disassembly for instance")
-         * \return The index of the column.
-         */
-        unsigned int& column(const std::string& column);
-
-        /*!
-         * \brief Return the index at which the given column is. 
-         * \param column The textual name of the column ("Disassembly for instance")
-         * \return The index of the column.
-         */
-        int column(const std::string& column) const;
-
-    private:
-        std::vector<gooda_line> lines;
-        std::unordered_map<std::string, unsigned int> columns;
-};
 
 /*!
  * \struct gooda_report 
@@ -289,6 +147,6 @@ class gooda_report {
         std::unordered_map<std::size_t, gooda_file> asm_files;
 };
 
-}
+} //end of namespace gooda
 
 #endif

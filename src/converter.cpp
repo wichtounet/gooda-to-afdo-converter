@@ -4,6 +4,8 @@
 #include <cstring>
 #include <map>
 
+#include <boost/algorithm/string.hpp>
+
 #include "converter.hpp"
 #include "utils.hpp"
 

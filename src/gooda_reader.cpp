@@ -3,6 +3,8 @@
 #include <sstream>
 #include <cstring>
 
+#include <boost/algorithm/string.hpp>
+
 #include "gooda_reader.hpp"
 #include "utils.hpp"
 
