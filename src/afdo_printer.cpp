@@ -47,3 +47,11 @@ void gooda::dump_afdo(const afdo_data& data){
     std::cout << "   Modules Table: " << pretty_size(data.length_modules_section * 4) << std::endl;
     std::cout << "   Working Set Table: " << pretty_size(data.length_working_set_section * 4) << std::endl;
 }
+
+void gooda::dump_afdo_light(const afdo_data& data){
+    std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
+
+    for(auto& function : data.functions) {
+        std::cout << function.name << " (" << function.file << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
+    }
+}

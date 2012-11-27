@@ -31,6 +31,8 @@ void process(const std::string& directory, po::variables_map& vm){
     gooda::read_report(report, data);
 
     if(vm.count("dump")){
+        gooda::dump_afdo_light(data);
+    } else if(vm.count("full-dump")){
         gooda::dump_afdo(data);
     } else {
         gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
@@ -56,6 +58,7 @@ int main(int argc, char **argv){
             
             ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("dump", "Dump the AFDO on standard output")
+            ("full-dump", "Dump the complete AFDO information on standard output")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
 

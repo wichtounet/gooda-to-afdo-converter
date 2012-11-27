@@ -18,6 +18,8 @@ namespace gooda {
  */
 void dump_afdo(const afdo_data& data);
 
+void dump_afdo_light(const afdo_data& data);
+
 }
 
 #endif
