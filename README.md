@@ -20,13 +20,15 @@ Once built, the application can be used to perform several tasks.
 
 To profile your application with Gooda and generate AFDO data use: 
 
-    ./bin/converter --gooda=gooda_director --profile your_application [your_options]
+    ./bin/converter --afdo --gooda=gooda_director --profile your_application [your_options]
     
 or
 
-    ./bin/converter --gooda=gooda_director --lbr --profile your_application [your_options]
+    ./bin/converter --afdo --gooda=gooda_director --lbr --profile your_application [your_options]
   
 to use LBR. 
+
+If the --afdo option is not set with the --profile option, it just runs the collection script and gooda on the given program. 
 
 If GOODA_DIR environemnt variable is set to the Gooda directory, there is no need to use the --gooda option. 
 
