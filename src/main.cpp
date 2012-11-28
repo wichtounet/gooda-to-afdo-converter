@@ -111,6 +111,11 @@ int main(int argc, char **argv){
             return -1;
         }
 
+        //There is only one script for LBR
+        if(vm.count("lbr")){
+            script = "gooda_bb_exec.sh";
+        }
+
         //Try to find the Gooda directory
         std::string gooda_dir;
         const char* gooda_dir_val = ::getenv("GOODA_DIR");
