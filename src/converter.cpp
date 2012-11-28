@@ -127,12 +127,15 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
             gcov_type counter = 0;
 
-            for(auto& bb : basic_blocks){
-                if(line_number < bb.line_start){
-                    break;
+            for(std::size_t i = 0; i < basic_blocks.size(); ++i){
+                if(
+                        (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
+                        ||  (i + 1 == basic_blocks.size() && line_number >= basic_blocks[i].line_start))
+                {
+                    if(basic_blocks[i].exec_count > counter){
+                        counter = basic_blocks[i].exec_count;
+                    }
                 }
-
-                counter = bb.exec_count;
             }
 
             gooda::afdo_stack stack;
