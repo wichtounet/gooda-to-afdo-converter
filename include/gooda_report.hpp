@@ -20,6 +20,7 @@
 #define FILE "Principal File"
 #define DISASSEMBLY "Disassembly"
 #define LINE "Line Number"
+#define PRINC_LINE "Princ_L#"
 
 namespace gooda {
 

@@ -11,6 +11,11 @@
 
 namespace {
 
+struct basic_block {
+    unsigned long line_start;
+    unsigned long exec_count;
+};
+
 void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
     if(report.has_asm_file(i)){
         auto& function = data.functions[i];
@@ -49,6 +54,67 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
             gooda::afdo_stack stack;
             stack.count = line.get_counter(file.column(counter));
+            stack.num_inst = 1; 
+
+            gooda::afdo_pos position;
+            position.func = function.name;
+            position.file = function.file;
+            position.line = line_number;
+            position.discr = 0;
+
+            stack.stack.push_back(position);
+
+            function.stacks.push_back(std::move(stack));
+        }
+    }
+}
+
+std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
+    std::vector<basic_block> basic_blocks;
+
+    if(report.has_asm_file(i)){
+        auto& file = report.asm_file(i);
+
+        for(auto& line : file){
+            auto disassembly = line.get_string(file.column(DISASSEMBLY));
+            
+            if(boost::starts_with(disassembly, "Basic Block ")){
+                basic_block block;
+                
+                block.line_start = line.get_counter(file.column(PRINC_LINE));
+                block.exec_count = line.get_counter(file.column(counter));
+
+                //std::cout << "BB " << block.line_start << " : " << block.exec_count << std::endl;
+
+                basic_blocks.push_back(std::move(block));
+            } 
+        }
+    }
+
+    return basic_blocks;
+}
+
+void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<basic_block>& basic_blocks){
+    if(report.has_src_file(i)){
+        auto& function = data.functions[i];
+
+        auto& file = report.src_file(i);
+
+        for(auto& line : file){
+            auto line_number = line.get_counter(file.column(LINE));
+
+            gcov_type counter = 0;
+
+            for(auto& bb : basic_blocks){
+                if(line_number < bb.line_start){
+                    break;
+                }
+
+                counter = bb.exec_count;
+            }
+
+            gooda::afdo_stack stack;
+            stack.count = counter;
             stack.num_inst = 1; 
 
             gooda::afdo_pos position;
@@ -163,9 +229,11 @@ void compute_working_set(gooda::afdo_data& data){
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+    bool lbr = vm.count("lbr");
+
     //Choose the correct counter
     std::string counter;
-    if(vm.count("lbr")){
+    if(lbr){
         counter = BB_EXEC;
     } else {
         counter = UNHALTED_CORE_CYCLES;
@@ -184,7 +252,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     
         gooda::afdo_function function;
         function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
-        function.file = "unknown";
+        function.file = "unknown"; //The file will be filled by read_asm
         function.total_count = line.get_counter(report.get_hotspot_file().column(counter));
 
         data.add_file_name(function.file);
@@ -192,8 +260,18 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
         data.functions.push_back(function);
         
+        //Collect function.file and function.entry_count
         read_asm_file(report, i, data, counter);
-        read_src_file(report, i, data, counter);
+        
+        if(lbr){
+            auto basic_blocks = collect_bb(report, i, counter);
+
+            //TODO Some aggregation of the results (inlining)
+            
+            annotate_src_file(report, i, data, basic_blocks);
+        } else {
+            read_src_file(report, i, data, counter);
+        }
     }
 
     compute_working_set(data);
