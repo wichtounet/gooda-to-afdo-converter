@@ -6,7 +6,7 @@ Simple utility application to convert Gooda Spreadsheets to AFDO (Google Patch t
 Build
 -----
 
-To build the application, CMake 2.8 and GCC 4.7 are necessary. 
+To build the application, CMake 2.8 and GCC 4.7 are necessary. Boost >= 1.41 is also necessary. 
 
     git clone git://github.com/wichtounet/gooda-to-afdo-converter.git
     cd gooda-to-afdo-converter
