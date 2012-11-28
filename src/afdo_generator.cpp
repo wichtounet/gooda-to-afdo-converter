@@ -30,9 +30,9 @@ void write_counter(gcov_type value){
 
 void write_string (const std::string& value){
     const char* string = value.c_str();
-    unsigned length = 0;
+    unsigned int length = 0;
 
-    unsigned alloc = 0;
+    unsigned int alloc = 0;
 
     if (string)
     {   
@@ -40,11 +40,11 @@ void write_string (const std::string& value){
         alloc = (length + 4) >> 2;
     }   
     
-    gcov_file.write(reinterpret_cast<const char*>(&alloc), sizeof(alloc));
+    write_unsigned(alloc);
 
     char* buffer = new char[alloc * 4];
 
-    for(unsigned int i = alloc - 1; i > length; --i){
+    for(unsigned int i = 0; i < alloc * 4; ++i){
         buffer[i] = 0;
     }
 
