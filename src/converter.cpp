@@ -127,6 +127,8 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
             gcov_type counter = 0;
 
+            //Several basic blocks can be on the same line
+            //=> Take the max as the value of the line
             for(std::size_t i = 0; i < basic_blocks.size(); ++i){
                 if(
                         (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
