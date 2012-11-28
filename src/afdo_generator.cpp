@@ -31,23 +31,14 @@ void write_counter(gcov_type value){
 
 void write_string (const std::string& value){
     const char* string = value.c_str();
-    unsigned int length = 0;
 
-    unsigned int alloc = 0;
-
-    if (string)
-    {   
-        length = strlen (string);
-        alloc = (length + 4) >> 2;
-    }   
+    unsigned int length = strlen (string);
+    unsigned int alloc = (length + 4) >> 2;
     
     write_unsigned(alloc);
 
     char* buffer = new char[alloc * 4];
-
-    for(unsigned int i = 0; i < alloc * 4; ++i){
-        buffer[i] = 0;
-    }
+    std::fill(buffer, buffer+(alloc*4), 0);
 
     memcpy (&buffer[0], string, length);
     
