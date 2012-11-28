@@ -94,9 +94,21 @@ class gooda_file {
          */
         int column(const std::string& column) const;
 
+        /*!
+         * \brief Return the number of lines of the file
+         * \return the number of lines of the file. 
+         */
+        std::size_t lines() const;
+
+        /*!
+         * \brief Return the number of columns of the file
+         * \return the number of columns of the file. 
+         */
+        std::size_t columns() const;
+
     private:
-        std::vector<gooda_line> lines;
-        std::unordered_map<std::string, unsigned int> columns;
+        std::vector<gooda_line> m_lines;
+        std::unordered_map<std::string, unsigned int> m_columns;
 };
 
 } //end of namespace gooda

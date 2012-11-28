@@ -1,45 +1,53 @@
 #include "gooda_file.hpp"
 
 gooda::gooda_line& gooda::gooda_file::new_line(){
-    int i = lines.size();
+    int i = m_lines.size();
 
-    lines.resize(i + 1);
+    m_lines.resize(i + 1);
 
-    return lines[i];
+    return m_lines[i];
 }
 
 std::size_t gooda::gooda_file::size() const {
-    return lines.size();
+    return m_lines.size();
 }
 
 gooda::gooda_line& gooda::gooda_file::line(std::size_t i){
-    return lines[i];
+    return m_lines[i];
 }
 
 const gooda::gooda_line& gooda::gooda_file::line(std::size_t i) const {
-    return lines[i];
+    return m_lines[i];
 }
 
 gooda::gooda_file::iterator gooda::gooda_file::begin(){
-    return lines.begin();
+    return m_lines.begin();
 }
 
 gooda::gooda_file::iterator gooda::gooda_file::end(){
-    return lines.end();
+    return m_lines.end();
 }
 
 gooda::gooda_file::const_iterator gooda::gooda_file::begin() const {
-    return lines.cbegin();
+    return m_lines.cbegin();
 }
 
 gooda::gooda_file::const_iterator gooda::gooda_file::end() const {
-    return lines.cend();
+    return m_lines.cend();
 }
 
 unsigned int& gooda::gooda_file::column(const std::string& column){
-    return columns[column];
+    return m_columns[column];
 }
 
 int gooda::gooda_file::column(const std::string& column) const {
-    return columns.at(column);
+    return m_columns.at(column);
+}
+
+std::size_t gooda::gooda_file::lines() const {
+    return m_lines.size();
+}
+
+std::size_t gooda::gooda_file::columns() const {
+    return m_columns.size();
 }

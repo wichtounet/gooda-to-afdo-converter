@@ -17,10 +17,14 @@
 #define BB_EXEC "BB_Exec"
 
 #define FUNCTION_NAME "Function Name"
-#define FILE "Principal File"
-#define DISASSEMBLY "Disassembly"
 #define LINE "Line Number"
+
+//For ASM
+#define PRINC_FILE "Principal File"
 #define PRINC_LINE "Princ_L#"
+#define INIT_LINE "Init_L#"
+#define INIT_FILE "Principal File"
+#define DISASSEMBLY "Disassembly"
 
 namespace gooda {
 

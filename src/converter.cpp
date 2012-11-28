@@ -11,10 +11,7 @@
 
 namespace {
 
-struct basic_block {
-    unsigned long line_start;
-    unsigned long exec_count;
-};
+//Normal mode
 
 void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
     if(report.has_asm_file(i)){
@@ -32,7 +29,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
                 bb_found = true;
             } else if(bb_found){
-                auto file_name = line.get_string(file.column(FILE));
+                auto file_name = line.get_string(file.column(PRINC_FILE));
 
                 function.file = file_name;
                 data.add_file_name(file_name);
@@ -69,13 +66,23 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
     }
 }
 
+//LBR Mode
+
+struct basic_block {
+    unsigned long line_start;
+    unsigned long inlined_line_start;
+    unsigned long exec_count;
+};
+
 std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
     std::vector<basic_block> basic_blocks;
 
     if(report.has_asm_file(i)){
         auto& file = report.asm_file(i);
 
-        for(auto& line : file){
+        for(std::size_t i = 0; i < file.lines(); ++i){
+            auto& line = file.line(i);
+            
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
             if(boost::starts_with(disassembly, "Basic Block ")){
@@ -84,7 +91,22 @@ std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter));
 
-                //std::cout << "BB " << block.line_start << " : " << block.exec_count << std::endl;
+                //By default considered as not coming from inlined function
+                block.inlined_line_start = 0;
+
+                if(i + 1 < file.lines()){
+                    auto& next_line = file.line(i + 1);
+
+                    //If the next line is part of the same basic block
+                    if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
+                        auto princ_file = next_line.get_string(file.column(PRINC_FILE));
+                        auto init_file = next_line.get_string(file.column(INIT_FILE));
+
+                        if(!init_file.empty() && init_file != princ_file){
+                            block.inlined_line_start = next_line.get_counter(file.column(INIT_LINE));
+                        }
+                    }
+                }
 
                 basic_blocks.push_back(std::move(block));
             } 
@@ -129,6 +151,8 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
         }
     }
 }
+
+//Common functions 
 
 unsigned int sizeof_string(const std::string& str){
     return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
