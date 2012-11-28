@@ -15,6 +15,7 @@
 #define GCOV_TAG_AFDO_MODULE_GROUPING ((gcov_unsigned_t)0xae000000)
 #define GCOV_TAG_AFDO_WORKING_SET ((gcov_unsigned_t)0xaf000000)
 
+//TODO Do not let this as a global variable
 std::ofstream gcov_file;
 
 namespace {
