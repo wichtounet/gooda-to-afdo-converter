@@ -20,13 +20,15 @@ Once built, the application can be used to perform several tasks.
 
 To profile your application with Gooda and generate AFDO data use: 
 
-    ./bin/converter --profile your_application [your_options]
+    ./bin/converter --gooda=gooda_director --profile your_application [your_options]
     
 or
 
-    ./bin/converter --lbr --profile your_application [your_options]
+    ./bin/converter --gooda=gooda_director --lbr --profile your_application [your_options]
   
 to use LBR. 
+
+If GOODA_DIR environemnt variable is set to the Gooda directory, there is no need to use the --gooda option. 
 
 To read existing spreadsheets and convert them to AFDO data: 
 
