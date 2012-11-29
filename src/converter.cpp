@@ -9,6 +9,31 @@
 #include "converter.hpp"
 #include "utils.hpp"
 
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v){
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+typedef std::pair<std::string, std::size_t> inlined_key;
+
+namespace std {
+
+template<>
+class hash<inlined_key> {
+    public:
+        std::size_t operator()(const inlined_key& key) const {
+            std::size_t seed = 0;
+
+            hash_combine(seed, key.first);
+            hash_combine(seed, key.second);
+
+            return seed;
+        }
+};
+
+} //end of namespace std
+
 namespace {
 
 //Normal mode
@@ -164,12 +189,10 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                 //=> Take the max as the value of the line
                 for(std::size_t i = 0; i < basic_blocks.size(); ++i){
                     if(
-                            (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
+                                (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
                             ||  (i + 1 == basic_blocks.size() && line_number >= basic_blocks[i].line_start))
                     {
-                        if(basic_blocks[i].exec_count > counter){
-                            counter = basic_blocks[i].exec_count;
-                        }
+                        counter = std::max(counter, basic_blocks[i].exec_count);
                     }
                 }
 
@@ -289,6 +312,27 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
+std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lbr_bb>> basic_block_sets){
+    std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
+
+    for(auto& block_set : basic_block_sets){
+        for(auto& block : block_set){
+            //If this block comes from an inlined function
+            if(!block.inlined_file.empty()){
+                inline_mappings[{block.inlined_file, block.inlined_line_start}].push_back(block);
+            }
+        }
+    }
+    
+    std::vector<std::vector<lbr_bb>> inlined_sets;
+
+    for(auto& pair : inline_mappings){
+       inlined_sets.push_back(pair.second); 
+    }
+
+    return inlined_sets;
+}
+
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
@@ -343,34 +387,49 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
     //Handle inlined functions in LBR mode
     if(lbr){
-        for(auto& block_set : basic_block_sets){
-            for(std::size_t i = 0; i < block_set.size(); ++i){
-                auto& block = block_set[i];
-                if(!block.inlined_file.empty()){
-                    for(auto& function : data.functions){
-                        if(function.file == block.inlined_file){
-                            for(auto& stack : function.stacks){
-                                for(auto& pos : stack.stack){
-                                    if(pos.line == block.inlined_line_start){
-                                        std::cout << function.name << " has been inlined" << std::endl;
+        auto inlined_block_sets = compute_inlined_sets(basic_block_sets);
 
-                                        auto princ_line = block.line_start;
-                                        std::cout << princ_line << std::endl;
-                                        std::cout << block.inlined_line_start << std::endl;
+        for(auto& block_set : inlined_block_sets){
+            auto& first_block = block_set[0];
 
-                                        for(; i < block_set.size() && block_set[i].line_start == princ_line; ++i){
-                                            std::cout << "Found source BB" << std::endl;
-                                        }
+            BOOST_ASSERT_MSG(!first_block.inlined_file.empty(), "All the blocks should be from inlined functions");
 
-                                        --i;
+            bool found = false;
+            
+            for(auto& function : data.functions){
+                if(function.file == first_block.inlined_file){
+                    //TODO Find a better test for that
+                    if(function.first_line == first_block.inlined_line_start){
+                        for(auto& stack : function.stacks){
+                            for(auto& pos : stack.stack){
+                                auto line_number = pos.line;
 
-                                        //TODO Iterate through all the basic blocks that have the same source line (in the caller)
-                                        //And do the same operations that was done in annotate_src_file
+                                for(std::size_t i = 0; i < block_set.size(); ++i){
+                                    if(
+                                            (i + 1 < block_set.size() && line_number >= block_set[i].inlined_line_start && line_number < block_set[i+1].inlined_line_start)
+                                            ||  (i + 1 == block_set.size() && line_number >= block_set[i].inlined_line_start))
+                                    {
+                                        stack.count = std::max(stack.count, block_set[i].exec_count);
                                     }
                                 }
                             }
                         }
+
+                        found = true;
+                        break;
                     }
+                }
+
+                if(!found){
+                    std::cout << "inlined function not found" << std::endl;
+                }
+            }
+        }
+
+        for(auto& block_set : basic_block_sets){
+            for(std::size_t i = 0; i < block_set.size(); ++i){
+                auto& block = block_set[i];
+                if(!block.inlined_file.empty()){
                 }
             }
         }
