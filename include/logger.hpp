@@ -7,7 +7,11 @@
 #undef LOGGING
 #endif
 
-static int current_level = 0;
+#ifdef LOGGING
+#include <iostream>
+#endif
+
+extern int current_level;
 
 template<typename Level>
 struct logger {
@@ -34,6 +38,11 @@ struct log {
     struct Warning {
         constexpr static const char* label = "WARNING";
         static const int level = 1;
+    };
+    
+    struct Debug {
+        constexpr static const char* label = "DEBUG";
+        static const int level = 2;
     };
 
     static void set_level(int level){

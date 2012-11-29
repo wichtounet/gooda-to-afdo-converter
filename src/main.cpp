@@ -10,6 +10,7 @@
 #include "converter.hpp"
 #include "afdo_generator.hpp"
 #include "afdo_printer.hpp"
+#include "logger.hpp"
     
 namespace po = boost::program_options;
 
@@ -62,6 +63,8 @@ int main(int argc, char **argv){
             ("full-dump", "Dump the complete AFDO information on standard output")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
+
+            ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
 
             ("profile,p", "Profile the given application")
             ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
@@ -172,6 +175,8 @@ int main(int argc, char **argv){
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
+
+    log::set_level(vm["log"].as<int>());
 
     //No further options are allowed if not in profile mode
     auto further_options = po::collect_unrecognized(parsed->options, po::exclude_positional);
