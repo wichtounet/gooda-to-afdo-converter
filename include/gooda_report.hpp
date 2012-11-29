@@ -23,7 +23,7 @@
 #define PRINC_FILE "Principal File"
 #define PRINC_LINE "Princ_L#"
 #define INIT_LINE "Init_L#"
-#define INIT_FILE "Principal File"
+#define INIT_FILE "Initial File"
 #define DISASSEMBLY "Disassembly"
 
 namespace gooda {

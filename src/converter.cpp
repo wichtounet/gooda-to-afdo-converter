@@ -70,8 +70,10 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
 struct basic_block {
     unsigned long line_start;
-    unsigned long inlined_line_start;
     unsigned long exec_count;
+    
+    unsigned long inlined_line_start;
+    std::string inlined_file;
 };
 
 std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
@@ -102,8 +104,9 @@ std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size
                         auto princ_file = next_line.get_string(file.column(PRINC_FILE));
                         auto init_file = next_line.get_string(file.column(INIT_FILE));
 
-                        if(!init_file.empty() && init_file != princ_file){
+                        if(!init_file.empty()){
                             block.inlined_line_start = next_line.get_counter(file.column(INIT_LINE));
+                            block.inlined_file = init_file;
                         }
                     }
                 }
