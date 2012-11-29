@@ -21,9 +21,13 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         //Compute the addresses of the first and the last instructions
         auto start_instruction = report.hotspot_function(i).get_address(report.get_hotspot_file().column(OFFSET));
         auto length = report.hotspot_function(i).get_address(report.get_hotspot_file().column(LENGTH));
-        auto last_instruction = start_instruction + length - 5;
+        auto last_instruction = start_instruction + length;
 
         bool bb_found = false;
+        bool collection = false;
+
+        function.first_line = std::numeric_limits<std::size_t>::max();
+        function.last_line = std::numeric_limits<std::size_t>::min();
 
         for(auto& line : file){
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
@@ -45,17 +49,21 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             auto address = line.get_address(file.column(ADDRESS)); 
 
             if(address == start_instruction){
-                function.first_line = line.get_counter(file.column(PRINC_LINE));
+                collection = true;
             } else if(address >= last_instruction){
-                function.last_line = line.get_counter(file.column(PRINC_LINE));
-
                 break;
+            }
+            
+            //If we are inside the function
+            if(collection){
+                function.first_line = std::min(line.get_counter(file.column(PRINC_LINE)), function.first_line);
+                function.last_line = std::max(line.get_counter(file.column(PRINC_LINE)), function.last_line);
             }
         }
 
         BOOST_ASSERT_MSG(!function.file.empty(), "The function file must be set");
-        BOOST_ASSERT_MSG(function.first_line > 0, "The function first line must be set");
-        BOOST_ASSERT_MSG(function.last_line > 0, "The function last line must be set");
+        BOOST_ASSERT_MSG(function.first_line < std::numeric_limits<std::size_t>::max(), "The function first line must be set");
+        BOOST_ASSERT_MSG(function.last_line > std::numeric_limits<std::size_t>::min(), "The function last line must be set");
     }
 }
 
@@ -68,19 +76,21 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         for(auto& line : file){
             auto line_number = line.get_counter(file.column(LINE));
 
-            gooda::afdo_stack stack;
-            stack.count = line.get_counter(file.column(counter));
-            stack.num_inst = 1; 
+            if(line_number >= function.first_line && line_number <= function.last_line){
+                gooda::afdo_stack stack;
+                stack.count = line.get_counter(file.column(counter));
+                stack.num_inst = 1; 
 
-            gooda::afdo_pos position;
-            position.func = function.name;
-            position.file = function.file;
-            position.line = line_number;
-            position.discr = 0;
+                gooda::afdo_pos position;
+                position.func = function.name;
+                position.file = function.file;
+                position.line = line_number;
+                position.discr = 0;
 
-            stack.stack.push_back(position);
+                stack.stack.push_back(position);
 
-            function.stacks.push_back(std::move(stack));
+                function.stacks.push_back(std::move(stack));
+            } 
         }
     }
 }
@@ -147,34 +157,36 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
         for(auto& line : file){
             auto line_number = line.get_counter(file.column(LINE));
 
-            gcov_type counter = 0;
+            if(line_number >= function.first_line && line_number <= function.last_line){
+                gcov_type counter = 0;
 
-            //Several basic blocks can be on the same line
-            //=> Take the max as the value of the line
-            for(std::size_t i = 0; i < basic_blocks.size(); ++i){
-                if(
-                        (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
-                        ||  (i + 1 == basic_blocks.size() && line_number >= basic_blocks[i].line_start))
-                {
-                    if(basic_blocks[i].exec_count > counter){
-                        counter = basic_blocks[i].exec_count;
+                //Several basic blocks can be on the same line
+                //=> Take the max as the value of the line
+                for(std::size_t i = 0; i < basic_blocks.size(); ++i){
+                    if(
+                            (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
+                            ||  (i + 1 == basic_blocks.size() && line_number >= basic_blocks[i].line_start))
+                    {
+                        if(basic_blocks[i].exec_count > counter){
+                            counter = basic_blocks[i].exec_count;
+                        }
                     }
                 }
+
+                gooda::afdo_stack stack;
+                stack.count = counter;
+                stack.num_inst = 1; 
+
+                gooda::afdo_pos position;
+                position.func = function.name;
+                position.file = function.file;
+                position.line = line_number;
+                position.discr = 0;
+
+                stack.stack.push_back(position);
+
+                function.stacks.push_back(std::move(stack));
             }
-
-            gooda::afdo_stack stack;
-            stack.count = counter;
-            stack.num_inst = 1; 
-
-            gooda::afdo_pos position;
-            position.func = function.name;
-            position.file = function.file;
-            position.line = line_number;
-            position.discr = 0;
-
-            stack.stack.push_back(position);
-
-            function.stacks.push_back(std::move(stack));
         }
     }
 }
