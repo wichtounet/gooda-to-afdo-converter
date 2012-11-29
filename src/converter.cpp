@@ -123,6 +123,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 //LBR Mode
 
 struct lbr_bb {
+    std::string file;
     unsigned long line_start;
     unsigned long exec_count;
     
@@ -144,6 +145,7 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
             if(boost::starts_with(disassembly, "Basic Block ")){
                 lbr_bb block;
                 
+                block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter));
 
@@ -155,7 +157,6 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
 
                     //If the next line is part of the same basic block
                     if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
-                        auto princ_file = next_line.get_string(file.column(PRINC_FILE));
                         auto init_file = next_line.get_string(file.column(INIT_FILE));
 
                         if(!init_file.empty()){
@@ -319,7 +320,7 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lb
         for(auto& block : block_set){
             //If this block comes from an inlined function
             if(!block.inlined_file.empty()){
-                inline_mappings[{block.inlined_file, block.inlined_line_start}].push_back(block);
+                inline_mappings[{block.file, block.line_start}].push_back(block);
             }
         }
     }
@@ -419,10 +420,10 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                         break;
                     }
                 }
+            }
 
-                if(!found){
-                    std::cout << "inlined function not found" << std::endl;
-                }
+            if(!found){
+                std::cout << "inlined function not found" << std::endl;
             }
         }
 
