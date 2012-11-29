@@ -88,6 +88,8 @@ int main(int argc, char **argv){
         return 1;
     }
 
+    log::set_level(vm["log"].as<int>());
+
     //Profiling mode
     if(vm.count("profile")){
         auto processor_model = gooda::processor_model();
@@ -175,8 +177,6 @@ int main(int argc, char **argv){
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-
-    log::set_level(vm["log"].as<int>());
 
     //No further options are allowed if not in profile mode
     auto further_options = po::collect_unrecognized(parsed->options, po::exclude_positional);
