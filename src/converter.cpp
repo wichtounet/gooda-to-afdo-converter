@@ -68,7 +68,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
 //LBR Mode
 
-struct basic_block {
+struct lbr_bb {
     unsigned long line_start;
     unsigned long exec_count;
     
@@ -76,8 +76,8 @@ struct basic_block {
     std::string inlined_file;
 };
 
-std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
-    std::vector<basic_block> basic_blocks;
+std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
+    std::vector<lbr_bb> basic_blocks;
 
     if(report.has_asm_file(i)){
         auto& file = report.asm_file(i);
@@ -88,7 +88,7 @@ std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
             if(boost::starts_with(disassembly, "Basic Block ")){
-                basic_block block;
+                lbr_bb block;
                 
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter));
@@ -119,7 +119,7 @@ std::vector<basic_block> collect_bb(const gooda::gooda_report& report, std::size
     return basic_blocks;
 }
 
-void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<basic_block>& basic_blocks){
+void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
         auto& function = data.functions[i];
 
@@ -271,6 +271,8 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         counter = UNHALTED_CORE_CYCLES;
     }
 
+    std::vector<std::vector<lbr_bb>> basic_block_sets;
+
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
@@ -301,9 +303,16 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             //TODO Some aggregation of the results (inlining)
             
             annotate_src_file(report, i, data, basic_blocks);
+            
+            basic_block_sets.push_back(std::move(basic_blocks));
         } else {
             read_src_file(report, i, data, counter);
         }
+    }
+
+    //Handle inlined functions in LBR mode
+    if(lbr){
+
     }
 
     compute_working_set(data);
