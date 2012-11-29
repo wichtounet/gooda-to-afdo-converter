@@ -84,7 +84,7 @@ int main(int argc, char **argv){
             return 0;
         }
     } catch (std::exception& e ) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        log::emit<log::Error>() << e.what() << log::endl;
         return 1;
     }
 
@@ -92,23 +92,29 @@ int main(int argc, char **argv){
 
     //Profiling mode
     if(vm.count("profile")){
-        auto processor_model = gooda::processor_model();
+        int processor_model = -1;
 
-        if(processor_model == -1){
-            std::cerr << "Cannot find your processor model. Please provide it with the --model option. " << std::endl;
-            return -1;
+        if(vm.count("model")){
+            processor_model = vm["model"].as<int>();
+        } else {
+            processor_model = gooda::processor_model();
+            
+            if(processor_model == -1){
+                log::emit<log::Error>() << "Cannot find your processor model. Please provide it with the --model option. " << log::endl;
+                return -1;
+            }
         }
 
         std::string script;
 
         if(processor_model == 0x2A || processor_model == 0x2D){
-            std::cout << "Detected processor as \"Sandy Bridge\"" << std::endl;
+            log::emit<log::Debug>() << "Detected processor as \"Sandy Bridge\"" << log::endl;
             script = "run_record_cyc_snb.sh";
         } else if(processor_model == 0x3A){
-            std::cout << "Detected processor as \"Ivy Bridge\"" << std::endl;
+            log::emit<log::Debug>() << "Detected processor as \"Ivy Bridge\"" << log::endl;
             script = "run_record_cyc_ivb.sh";
         } else if(processor_model == 0x25 || processor_model == 0x2C || processor_model == 0x2F){
-            std::cout << "Detected processor as \"Westmere\"" << std::endl;
+            log::emit<log::Debug>() << "Detected processor as \"Westmere\"" << log::endl;
             script = "run_record_cyc_wsm_ep.sh";
         } else {
             std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
@@ -146,7 +152,7 @@ int main(int argc, char **argv){
             profile_command += option + " ";
         }
 
-        std::cout << "Profile the given application (perf needs to be run in root)" << std::endl;
+        log::emit<log::Debug>() << "Profile the given application (perf needs to be run in root)" << log::endl;
         gooda::exec_command(profile_command);
 
         std::string gooda_command;
@@ -158,7 +164,7 @@ int main(int argc, char **argv){
             gooda_command = "sudo " + gooda_dir + "/gooda";
         }
 
-        std::cout << "Run Gooda (Gooda needs to be run in root)" << std::endl;
+        log::emit<log::Debug>() << "Run Gooda (Gooda needs to be run in root)" << log::endl;
         gooda::exec_command(gooda_command);
 
         //If no option is specified, just as as a wrapper of Gooda
@@ -174,7 +180,7 @@ int main(int argc, char **argv){
         //Must be done after the test for help/profile to handle required arguments
         po::notify(vm);
     } catch (std::exception& e ) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        log::emit<log::Error>() << e.what() << log::endl;
         return 1;
     }
 
@@ -193,7 +199,7 @@ int main(int argc, char **argv){
     }
 
     if(!vm.count("input-file")){
-        std::cerr << "Error: No spreadsheets directory provided" << std::endl;
+        log::emit<log::Error>() << "Error: No spreadsheets directory provided" << log::endl;
 
         return 1;
     }
@@ -202,14 +208,14 @@ int main(int argc, char **argv){
 
     //Test that there is a least one file
     if(input_files.empty()){
-        std::cerr << "Error: No spreadsheets directory provided" << std::endl;
+        log::emit<log::Error>() << "No spreadsheets directory provided" << log::endl;
 
         return 1;
     }
 
     //Verify that only one directory is provided
     if(input_files.size() > 1){
-        std::cerr << "Error: Only one directory can be analyzed at a time" << std::endl;
+        log::emit<log::Error>() << "Only one directory can be analyzed at a time" << log::endl;
 
         return 1;
     }
@@ -218,13 +224,13 @@ int main(int argc, char **argv){
 
     //The file must exists
     if(!gooda::exists(directory)){
-        std::cerr << "Error \"" << directory << "\" does not exists" << std::endl;
+        log::emit<log::Error>() << "\"" << directory << "\" does not exists" << log::endl;
         return 1;
     }
 
     //The file must be a directory
     if(!gooda::is_directory(directory)){
-        std::cerr << "Error: \"" << directory << "\" is not a directory" << std::endl;
+        log::emit<log::Error>() << "\"" << directory << "\" is not a directory" << log::endl;
         return 1;
     }
 
