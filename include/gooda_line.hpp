@@ -40,6 +40,8 @@ class gooda_line {
          * \return The counter value at the given column.
          */
         unsigned long get_counter(std::size_t index) const;
+        
+        long get_address(std::size_t index) const;
     
         /*!
          * \brief Returns the original line that was parsed. 

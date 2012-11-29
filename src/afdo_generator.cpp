@@ -3,8 +3,6 @@
 #include "afdo_generator.hpp"
 #include "gcov_file.hpp"
 
-//TODO Do not let this as a global variable
-
 namespace {
 
 template<typename Type, typename Lambda>

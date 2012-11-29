@@ -40,3 +40,19 @@ unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
 
     return boost::lexical_cast<unsigned long>(value);
 }
+
+long gooda::gooda_line::get_address(std::size_t index) const {
+    auto& item = m_contents[index];
+
+    std::string v(item.begin(), item.end());
+    std::string value = v;
+
+    boost::trim(value);
+
+    long x;   
+    std::stringstream ss;
+    ss << std::hex << value;
+    ss >> x;
+
+    return x;
+}

@@ -26,6 +26,11 @@
 #define INIT_FILE "Initial File"
 #define DISASSEMBLY "Disassembly"
 
+//For hotspot functions
+#define OFFSET "Offset"
+#define LENGTH "Length"
+#define ADDRESS "Address"
+
 namespace gooda {
 
 /*!

@@ -53,6 +53,10 @@ struct afdo_function {
     gcov_type total_count = 0;
     gcov_type entry_count = 0;
     std::vector<afdo_stack> stacks;
+
+    //Not generated in AFDO
+    std::size_t first_line;
+    std::size_t last_line;
 };
 
 /*!

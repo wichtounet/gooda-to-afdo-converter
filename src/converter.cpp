@@ -18,6 +18,11 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         auto& function = data.functions[i];
         auto& file = report.asm_file(i);
 
+        //Compute the addresses of the first and the last instructions
+        auto start_instruction = report.hotspot_function(i).get_address(report.get_hotspot_file().column(OFFSET));
+        auto length = report.hotspot_function(i).get_address(report.get_hotspot_file().column(LENGTH));
+        auto last_instruction = start_instruction + length - 5;
+
         bool bb_found = false;
 
         for(auto& line : file){
@@ -34,9 +39,23 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
                 function.file = file_name;
                 data.add_file_name(file_name);
 
+                bb_found = false;
+            }
+
+            auto address = line.get_address(file.column(ADDRESS)); 
+
+            if(address == start_instruction){
+                function.first_line = line.get_counter(file.column(PRINC_LINE));
+            } else if(address >= last_instruction){
+                function.last_line = line.get_counter(file.column(PRINC_LINE));
+
                 break;
             }
         }
+
+        BOOST_ASSERT_MSG(!function.file.empty(), "The function file must be set");
+        BOOST_ASSERT_MSG(function.first_line > 0, "The function first line must be set");
+        BOOST_ASSERT_MSG(function.last_line > 0, "The function last line must be set");
     }
 }
 
@@ -110,8 +129,6 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                         }
                     }
                 }
-
-                std::cout << "BB " << block.line_start << " - " << block.inlined_file << ":" << block.inlined_line_start << std::endl;
 
                 basic_blocks.push_back(std::move(block));
             } 
