@@ -7,6 +7,7 @@
 
 #include "gooda_reader.hpp"
 #include "utils.hpp"
+#include "logger.hpp"
 
 #define HOTSPOT_CSV "/function_hotspots.csv"
 #define PROCESS_CSV "/process.csv"

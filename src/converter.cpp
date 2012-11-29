@@ -8,6 +8,7 @@
 
 #include "converter.hpp"
 #include "utils.hpp"
+#include "logger.hpp"
 
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v){
@@ -59,6 +60,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             //In that case, declare the function as invalid and return quickly
             if(line.get_string(file.column(PRINC_FILE)) == "null"){
                 function.valid = false;
+                log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
                 return;
             }
 
