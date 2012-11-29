@@ -111,6 +111,8 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                     }
                 }
 
+                std::cout << "BB " << block.line_start << " - " << block.inlined_file << ":" << block.inlined_line_start << std::endl;
+
                 basic_blocks.push_back(std::move(block));
             } 
         }
@@ -312,7 +314,37 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
     //Handle inlined functions in LBR mode
     if(lbr){
+        for(auto& block_set : basic_block_sets){
+            for(std::size_t i = 0; i < block_set.size(); ++i){
+                auto& block = block_set[i];
+                if(!block.inlined_file.empty()){
+                    for(auto& function : data.functions){
+                        if(function.file == block.inlined_file){
+                            for(auto& stack : function.stacks){
+                                for(auto& pos : stack.stack){
+                                    if(pos.line == block.inlined_line_start){
+                                        std::cout << function.name << " has been inlined" << std::endl;
 
+                                        auto princ_line = block.line_start;
+                                        std::cout << princ_line << std::endl;
+                                        std::cout << block.inlined_line_start << std::endl;
+
+                                        for(; i < block_set.size() && block_set[i].line_start == princ_line; ++i){
+                                            std::cout << "Found source BB" << std::endl;
+                                        }
+
+                                        --i;
+
+                                        //TODO Iterate through all the basic blocks that have the same source line (in the caller)
+                                        //And do the same operations that was done in annotate_src_file
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     compute_working_set(data);
