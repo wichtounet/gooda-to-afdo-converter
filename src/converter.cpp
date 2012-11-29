@@ -433,6 +433,9 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 }
             }
 
+            //It is possible that some inlined functions are not hotspot, for instance if all the calls to it
+            //have been inlined
+            //TODO Do something for that case
             if(!found){
                 std::cout << "inlined function not found" << std::endl;
             }
