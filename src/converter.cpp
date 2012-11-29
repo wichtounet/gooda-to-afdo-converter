@@ -389,8 +389,6 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         if(lbr){
             auto basic_blocks = collect_bb(report, i, counter);
 
-            //TODO Some aggregation of the results (inlining)
-            
             annotate_src_file(report, i, data, basic_blocks);
             
             basic_block_sets.push_back(std::move(basic_blocks));
@@ -437,14 +435,6 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
             if(!found){
                 std::cout << "inlined function not found" << std::endl;
-            }
-        }
-
-        for(auto& block_set : basic_block_sets){
-            for(std::size_t i = 0; i < block_set.size(); ++i){
-                auto& block = block_set[i];
-                if(!block.inlined_file.empty()){
-                }
             }
         }
     }
