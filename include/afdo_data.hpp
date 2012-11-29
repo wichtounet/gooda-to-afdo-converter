@@ -57,6 +57,8 @@ struct afdo_function {
     //Not generated in AFDO
     std::size_t first_line;
     std::size_t last_line;
+
+    bool valid = true;
 };
 
 /*!

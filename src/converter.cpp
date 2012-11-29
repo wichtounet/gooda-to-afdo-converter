@@ -55,6 +55,13 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         function.last_line = std::numeric_limits<decltype(function.last_line)>::min();
 
         for(auto& line : file){
+            //Gooda does not always found the source file of a function
+            //In that case, declare the function as invalid and return quickly
+            if(line.get_string(file.column(PRINC_FILE)) == "null"){
+                function.valid = false;
+                return;
+            }
+
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
             //Get the entry basic block
@@ -372,6 +379,10 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         
         //Collect function.file and function.entry_count
         read_asm_file(report, i, data, counter);
+
+        if(!function.valid){
+            continue;
+        }
         
         if(lbr){
             auto basic_blocks = collect_bb(report, i, counter);
