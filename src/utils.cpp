@@ -42,7 +42,7 @@ int gooda::processor_model(){
 
         if(boost::starts_with(line, "model\t")){
             std::vector<std::string> parts;
-            boost::split(parts, line, [](char a){return a == ':';});
+            boost::split(parts, line, std::bind1st(std::equal_to<char>(), ':'));
             
             std::string model_str = parts[1];
             boost::trim(model_str);
