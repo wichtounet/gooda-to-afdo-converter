@@ -43,7 +43,7 @@ void process(const std::string& directory, po::variables_map& vm){
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
 
-    std::cout << "Conversion took " << ms.count() << "ms" << std::endl;
+    log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
 } //end of anonymous namespace

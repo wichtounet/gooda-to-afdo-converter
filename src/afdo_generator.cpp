@@ -2,6 +2,7 @@
 
 #include "afdo_generator.hpp"
 #include "gcov_file.hpp"
+#include "logger.hpp"
 
 namespace {
 
@@ -86,7 +87,7 @@ void write_working_set(const gooda::afdo_data& data, gooda::gcov_file& gcov_file
 } //end of anonymous namespace
 
 void gooda::generate_afdo(const afdo_data& data, const std::string& file, boost::program_options::variables_map& vm){
-    std::cout << "Generate AFDO profile in \"" << file << "\"" << std::endl;
+    log::emit<log::Debug>() << "Generate AFDO profile in \"" << file << "\"" << log::endl;
 
     gooda::gcov_file gcov_file;
 

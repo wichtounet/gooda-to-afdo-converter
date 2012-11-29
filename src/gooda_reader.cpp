@@ -154,7 +154,7 @@ bool read_processes(const std::string& directory, gooda::gooda_report& report){
         ++i;
     }
 
-    std::cout << "Found " << report.processes() << " processes" << std::endl;
+    log::emit<log::Debug>() << "Found " << report.processes() << " processes" << log::endl;
 
     return true;
 }
@@ -192,7 +192,7 @@ bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
         ++i;
     }
 
-    std::cout << "Found " << report.functions() << " hotspot functions" << std::endl;
+    log::emit<log::Debug>() << "Found " << report.functions() << " hotspot functions" << log::endl;
 
     return true;
 }
@@ -268,7 +268,7 @@ void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_rep
 } //end of anonymous namespace
 
 gooda::gooda_report gooda::read_spreadsheets(const std::string& directory){
-    std::cout << "Import spreadsheets from " << directory << std::endl;
+    log::emit<log::Debug>() << "Import spreadsheets from " << directory << log::endl;
 
     gooda::gooda_report report;
 
