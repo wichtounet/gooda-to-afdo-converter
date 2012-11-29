@@ -26,8 +26,8 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         bool bb_found = false;
         bool collection = false;
 
-        function.first_line = std::numeric_limits<std::size_t>::max();
-        function.last_line = std::numeric_limits<std::size_t>::min();
+        function.first_line = std::numeric_limits<decltype(function.first_line)>::max();
+        function.last_line = std::numeric_limits<decltype(function.last_line)>::min();
 
         for(auto& line : file){
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
@@ -62,8 +62,8 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         }
 
         BOOST_ASSERT_MSG(!function.file.empty(), "The function file must be set");
-        BOOST_ASSERT_MSG(function.first_line < std::numeric_limits<std::size_t>::max(), "The function first line must be set");
-        BOOST_ASSERT_MSG(function.last_line > std::numeric_limits<std::size_t>::min(), "The function last line must be set");
+        BOOST_ASSERT_MSG(function.first_line < std::numeric_limits<decltype(function.first_line)>::max(), "The function first line must be set");
+        BOOST_ASSERT_MSG(function.last_line > std::numeric_limits<decltype(function.last_line)>::min(), "The function last line must be set");
     }
 }
 
