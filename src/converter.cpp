@@ -340,6 +340,38 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
+std::string get_function_name(const std::string& application_file, std::vector<lbr_bb> block_set){
+    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
+
+    long start_address = std::numeric_limits<long>::max();
+    for(auto& block : block_set){
+        start_address = std::min(start_address, block.address);
+    }
+
+    long stop_address = start_address + 1;
+
+    std::stringstream ss;
+    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+
+    std::string command = ss.str();
+    auto result = gooda::exec_command_result(command);
+
+    std::vector<std::string> lines;
+
+    std::istringstream result_stream(result);
+    std::string str_line;    
+    while (std::getline(result_stream, str_line)) {
+        lines.push_back(std::move(str_line));
+    }
+
+    auto function_name = lines[lines.size() - 3];
+    function_name = function_name.substr(0, function_name.size() - 3);
+
+    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
+
+    return function_name;
+}
+
 std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lbr_bb>> basic_block_sets){
     std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
 
@@ -458,31 +490,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             //have been inlined
             //TODO Do something for that case
             if(!found){
-                long start_address = std::numeric_limits<long>::max();
-                for(auto& block : block_set){
-                    start_address = std::min(start_address, block.address);
-                }
-                
-                log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
-
-                long stop_address = start_address + 1;
-
-                std::stringstream ss;
-                ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
-
-                std::string command = ss.str();
-                auto result = gooda::exec_command_result(command);
-
-                std::vector<std::string> lines;
-
-                std::istringstream result_stream(result);
-                std::string str_line;    
-                while (std::getline(result_stream, str_line)) {
-                    lines.push_back(std::move(str_line));
-                }
-
-                auto function_name = lines[lines.size() - 3];
-                function_name = function_name.substr(0, function_name.size() - 3);
+                auto function_name = get_function_name(application_file, block_set);
 
                 log::emit<log::Debug>() << "Create function " << function_name << " that was inlined" << log::endl;
                 
