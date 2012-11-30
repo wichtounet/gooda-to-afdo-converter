@@ -26,6 +26,22 @@ int gooda::exec_command(const std::string& command) {
     return system(command.c_str());
 }
 
+std::string gooda::exec_command_result(const std::string& command){
+    std::stringstream output;
+
+    char buffer[1024];
+
+    FILE* stream = popen(command.c_str(), "r");
+
+    while (fgets(buffer, 1024, stream) != NULL) {
+        output << buffer;
+    }
+
+    pclose(stream);
+
+    return output.str();
+}
+
 int gooda::processor_model(){
     std::ifstream cpuinfo_file;
     cpuinfo_file.open ("/proc/cpuinfo", std::ios::in);

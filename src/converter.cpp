@@ -135,6 +135,7 @@ struct lbr_bb {
     std::string file;
     unsigned long line_start;
     unsigned long exec_count;
+    long address;
     
     unsigned long inlined_line_start;
     std::string inlined_file;
@@ -157,6 +158,7 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter));
+                block.address = line.get_address(file.column(ADDRESS));
 
                 //By default considered as not coming from inlined function
                 block.inlined_line_start = 0;
@@ -348,6 +350,9 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lb
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
+    //TODO Find the file
+    std::string file = "nbench";
+
     //Choose the correct counter
     std::string counter;
     if(lbr){
@@ -437,7 +442,20 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             //have been inlined
             //TODO Do something for that case
             if(!found){
-                std::cout << "inlined function not found" << std::endl;
+                long start_address = std::numeric_limits<long>::max();
+                for(auto& block : block_set){
+                    start_address = std::min(start_address, block.address);
+                }
+
+                long stop_address = start_address + 1;
+
+                std::stringstream ss;
+                ss << "objdump " << file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+
+                std::string command = ss.str();
+                auto result = gooda::exec_command_result(command);
+
+                std::cout << result << std::endl;
             }
         }
     }
