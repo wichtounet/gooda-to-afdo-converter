@@ -466,12 +466,27 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 auto function_name = lines[lines.size() - 3];
                 function_name = function_name.substr(0, function_name.size() - 3);
 
+                log::emit<log::Debug>() << "Create function " << function_name << " that was inlined" << log::endl;
+                
+                gooda::afdo_function function;
+                function.name = function_name;
+                function.file = first_block.inlined_file;
+                function.entry_count = first_block.exec_count;
+
+                function.total_count = 0;
+                for(auto& block : block_set){
+                    function.total_count = std::max(function.total_count, block.exec_count);
+                }
+
+                data.add_file_name(function.file);
+                data.add_file_name(function.name);
+
+                data.functions.push_back(function);
             }
         }
     }
 
     compute_working_set(data);
-
     compute_lengths(data);
 
     //Note: No need to fill the modules because it is not used by GCC
