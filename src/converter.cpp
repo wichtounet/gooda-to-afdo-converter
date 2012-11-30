@@ -162,6 +162,8 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter));
                 block.address = line.get_address(file.column(ADDRESS));
+                block.gooda_function = i;
+                block.gooda_line = j;
 
                 //By default considered as not coming from inlined function
                 block.inlined_line_start = 0;
