@@ -411,6 +411,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
     std::vector<std::vector<lbr_bb>> basic_block_sets;
 
+    //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
@@ -419,6 +420,11 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         //Some functions are filled empty by Gooda for some reason
         //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
         if(string_cycles.empty()){
+            gooda::afdo_function function;
+            function.valid = false;
+
+            data.functions.push_back(function);
+
             continue;
         }
     
@@ -434,11 +440,18 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         
         //Collect function.file and function.entry_count
         read_asm_file(report, i, data, counter_name);
+    }
+        
+    //Second pass, get the inline stacks for all the functions
+    //Necessary to make to pass for the functions to be present in the data structure
+    //when inlined function are found in the source
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        auto& function = data.functions[i];
 
         if(!function.valid){
             continue;
         }
-        
+
         if(lbr){
             auto basic_blocks = collect_bb(report, i, counter_name);
 
