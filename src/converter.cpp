@@ -138,7 +138,8 @@ struct lbr_bb {
     long address;
 
     std::size_t gooda_function;
-    std::size_t gooda_line;
+    std::size_t gooda_line_start;
+    std::size_t gooda_line_end;
     
     unsigned long inlined_line_start;
     std::string inlined_file;
@@ -163,11 +164,21 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 block.exec_count = line.get_counter(file.column(counter));
                 block.address = line.get_address(file.column(ADDRESS));
                 block.gooda_function = i;
-                block.gooda_line = j;
+
+                //Compute the start and end line
+                block.gooda_line_start = j;
+
+                auto k = j+1;
+                while(k < file.lines() && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                    k++;
+                }
+
+                block.gooda_line_end = k - 1;
 
                 //By default considered as not coming from inlined function
                 block.inlined_line_start = 0;
 
+                //Look at the next line to find out if the line comes from an inlined function
                 if(j + 1 < file.lines()){
                     auto& next_line = file.line(j + 1);
 
