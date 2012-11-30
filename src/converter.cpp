@@ -455,7 +455,17 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 std::string command = ss.str();
                 auto result = gooda::exec_command_result(command);
 
-                std::cout << result << std::endl;
+                std::vector<std::string> lines;
+
+                std::istringstream result_stream(result);
+                std::string line;    
+                while (std::getline(result_stream, line)) {
+                    lines.push_back(std::move(line));
+                }
+
+                auto function_name = lines[lines.size() - 3];
+                function_name = function_name.substr(0, function_name.size() - 3);
+
             }
         }
     }
