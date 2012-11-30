@@ -39,7 +39,7 @@ namespace {
 
 //Normal mode
 
-void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
+void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_asm_file(i)){
         auto& function = data.functions[i];
         auto& file = report.asm_file(i);
@@ -68,7 +68,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             
             //Get the entry basic block
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
-                function.entry_count = line.get_counter(file.column(counter));
+                function.entry_count = line.get_counter(file.column(counter_name));
 
                 bb_found = true;
             } else if(bb_found){
@@ -101,7 +101,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
     }
 }
 
-void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter){
+void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_src_file(i)){
         auto& function = data.functions[i];
 
@@ -112,7 +112,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
             if(line_number >= function.first_line && line_number <= function.last_line){
                 gooda::afdo_stack stack;
-                stack.count = line.get_counter(file.column(counter));
+                stack.count = line.get_counter(file.column(counter_name));
                 stack.num_inst = 1; 
 
                 gooda::afdo_pos position;
@@ -145,7 +145,7 @@ struct lbr_bb {
     std::string inlined_file;
 };
 
-std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter){
+std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter_name){
     std::vector<lbr_bb> basic_blocks;
 
     if(report.has_asm_file(i)){
@@ -161,7 +161,7 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
-                block.exec_count = line.get_counter(file.column(counter));
+                block.exec_count = line.get_counter(file.column(counter_name));
                 block.address = line.get_address(file.column(ADDRESS));
                 block.gooda_function = i;
 
@@ -169,11 +169,11 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 block.gooda_line_start = j;
 
                 auto k = j+1;
-                while(k < file.lines() && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                while(k < file.lines() - 1 && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
                     k++;
                 }
 
-                block.gooda_line_end = k - 1;
+                block.gooda_line_end = k == file.lines() ? k - 1 : k;
 
                 //By default considered as not coming from inlined function
                 block.inlined_line_start = 0;
@@ -367,14 +367,14 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     bool lbr = vm.count("lbr");
 
     //TODO Find the file
-    std::string file = "nbench";
+    std::string application_file = "nbench";
 
     //Choose the correct counter
-    std::string counter;
+    std::string counter_name;
     if(lbr){
-        counter = BB_EXEC;
+        counter_name = BB_EXEC;
     } else {
-        counter = UNHALTED_CORE_CYCLES;
+        counter_name = UNHALTED_CORE_CYCLES;
     }
 
     std::vector<std::vector<lbr_bb>> basic_block_sets;
@@ -382,7 +382,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
-        auto string_cycles = line.get_string(report.get_hotspot_file().column(counter));
+        auto string_cycles = line.get_string(report.get_hotspot_file().column(counter_name));
 
         //Some functions are filled empty by Gooda for some reason
         //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
@@ -393,7 +393,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         gooda::afdo_function function;
         function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
         function.file = "unknown"; //The file will be filled by read_asm
-        function.total_count = line.get_counter(report.get_hotspot_file().column(counter));
+        function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
 
         data.add_file_name(function.file);
         data.add_file_name(function.name);
@@ -401,20 +401,20 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         data.functions.push_back(function);
         
         //Collect function.file and function.entry_count
-        read_asm_file(report, i, data, counter);
+        read_asm_file(report, i, data, counter_name);
 
         if(!function.valid){
             continue;
         }
         
         if(lbr){
-            auto basic_blocks = collect_bb(report, i, counter);
+            auto basic_blocks = collect_bb(report, i, counter_name);
 
             annotate_src_file(report, i, data, basic_blocks);
             
             basic_block_sets.push_back(std::move(basic_blocks));
         } else {
-            read_src_file(report, i, data, counter);
+            read_src_file(report, i, data, counter_name);
         }
     }
 
@@ -462,11 +462,13 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 for(auto& block : block_set){
                     start_address = std::min(start_address, block.address);
                 }
+                
+                log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
 
                 long stop_address = start_address + 1;
 
                 std::stringstream ss;
-                ss << "objdump " << file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+                ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
 
                 std::string command = ss.str();
                 auto result = gooda::exec_command_result(command);
@@ -474,9 +476,9 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 std::vector<std::string> lines;
 
                 std::istringstream result_stream(result);
-                std::string line;    
-                while (std::getline(result_stream, line)) {
-                    lines.push_back(std::move(line));
+                std::string str_line;    
+                while (std::getline(result_stream, str_line)) {
+                    lines.push_back(std::move(str_line));
                 }
 
                 auto function_name = lines[lines.size() - 3];
@@ -498,6 +500,49 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
                 data.add_file_name(function.name);
 
                 data.functions.push_back(function);
+
+                BOOST_ASSERT_MSG(report.has_src_file(first_block.gooda_function), "Something went wrong with BB collection");
+
+                //Get the source view of the caller function
+                auto& file = report.src_file(first_block.gooda_function);
+
+                /*for(auto& block : block_set){
+                   for(auto i = block.gooda_line_start; i < block.gooda_line_end; ++i){
+                       BOOST_ASSERT_MSG(i < file.lines(), "Something went wrong with BB collection");
+
+                       auto& line = file.line(i);
+                       auto line_number = line.get_counter(file.column(LINE));
+
+                       if(line_number >= function.first_line && line_number <= function.last_line){
+                           gcov_type counter = 0;
+
+                           //Several basic blocks can be on the same line
+                           //=> Take the max as the value of the line
+                           for(std::size_t j = 0; j < block_set.size(); ++j){
+                               if(
+                                       (j + 1 < block_set.size() && line_number >= block_set[j].line_start && line_number < block_set[j + 1].line_start)
+                                       ||  (j + 1 == block_set.size() && line_number >= block_set[j].line_start))
+                               {
+                                   counter = std::max(counter, block_set[j].exec_count);
+                               }
+                           }
+
+                           gooda::afdo_stack stack;
+                           stack.count = counter;
+                           stack.num_inst = 1; 
+
+                           gooda::afdo_pos position;
+                           position.func = function.name;
+                           position.file = function.file;
+                           position.line = line_number;
+                           position.discr = 0;
+
+                           stack.stack.push_back(position);
+
+                           function.stacks.push_back(std::move(stack));
+                       }
+                   }
+                }*/
             }
         }
     }
