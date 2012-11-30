@@ -136,6 +136,9 @@ struct lbr_bb {
     unsigned long line_start;
     unsigned long exec_count;
     long address;
+
+    std::size_t gooda_function;
+    std::size_t gooda_line;
     
     unsigned long inlined_line_start;
     std::string inlined_file;
