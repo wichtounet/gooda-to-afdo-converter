@@ -150,8 +150,8 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
     if(report.has_asm_file(i)){
         auto& file = report.asm_file(i);
 
-        for(std::size_t i = 0; i < file.lines(); ++i){
-            auto& line = file.line(i);
+        for(std::size_t j = 0; j < file.lines(); ++j){
+            auto& line = file.line(j);
             
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
@@ -166,8 +166,8 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
                 //By default considered as not coming from inlined function
                 block.inlined_line_start = 0;
 
-                if(i + 1 < file.lines()){
-                    auto& next_line = file.line(i + 1);
+                if(j + 1 < file.lines()){
+                    auto& next_line = file.line(j + 1);
 
                     //If the next line is part of the same basic block
                     if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
@@ -202,12 +202,12 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                 //Several basic blocks can be on the same line
                 //=> Take the max as the value of the line
-                for(std::size_t i = 0; i < basic_blocks.size(); ++i){
+                for(std::size_t j = 0; j < basic_blocks.size(); ++j){
                     if(
-                                (i + 1 < basic_blocks.size() && line_number >= basic_blocks[i].line_start && line_number < basic_blocks[i+1].line_start)
-                            ||  (i + 1 == basic_blocks.size() && line_number >= basic_blocks[i].line_start))
+                                (j + 1 < basic_blocks.size() && line_number >= basic_blocks[j].line_start && line_number < basic_blocks[j + 1].line_start)
+                            ||  (j + 1 == basic_blocks.size() && line_number >= basic_blocks[j].line_start))
                     {
-                        counter = std::max(counter, basic_blocks[i].exec_count);
+                        counter = std::max(counter, basic_blocks[j].exec_count);
                     }
                 }
 

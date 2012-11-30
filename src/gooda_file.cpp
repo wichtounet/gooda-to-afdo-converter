@@ -36,12 +36,12 @@ gooda::gooda_file::const_iterator gooda::gooda_file::end() const {
     return m_lines.cend();
 }
 
-unsigned int& gooda::gooda_file::column(const std::string& column){
-    return m_columns[column];
+unsigned int& gooda::gooda_file::column(const std::string& column_name){
+    return m_columns[column_name];
 }
 
-int gooda::gooda_file::column(const std::string& column) const {
-    return m_columns.at(column);
+int gooda::gooda_file::column(const std::string& column_name) const {
+    return m_columns.at(column_name);
 }
 
 std::size_t gooda::gooda_file::lines() const {
