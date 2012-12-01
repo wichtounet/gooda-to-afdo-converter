@@ -34,11 +34,15 @@ void gooda::dump_afdo(const afdo_data& data){
             << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
         for(auto& stack : function.stacks){
-            std::cout << "   Stack of " << stack.num_inst << " instructions [count=" << stack.count << ", misses=" << stack.cache_misses << "]" << std::endl;
+            std::cout << "   Stack of size " << stack.stack.size() 
+                << ", with " << stack.num_inst << " dynamic instructions " 
+                << "[count=" << stack.count << ", misses=" << stack.cache_misses << "]" 
+                << std::endl;
 
             for(auto& pos : stack.stack){
-                std::cout << "      Instruction at line " << pos.line 
-                    << " (file=" << pos.file << "(" << data.get_file_index(pos.file) << "), func=" << pos.func << "(" << data.get_file_index(pos.func) << "))" 
+                std::cout << "      Instruction at " 
+                    << pos.file << "(" << data.get_file_index(pos.file) << "):" << pos.line 
+                    << ", func=" << pos.func << "(" << data.get_file_index(pos.func) << ")" 
                     << ", discr=" << pos.discr << std::endl;
             }
         }
