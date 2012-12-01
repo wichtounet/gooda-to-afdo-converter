@@ -150,6 +150,38 @@ struct lbr_bb {
     std::string inlined_file;
 };
 
+std::string get_function_name(const std::string& application_file, std::vector<lbr_bb> block_set){
+    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
+
+    long start_address = std::numeric_limits<long>::max();
+    for(auto& block : block_set){
+        start_address = std::min(start_address, block.address);
+    }
+
+    long stop_address = start_address + 1;
+
+    std::stringstream ss;
+    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+
+    std::string command = ss.str();
+    auto result = gooda::exec_command_result(command);
+
+    std::vector<std::string> lines;
+
+    std::istringstream result_stream(result);
+    std::string str_line;    
+    while (std::getline(result_stream, str_line)) {
+        lines.push_back(std::move(str_line));
+    }
+
+    auto function_name = lines.at(lines.size() - 3);
+    function_name = function_name.substr(0, function_name.size() - 3);
+
+    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
+
+    return function_name;
+}
+
 std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter_name){
     std::vector<lbr_bb> basic_blocks;
 
@@ -300,6 +332,9 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                             caller_position.file = function.file;
                             caller_position.line = line_number;
                             caller_position.discr = 0;
+                
+                            //TODO Perhaps it is faster to look out if it exists first
+                            auto callee_function_name = get_function_name(data.application_file, block_set);
 
                             for(auto& block : block_set){
                                 for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
@@ -307,8 +342,6 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                                     auto& asm_line = asm_file.line(j);
                                     auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
-
-                                    std::string callee_function_name = "asdf"; //TODO Get the function name
                 
                                     data.add_file_name(callee_function_name);
                 
@@ -438,38 +471,6 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
-std::string get_function_name(const std::string& application_file, std::vector<lbr_bb> block_set){
-    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
-
-    long start_address = std::numeric_limits<long>::max();
-    for(auto& block : block_set){
-        start_address = std::min(start_address, block.address);
-    }
-
-    long stop_address = start_address + 1;
-
-    std::stringstream ss;
-    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
-
-    std::string command = ss.str();
-    auto result = gooda::exec_command_result(command);
-
-    std::vector<std::string> lines;
-
-    std::istringstream result_stream(result);
-    std::string str_line;    
-    while (std::getline(result_stream, str_line)) {
-        lines.push_back(std::move(str_line));
-    }
-
-    auto function_name = lines.at(lines.size() - 3);
-    function_name = function_name.substr(0, function_name.size() - 3);
-
-    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
-
-    return function_name;
-}
-
 std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lbr_bb>> basic_block_sets){
     std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
 
@@ -497,7 +498,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     bool lbr = vm.count("lbr");
 
     //TODO Find the file
-    std::string application_file = "nbench";
+    data.application_file = "nbench";
 
     //Choose the correct counter
     std::string counter_name;
@@ -601,7 +602,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             //have been inlined
             //TODO Do something for that case
             if(!found){
-                auto function_name = get_function_name(application_file, block_set);
+                auto function_name = get_function_name(data.application_file, block_set);
 
                 log::emit<log::Debug>() << "Create function " << function_name << " that was inlined" << log::endl;
                 
