@@ -471,27 +471,6 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
-std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<std::vector<lbr_bb>> basic_block_sets){
-    std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
-
-    for(auto& block_set : basic_block_sets){
-        for(auto& block : block_set){
-            //If this block comes from an inlined function
-            if(!block.inlined_file.empty()){
-                inline_mappings[{block.file, block.line_start}].push_back(block);
-            }
-        }
-    }
-    
-    std::vector<std::vector<lbr_bb>> inlined_sets;
-
-    for(auto& pair : inline_mappings){
-       inlined_sets.push_back(pair.second); 
-    }
-
-    return inlined_sets;
-}
-
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
