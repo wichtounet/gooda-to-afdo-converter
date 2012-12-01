@@ -20,7 +20,7 @@ const std::vector<string_view>& gooda::gooda_line::contents() const {
 }
 
 std::string gooda::gooda_line::get_string(std::size_t index) const {
-    auto& item = m_contents[index];
+    auto& item = m_contents.at(index);
 
     std::string v(item.begin(), item.end());
     std::string value = v;
@@ -31,28 +31,22 @@ std::string gooda::gooda_line::get_string(std::size_t index) const {
 }
 
 unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
-    auto& item = m_contents[index];
-
-    std::string v(item.begin(), item.end());
-    std::string value = v;
-
-    boost::trim(value);
+    auto value = get_string(index);
 
     return boost::lexical_cast<unsigned long>(value);
 }
 
 long gooda::gooda_line::get_address(std::size_t index) const {
-    auto& item = m_contents[index];
+    auto value = get_string(index);
+    
+    BOOST_ASSERT_MSG(!value.empty(), "Cannot convert and empty string to an address");
 
-    std::string v(item.begin(), item.end());
-    std::string value = v;
-
-    boost::trim(value);
-
-    long x;   
+    long x = 0;   
     std::stringstream ss;
     ss << std::hex << value;
     ss >> x;
+
+    BOOST_ASSERT_MSG(x != 0, "Address cannot be zero");
 
     return x;
 }

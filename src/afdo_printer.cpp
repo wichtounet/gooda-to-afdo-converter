@@ -46,7 +46,7 @@ void gooda::dump_afdo(const afdo_data& data){
 
     std::cout << "Working Set" << std::endl;
     for(std::size_t i = 0; i < data.working_set.size(); ++i){
-        std::cout << "   " << i << ": min= " << data.working_set[i].min_counter << " num= " << data.working_set[i].num_counter << std::endl;
+        std::cout << "   " << i << ": min= " << data.working_set.at(i).min_counter << " num= " << data.working_set.at(i).num_counter << std::endl;
     }
 
     std::cout << "Length" << std::endl;

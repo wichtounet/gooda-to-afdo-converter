@@ -5,7 +5,7 @@ gooda::gooda_line& gooda::gooda_file::new_line(){
 
     m_lines.resize(i + 1);
 
-    return m_lines[i];
+    return m_lines.at(i);
 }
 
 std::size_t gooda::gooda_file::size() const {
@@ -13,11 +13,11 @@ std::size_t gooda::gooda_file::size() const {
 }
 
 gooda::gooda_line& gooda::gooda_file::line(std::size_t i){
-    return m_lines[i];
+    return m_lines.at(i);
 }
 
 const gooda::gooda_line& gooda::gooda_file::line(std::size_t i) const {
-    return m_lines[i];
+    return m_lines.at(i);
 }
 
 gooda::gooda_file::iterator gooda::gooda_file::begin(){

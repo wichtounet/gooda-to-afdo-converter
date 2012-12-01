@@ -41,7 +41,7 @@ namespace {
 
 void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_asm_file(i)){
-        auto& function = data.functions[i];
+        auto& function = data.functions.at(i);
         auto& file = report.asm_file(i);
 
         //Compute the addresses of the first and the last instructions
@@ -61,6 +61,11 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             if(line.get_string(file.column(PRINC_FILE)) == "null"){
                 function.valid = false;
                 log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
+                return;
+            }
+
+            //It indicates the last line, that is not a valid assembly line but a summary of the data
+            if(line.get_string(file.column(ADDRESS)).empty()){
                 return;
             }
 
@@ -103,7 +108,7 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
 void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_src_file(i)){
-        auto& function = data.functions[i];
+        auto& function = data.functions.at(i);
 
         auto& file = report.src_file(i);
 
@@ -201,12 +206,45 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
     return basic_blocks;
 }
 
+std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_set){
+    std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
+
+    for(auto& block : block_set){
+        //If this block comes from an inlined function
+        if(!block.inlined_file.empty()){
+            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
+        }
+    }
+    
+    std::vector<std::vector<lbr_bb>> inlined_sets;
+
+    for(auto& pair : inline_mappings){
+       inlined_sets.push_back(std::move(pair.second)); 
+    }
+
+    return inlined_sets;
+}
+
 void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
-        auto& function = data.functions[i];
+        std::vector<lbr_bb> normal_blocks;
 
+        //Extract the
+        for(auto& block : basic_blocks){
+            if(block.inlined_file.empty()){
+                normal_blocks.push_back(std::move(block));
+            }
+        }
+
+        auto inlined_block_sets = compute_inlined_sets(basic_blocks);
+
+        //Note: From this point basic_blocks contains invalid basic_blocks due to std::moving them
+        basic_blocks.clear();
+
+        auto& function = data.functions.at(i);
         auto& file = report.src_file(i);
 
+        //1. Normal pass for non-inlined blocks
         for(auto& line : file){
             auto line_number = line.get_counter(file.column(LINE));
 
@@ -215,12 +253,12 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                 //Several basic blocks can be on the same line
                 //=> Take the max as the value of the line
-                for(std::size_t j = 0; j < basic_blocks.size(); ++j){
+                for(std::size_t j = 0; j < normal_blocks.size(); ++j){
                     if(
-                                (j + 1 < basic_blocks.size() && line_number >= basic_blocks[j].line_start && line_number < basic_blocks[j + 1].line_start)
-                            ||  (j + 1 == basic_blocks.size() && line_number >= basic_blocks[j].line_start))
+                                (j + 1 < normal_blocks.size() && line_number >= normal_blocks.at(j).line_start && line_number < normal_blocks.at(j + 1).line_start)
+                            ||  (j + 1 == normal_blocks.size() && line_number >= normal_blocks.at(j).line_start))
                     {
-                        counter = std::max(counter, basic_blocks[j].exec_count);
+                        counter = std::max(counter, normal_blocks.at(j).exec_count);
                     }
                 }
 
@@ -234,9 +272,69 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                 position.line = line_number;
                 position.discr = 0;
 
-                stack.stack.push_back(position);
+                stack.stack.push_back(std::move(position));
 
                 function.stacks.push_back(std::move(stack));
+            }
+        }
+
+        if(!inlined_block_sets.empty()){
+            BOOST_ASSERT_MSG(report.has_src_file(i), "Something went wrong with BB collection");
+
+            auto& asm_file = report.asm_file(i);
+
+            //2. Handle inlined blocks
+            for(auto& source_line : file){
+                auto line_number = source_line.get_counter(file.column(LINE));
+
+                if(line_number >= function.first_line && line_number <= function.last_line){
+                    for(auto& block_set : inlined_block_sets){
+                        auto& first_bb = block_set.at(0); //TODO assert size > 0
+
+                        //There is always one inlned basic block set that match this point
+                        if(first_bb.line_start == line_number){
+                            //The caller position
+                            //Note:: Do not move, will be used several times
+                            gooda::afdo_pos caller_position;
+                            caller_position.func = function.name;
+                            caller_position.file = function.file;
+                            caller_position.line = line_number;
+                            caller_position.discr = 0;
+
+                            for(auto& block : block_set){
+                                for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                                    BOOST_ASSERT_MSG(j < asm_file.lines(), "Something went wrong with BB collection");
+
+                                    auto& asm_line = asm_file.line(j);
+                                    auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
+
+                                    std::string callee_function_name = "asdf"; //TODO Get the function name
+                
+                                    data.add_file_name(callee_function_name);
+                
+                                    gooda::afdo_pos callee_position;
+                                    callee_position.func = callee_function_name;
+                                    callee_position.file = block.inlined_file;
+                                    callee_position.line = callee_line_number;
+                                    callee_position.discr = 0;
+                                    
+                                    data.add_file_name(block.inlined_file);
+                
+                                    gooda::afdo_stack stack;
+                                    stack.count = block.exec_count;
+                                    stack.num_inst = 2; 
+
+                                    stack.stack.push_back(caller_position);
+                                    stack.stack.push_back(std::move(callee_position));
+                                    
+                                    function.stacks.push_back(std::move(stack));
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -364,7 +462,7 @@ std::string get_function_name(const std::string& application_file, std::vector<l
         lines.push_back(std::move(str_line));
     }
 
-    auto function_name = lines[lines.size() - 3];
+    auto function_name = lines.at(lines.size() - 3);
     function_name = function_name.substr(0, function_name.size() - 3);
 
     log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
@@ -446,7 +544,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     //Necessary to make to pass for the functions to be present in the data structure
     //when inlined function are found in the source
     for(std::size_t i = 0; i < report.functions(); ++i){
-        auto& function = data.functions[i];
+        auto& function = data.functions.at(i);
 
         if(!function.valid){
             continue;
@@ -468,7 +566,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         auto inlined_block_sets = compute_inlined_sets(basic_block_sets);
 
         for(auto& block_set : inlined_block_sets){
-            auto& first_block = block_set[0];
+            auto& first_block = block_set.at(0); //TODO test size > 0
 
             BOOST_ASSERT_MSG(!first_block.inlined_file.empty(), "All the blocks should be from inlined functions");
 
@@ -484,10 +582,10 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
                                 for(std::size_t i = 0; i < block_set.size(); ++i){
                                     if(
-                                            (i + 1 < block_set.size() && line_number >= block_set[i].inlined_line_start && line_number < block_set[i+1].inlined_line_start)
-                                            ||  (i + 1 == block_set.size() && line_number >= block_set[i].inlined_line_start))
+                                            (i + 1 < block_set.size() && line_number >= block_set.at(i).inlined_line_start && line_number < block_set.at(i+1).inlined_line_start)
+                                            ||  (i + 1 == block_set.size() && line_number >= block_set.at(i).inlined_line_start))
                                     {
-                                        stack.count = std::max(stack.count, block_set[i].exec_count);
+                                        stack.count = std::max(stack.count, block_set.at(i).exec_count);
                                     }
                                 }
                             }

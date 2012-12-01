@@ -185,7 +185,7 @@ int main(int argc, char **argv){
     }
 
     //No further options are allowed if not in profile mode
-    auto further_options = po::collect_unrecognized(parsed->options, po::exclude_positional);
+    /*auto further_options = po::collect_unrecognized(parsed->options, po::exclude_positional);
     if(!further_options.empty()){
         std::cerr << "Error: Unrecognized options " << further_options[0];
 
@@ -196,7 +196,7 @@ int main(int argc, char **argv){
         std::cerr << std::endl;
 
         return 1;
-    }
+    }*/
 
     if(!vm.count("input-file")){
         log::emit<log::Error>() << "Error: No spreadsheets directory provided" << log::endl;

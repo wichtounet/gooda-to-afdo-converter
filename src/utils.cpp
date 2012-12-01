@@ -60,7 +60,7 @@ int gooda::processor_model(){
             std::vector<std::string> parts;
             boost::split(parts, line, [](char a){return a == ':';});
             
-            std::string model_str = parts[1];
+            std::string model_str = parts.at(1);
             boost::trim(model_str);
             
             return boost::lexical_cast<int>(model_str);
