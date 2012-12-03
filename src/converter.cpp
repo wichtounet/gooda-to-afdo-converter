@@ -183,7 +183,6 @@ std::string get_function_name(const std::string& application_file, std::vector<l
         }
     }
 
-    //auto function_name = lines.at(lines.size() - 3);
     function_name = function_name.substr(0, function_name.size() - 3);
 
     log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
