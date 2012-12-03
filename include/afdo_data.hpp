@@ -95,7 +95,7 @@ struct afdo_data {
     std::vector<std::string> file_names;
     std::vector<afdo_function> functions;
     std::vector<afdo_module> modules;
-    std::array<afdo_working_set, WS_SIZE + 1> working_set;
+    std::array<afdo_working_set, WS_SIZE> working_set;
 
     unsigned int length_file_section = 0;
     unsigned int length_function_section = 0;

@@ -357,7 +357,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                     for(auto& block_set : inlined_block_sets){
                         BOOST_ASSERT_MSG(block_set.size() > 0, "Something went wrong with BB Collection");
 
-                        auto& first_bb = block_set[0];
+                        auto& first_bb = block_set.at(0);
 
                         //There is always one inlined basic block set that match this point
                         if(first_bb.line_start == line_number){
@@ -474,6 +474,12 @@ void compute_lengths(gooda::afdo_data& data){
 }
 
 void compute_working_set(gooda::afdo_data& data){
+    //Fill the working set with zero
+    for(auto& working_set : data.working_set){
+        working_set.num_counter = 0;
+        working_set.min_counter = 0;
+    }
+
     std::map<std::size_t, std::size_t> histogram;
     std::size_t total_count = 0;
 
@@ -504,8 +510,10 @@ void compute_working_set(gooda::afdo_data& data){
 
             inst -= offset;
 
-            data.working_set[bucket_num].num_counter = accumulated_inst;
-            data.working_set[bucket_num].min_counter = count;
+            std::cout << bucket_num << std::endl;
+
+            data.working_set.at(bucket_num).num_counter = accumulated_inst;
+            data.working_set.at(bucket_num).min_counter = count;
             ++bucket_num;
         }
 
