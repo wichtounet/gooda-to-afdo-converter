@@ -265,9 +265,50 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
     return inlined_sets;
 }
 
+gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string src_func, std::string src_file, std::size_t src_line, std::string dest_func, std::string dest_file, std::size_t dest_line){
+    for(auto& stack : function.stacks){
+        if(stack.stack.size() == 2){
+            auto& src_pos = stack.stack.front();
+
+            if(src_pos.func == src_func && src_pos.file == src_file && src_pos.line == src_line){
+                auto& dest_pos = stack.stack.back();
+            
+                if(dest_pos.func == dest_func && dest_pos.file == dest_file && dest_pos.line == dest_line){
+                    return stack;
+                }
+            }
+        }
+    }
+
+    gooda::afdo_pos src_position;
+    src_position.func = src_func;
+    src_position.file = src_file;
+    src_position.line = src_line;
+    src_position.discr = 0;
+
+    gooda::afdo_pos dest_position;
+    dest_position.func = dest_func;
+    dest_position.file = dest_file;
+    dest_position.line = dest_line;
+    dest_position.discr = 0;
+    
+    gooda::afdo_stack stack;
+    stack.count = 0;
+    stack.num_inst = 0;
+
+    stack.stack.push_back(std::move(src_position));
+    stack.stack.push_back(std::move(dest_position));
+
+    function.stacks.push_back(std::move(stack));
+
+    return function.stacks.back(); 
+}
+
 gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, std::string file, std::size_t line){
     for(auto& stack : function.stacks){
-        for(auto& pos : stack.stack){
+        if(stack.stack.size() == 1){
+            auto& pos = stack.stack.front();
+
             if(pos.func == func && pos.file == file && pos.line == line){
                 return stack;
             }
@@ -369,32 +410,15 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                                     } else {
                                         auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
 
+                                        auto& stack = get_inlined_stack(
+                                                function, 
+                                                function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE)),
+                                                callee_function_name, block.inlined_file, callee_line_number); 
+    
                                         data.add_file_name(callee_function_name);
-                            
-                                        //The caller position
-                                        gooda::afdo_pos caller_position;
-                                        caller_position.func = function.name;
-                                        caller_position.file = function.file;
-                                        caller_position.line = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                                        caller_position.discr = 0;
-
-                                        //The callee position
-                                        gooda::afdo_pos callee_position;
-                                        callee_position.func = callee_function_name;
-                                        callee_position.file = block.inlined_file;
-                                        callee_position.line = callee_line_number;
-                                        callee_position.discr = 0;
-
                                         data.add_file_name(block.inlined_file);
 
-                                        gooda::afdo_stack stack;
-                                        stack.count = block.exec_count;
-                                        stack.num_inst = 2; 
-
-                                        stack.stack.push_back(std::move(caller_position));
-                                        stack.stack.push_back(std::move(callee_position));
-
-                                        function.stacks.push_back(std::move(stack));
+                                        stack.count = std::max(stack.count, block.exec_count);
                                     }
                                 }
                             }
@@ -499,8 +523,6 @@ void compute_working_set(gooda::afdo_data& data){
             accumulated_count += offset * count;
 
             inst -= offset;
-
-            std::cout << bucket_num << std::endl;
 
             data.working_set.at(bucket_num).num_counter = accumulated_inst;
             data.working_set.at(bucket_num).min_counter = count;
