@@ -37,6 +37,75 @@ class hash<inlined_key> {
 
 namespace {
 
+//Common utilities
+
+gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string src_func, std::string src_file, std::size_t src_line, std::string dest_func, std::string dest_file, std::size_t dest_line){
+    for(auto& stack : function.stacks){
+        if(stack.stack.size() == 2){
+            auto& src_pos = stack.stack.front();
+
+            if(src_pos.func == src_func && src_pos.file == src_file && src_pos.line == src_line){
+                auto& dest_pos = stack.stack.back();
+            
+                if(dest_pos.func == dest_func && dest_pos.file == dest_file && dest_pos.line == dest_line){
+                    return stack;
+                }
+            }
+        }
+    }
+
+    gooda::afdo_pos src_position;
+    src_position.func = src_func;
+    src_position.file = src_file;
+    src_position.line = src_line;
+    src_position.discr = 0;
+
+    gooda::afdo_pos dest_position;
+    dest_position.func = dest_func;
+    dest_position.file = dest_file;
+    dest_position.line = dest_line;
+    dest_position.discr = 0;
+    
+    gooda::afdo_stack stack;
+    stack.count = 0;
+    stack.num_inst = 0;
+
+    stack.stack.push_back(std::move(src_position));
+    stack.stack.push_back(std::move(dest_position));
+
+    function.stacks.push_back(std::move(stack));
+
+    return function.stacks.back(); 
+}
+
+gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, std::string file, std::size_t line){
+    for(auto& stack : function.stacks){
+        if(stack.stack.size() == 1){
+            auto& pos = stack.stack.front();
+
+            if(pos.func == func && pos.file == file && pos.line == line){
+                return stack;
+            }
+        }
+    }
+
+    gooda::afdo_pos position;
+    position.func = func;
+    position.file = file;
+    position.line = line;
+    position.discr = 0;
+    
+    gooda::afdo_stack stack;
+    stack.count = 0;
+    stack.num_inst = 0;
+
+    stack.stack.push_back(std::move(position));
+
+    function.stacks.push_back(std::move(stack));
+
+    return function.stacks.back(); 
+}
+
 //Normal mode
 
 void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
@@ -116,19 +185,8 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             auto line_number = line.get_counter(file.column(LINE));
 
             if(line_number >= function.first_line && line_number <= function.last_line){
-                gooda::afdo_stack stack;
-                stack.count = line.get_counter(file.column(counter_name));
-                stack.num_inst = 1; 
-
-                gooda::afdo_pos position;
-                position.func = function.name;
-                position.file = function.file;
-                position.line = line_number;
-                position.discr = 0;
-
-                stack.stack.push_back(std::move(position));
-
-                function.stacks.push_back(std::move(stack));
+                auto& stack = get_stack(function, function.name, function.file, line_number);
+                stack.count = std::max(stack.count, line.get_counter(file.column(counter_name)));
             } 
         }
     }
@@ -265,73 +323,6 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
     return inlined_sets;
 }
 
-gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string src_func, std::string src_file, std::size_t src_line, std::string dest_func, std::string dest_file, std::size_t dest_line){
-    for(auto& stack : function.stacks){
-        if(stack.stack.size() == 2){
-            auto& src_pos = stack.stack.front();
-
-            if(src_pos.func == src_func && src_pos.file == src_file && src_pos.line == src_line){
-                auto& dest_pos = stack.stack.back();
-            
-                if(dest_pos.func == dest_func && dest_pos.file == dest_file && dest_pos.line == dest_line){
-                    return stack;
-                }
-            }
-        }
-    }
-
-    gooda::afdo_pos src_position;
-    src_position.func = src_func;
-    src_position.file = src_file;
-    src_position.line = src_line;
-    src_position.discr = 0;
-
-    gooda::afdo_pos dest_position;
-    dest_position.func = dest_func;
-    dest_position.file = dest_file;
-    dest_position.line = dest_line;
-    dest_position.discr = 0;
-    
-    gooda::afdo_stack stack;
-    stack.count = 0;
-    stack.num_inst = 0;
-
-    stack.stack.push_back(std::move(src_position));
-    stack.stack.push_back(std::move(dest_position));
-
-    function.stacks.push_back(std::move(stack));
-
-    return function.stacks.back(); 
-}
-
-gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, std::string file, std::size_t line){
-    for(auto& stack : function.stacks){
-        if(stack.stack.size() == 1){
-            auto& pos = stack.stack.front();
-
-            if(pos.func == func && pos.file == file && pos.line == line){
-                return stack;
-            }
-        }
-    }
-
-    gooda::afdo_pos position;
-    position.func = func;
-    position.file = file;
-    position.line = line;
-    position.discr = 0;
-    
-    gooda::afdo_stack stack;
-    stack.count = 0;
-    stack.num_inst = 0;
-
-    stack.stack.push_back(std::move(position));
-
-    function.stacks.push_back(std::move(stack));
-
-    return function.stacks.back(); 
-}
-
 void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
         std::vector<lbr_bb> normal_blocks;
@@ -371,7 +362,6 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                 
                 auto& stack = get_stack(function, function.name, function.file, line_number);
                 stack.count = std::max(counter, stack.count);
-                stack.num_inst = 1; 
             }
         }
 
