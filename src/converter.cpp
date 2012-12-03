@@ -321,9 +321,11 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                 if(line_number >= function.first_line && line_number <= function.last_line){
                     for(auto& block_set : inlined_block_sets){
-                        auto& first_bb = block_set.at(0); //TODO assert size > 0
+                        BOOST_ASSERT_MSG(block_set.size() > 0, "Something went wrong with BB Collection");
 
-                        //There is always one inlned basic block set that match this point
+                        auto& first_bb = block_set.at(0);
+
+                        //There is always one inlined basic block set that match this point
                         if(first_bb.line_start == line_number){
                             //The caller position
                             //Note:: Do not move, will be used several times
