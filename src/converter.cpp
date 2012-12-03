@@ -522,7 +522,7 @@ void compute_working_set(gooda::afdo_data& data){
     for(auto& function : data.functions){
         for(auto& stack : function.stacks){
             histogram[stack.count] += stack.num_inst;
-            total_count += stack.count;
+            total_count += stack.num_inst * stack.count;
         }
     }
 
@@ -630,7 +630,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
     prune_non_dynamic_stacks(data);
 
-    //compute_working_set(data);
+    compute_working_set(data);
     compute_lengths(data);
 
     //Note: No need to fill the modules because it is not used by GCC
