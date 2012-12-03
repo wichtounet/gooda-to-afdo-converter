@@ -42,13 +42,13 @@ void write_function_table(const gooda::afdo_data& data, boost::program_options::
 
                     gcov_file.write_unsigned(s.line);
                     gcov_file.write_unsigned(s.discr);
-                    });
+                });
 
                 gcov_file.write_counter(stack.count);
                 gcov_file.write_counter(stack.num_inst);
 
                 if(vm.count("cache-misses")){
-                gcov_file.write_counter(stack.cache_misses);
+                    gcov_file.write_counter(stack.cache_misses);
                 }
             });
         }
