@@ -126,7 +126,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
                 position.line = line_number;
                 position.discr = 0;
 
-                stack.stack.push_back(position);
+                stack.stack.push_back(std::move(position));
 
                 function.stacks.push_back(std::move(stack));
             } 
@@ -143,11 +143,12 @@ struct lbr_bb {
     long address;
 
     std::size_t gooda_function;
-    std::size_t gooda_line_start;
-    std::size_t gooda_line_end;
+    std::size_t gooda_line_start;   //Inside asm_file
+    std::size_t gooda_line_end;     //Inside asm_file
     
-    unsigned long inlined_line_start;
+    //If the basic block comes from an inlined function
     std::string inlined_file;
+    unsigned long inlined_line_start;
 };
 
 std::string get_function_name(const std::string& application_file, std::vector<lbr_bb> block_set){
@@ -310,12 +311,12 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
             }
         }
 
+        //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
             BOOST_ASSERT_MSG(report.has_src_file(i), "Something went wrong with BB collection");
 
             auto& asm_file = report.asm_file(i);
 
-            //2. Handle inlined blocks
             for(auto& source_line : file){
                 auto line_number = source_line.get_counter(file.column(LINE));
 
@@ -323,7 +324,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                     for(auto& block_set : inlined_block_sets){
                         BOOST_ASSERT_MSG(block_set.size() > 0, "Something went wrong with BB Collection");
 
-                        auto& first_bb = block_set.at(0);
+                        auto& first_bb = block_set[0];
 
                         //There is always one inlined basic block set that match this point
                         if(first_bb.line_start == line_number){
@@ -516,7 +517,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         data.add_file_name(function.file);
         data.add_file_name(function.name);
 
-        data.functions.push_back(function);
+        data.functions.push_back(std::move(function));
         
         //Collect function.file and function.entry_count
         read_asm_file(report, i, data, counter_name);
