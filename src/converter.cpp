@@ -327,20 +327,10 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                         counter = std::max(counter, normal_blocks.at(j).exec_count);
                     }
                 }
-
-                gooda::afdo_stack stack;
-                stack.count = counter;
+                
+                auto& stack = get_stack(function, function.name, function.file, line_number);
+                stack.count = std::max(counter, stack.count);
                 stack.num_inst = 1; 
-
-                gooda::afdo_pos position;
-                position.func = function.name;
-                position.file = function.file;
-                position.line = line_number;
-                position.discr = 0;
-
-                stack.stack.push_back(std::move(position));
-
-                function.stacks.push_back(std::move(stack));
             }
         }
 
