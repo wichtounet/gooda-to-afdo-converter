@@ -46,6 +46,91 @@ void process(const std::string& directory, po::variables_map& vm){
     log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
+int profile_application(po::variables_map& vm, po::parsed_options& parsed_options){
+    int processor_model = -1;
+
+    if(vm.count("model")){
+        processor_model = vm["model"].as<int>();
+    } else {
+        processor_model = gooda::processor_model();
+
+        if(processor_model == -1){
+            log::emit<log::Error>() << "Cannot find your processor model. Please provide it with the --model option. " << log::endl;
+            return -1;
+        }
+    }
+
+    std::string script;
+
+    if(processor_model == 0x2A || processor_model == 0x2D){
+        log::emit<log::Debug>() << "Detected processor as \"Sandy Bridge\"" << log::endl;
+        script = "run_record_cyc_snb.sh";
+    } else if(processor_model == 0x3A){
+        log::emit<log::Debug>() << "Detected processor as \"Ivy Bridge\"" << log::endl;
+        script = "run_record_cyc_ivb.sh";
+    } else if(processor_model == 0x25 || processor_model == 0x2C || processor_model == 0x2F){
+        log::emit<log::Debug>() << "Detected processor as \"Westmere\"" << log::endl;
+        script = "run_record_cyc_wsm_ep.sh";
+    } else {
+        std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
+        std::cerr << "Only Westmere, Sandy Bridge and Ivy Bridge are currently supported" << std::endl;
+        return -1;
+    }
+
+    //There is only one script for LBR
+    if(vm.count("lbr")){
+        script = "gooda_bb_exec.sh";
+    }
+
+    //Try to find the Gooda directory
+    std::string gooda_dir;
+    const char* gooda_dir_val = ::getenv("GOODA_DIR");
+    if(!gooda_dir_val){
+        gooda_dir = "";
+    } else {
+        gooda_dir = gooda_dir_val;
+    }
+
+    std::string profile_command;
+    if(vm.count("gooda")){
+        profile_command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
+    } else if(gooda_dir.empty()){
+        profile_command = "sudo bash scripts/" + script + " ";
+    } else {
+        profile_command = "sudo bash " + gooda_dir + "/scripts/" + script + " ";
+    }
+
+    auto further_options = po::collect_unrecognized(parsed_options.options, po::include_positional);
+
+    //Append the application
+    for(auto& option : further_options){
+        profile_command += option + " ";
+    }
+
+    log::emit<log::Debug>() << "Profile the given application (perf needs to be run in root)" << log::endl;
+    gooda::exec_command(profile_command);
+
+    std::string gooda_command;
+    if(vm.count("gooda")){
+        gooda_command = "sudo " + vm["gooda"].as<std::string>() + "/gooda";
+    } else if(gooda_dir.empty()){
+        gooda_command = "sudo ./gooda";
+    } else {
+        gooda_command = "sudo " + gooda_dir + "/gooda";
+    }
+
+    log::emit<log::Debug>() << "Run Gooda (Gooda needs to be run in root)" << log::endl;
+    gooda::exec_command(gooda_command);
+
+    //If no option is specified, just as as a wrapper of Gooda
+    if(vm.count("afdo")){
+        //Process the spreadsheets to generate AFDO
+        process("spreadsheets", vm); 
+    }
+
+    return 0;
+}
+
 } //end of anonymous namespace
 
 int main(int argc, char **argv){
@@ -91,88 +176,7 @@ int main(int argc, char **argv){
 
     //Profiling mode
     if(vm.count("profile")){
-        int processor_model = -1;
-
-        if(vm.count("model")){
-            processor_model = vm["model"].as<int>();
-        } else {
-            processor_model = gooda::processor_model();
-            
-            if(processor_model == -1){
-                log::emit<log::Error>() << "Cannot find your processor model. Please provide it with the --model option. " << log::endl;
-                return -1;
-            }
-        }
-
-        std::string script;
-
-        if(processor_model == 0x2A || processor_model == 0x2D){
-            log::emit<log::Debug>() << "Detected processor as \"Sandy Bridge\"" << log::endl;
-            script = "run_record_cyc_snb.sh";
-        } else if(processor_model == 0x3A){
-            log::emit<log::Debug>() << "Detected processor as \"Ivy Bridge\"" << log::endl;
-            script = "run_record_cyc_ivb.sh";
-        } else if(processor_model == 0x25 || processor_model == 0x2C || processor_model == 0x2F){
-            log::emit<log::Debug>() << "Detected processor as \"Westmere\"" << log::endl;
-            script = "run_record_cyc_wsm_ep.sh";
-        } else {
-            std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
-            std::cerr << "Only Westmere, Sandy Bridge and Ivy Bridge are currently supported" << std::endl;
-            return -1;
-        }
-
-        //There is only one script for LBR
-        if(vm.count("lbr")){
-            script = "gooda_bb_exec.sh";
-        }
-
-        //Try to find the Gooda directory
-        std::string gooda_dir;
-        const char* gooda_dir_val = ::getenv("GOODA_DIR");
-        if(!gooda_dir_val){
-            gooda_dir = "";
-        } else {
-            gooda_dir = gooda_dir_val;
-        }
-
-        std::string profile_command;
-        if(vm.count("gooda")){
-            profile_command = "sudo bash " + vm["gooda"].as<std::string>() + "/scripts/" + script + " ";
-        } else if(gooda_dir.empty()){
-            profile_command = "sudo bash scripts/" + script + " ";
-        } else {
-            profile_command = "sudo bash " + gooda_dir + "/scripts/" + script + " ";
-        }
-
-        auto further_options = po::collect_unrecognized(parsed_options.options, po::include_positional);
-
-        //Append the application
-        for(auto& option : further_options){
-            profile_command += option + " ";
-        }
-
-        log::emit<log::Debug>() << "Profile the given application (perf needs to be run in root)" << log::endl;
-        gooda::exec_command(profile_command);
-
-        std::string gooda_command;
-        if(vm.count("gooda")){
-            gooda_command = "sudo " + vm["gooda"].as<std::string>() + "/gooda";
-        } else if(gooda_dir.empty()){
-            gooda_command = "sudo ./gooda";
-        } else {
-            gooda_command = "sudo " + gooda_dir + "/gooda";
-        }
-
-        log::emit<log::Debug>() << "Run Gooda (Gooda needs to be run in root)" << log::endl;
-        gooda::exec_command(gooda_command);
-
-        //If no option is specified, just as as a wrapper of Gooda
-        if(vm.count("afdo")){
-            //Process the spreadsheets to generate AFDO
-            process("spreadsheets", vm); 
-        }
-
-        return 0;
+        return profile_application(vm, parsed_options);
     }
     
     //No further options are allowed if not in profile mode
