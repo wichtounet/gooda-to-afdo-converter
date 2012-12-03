@@ -5,6 +5,7 @@
 #include <map>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/assert.hpp>
 
 #include "converter.hpp"
 #include "utils.hpp"
