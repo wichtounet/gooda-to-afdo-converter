@@ -452,6 +452,14 @@ unsigned int sizeof_string(const std::string& str){
     return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
 }
 
+void prune_non_dynamic_stacks(gooda::afdo_data& data){
+    for(auto& function : data.functions){
+        function.stacks.erase(
+                std::remove_if(function.stacks.begin(), function.stacks.end(), [](gooda::afdo_stack& stack){ return stack.num_inst == 0;}), 
+                function.stacks.end());
+    }
+}
+
 /*!
  * \brief Compute the length of each section of the AFDO data file. 
  * \param data the Data file
@@ -619,6 +627,8 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             read_src_file(report, i, data, counter_name);
         }
     }
+
+    prune_non_dynamic_stacks(data);
 
     //compute_working_set(data);
     compute_lengths(data);
