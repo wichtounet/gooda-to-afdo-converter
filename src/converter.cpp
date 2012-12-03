@@ -159,23 +159,31 @@ std::string get_function_name(const std::string& application_file, std::vector<l
         start_address = std::min(start_address, block.address);
     }
 
-    long stop_address = start_address + 1;
-
+    long stop_address = start_address + 3;
+    
     std::stringstream ss;
     ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+    
+    log::emit<log::Debug>() << "=> Command:" << ss.str() << log::endl;
 
     std::string command = ss.str();
     auto result = gooda::exec_command_result(command);
 
-    std::vector<std::string> lines;
-
     std::istringstream result_stream(result);
     std::string str_line;    
+    bool next = false;
+    std::string function_name;
+
     while (std::getline(result_stream, str_line)) {
-        lines.push_back(std::move(str_line));
+        if(boost::starts_with(str_line, "00000")){
+            next = true;
+        } else if(next){
+            function_name = str_line; 
+            break;
+        }
     }
 
-    auto function_name = lines.at(lines.size() - 3);
+    //auto function_name = lines.at(lines.size() - 3);
     function_name = function_name.substr(0, function_name.size() - 3);
 
     log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
