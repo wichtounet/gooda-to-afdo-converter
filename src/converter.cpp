@@ -336,7 +336,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
     if(report.has_src_file(i)){
         std::vector<lbr_bb> normal_blocks;
 
-        //Extract the
+        //Extract the normal blocks
         for(auto& block : basic_blocks){
             if(block.inlined_file.empty()){
                 normal_blocks.push_back(std::move(block));
@@ -566,7 +566,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             gooda::afdo_function function;
             function.valid = false;
 
-            data.functions.push_back(function);
+            data.functions.push_back(std::move(function));
 
             continue;
         }
