@@ -258,6 +258,32 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
     return inlined_sets;
 }
 
+gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, std::string file, std::size_t line){
+    for(auto& stack : function.stacks){
+        for(auto& pos : stack.stack){
+            if(pos.func == func && pos.file == file && pos.line == line){
+                return stack;
+            }
+        }
+    }
+
+    gooda::afdo_pos position;
+    position.func = func;
+    position.file = file;
+    position.line = line;
+    position.discr = 0;
+    
+    gooda::afdo_stack stack;
+    stack.count = 0;
+    stack.num_inst = 0;
+
+    stack.stack.push_back(std::move(position));
+
+    function.stacks.push_back(std::move(stack));
+
+    return function.stacks.back(); 
+}
+
 void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
         std::vector<lbr_bb> normal_blocks;
@@ -328,14 +354,6 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                         //There is always one inlined basic block set that match this point
                         if(first_bb.line_start == line_number){
-                            //The caller position
-                            //Note:: Do not move, will be used several times
-                            gooda::afdo_pos caller_position;
-                            caller_position.func = function.name;
-                            caller_position.file = function.file;
-                            caller_position.line = line_number;
-                            caller_position.discr = 0;
-                
                             //TODO Perhaps it is faster to look out if it exists first
                             auto callee_function_name = get_function_name(data.application_file, block_set);
 
@@ -344,26 +362,43 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                                     BOOST_ASSERT_MSG(j < asm_file.lines(), "Something went wrong with BB collection");
 
                                     auto& asm_line = asm_file.line(j);
-                                    auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
-                
-                                    data.add_file_name(callee_function_name);
-                
-                                    gooda::afdo_pos callee_position;
-                                    callee_position.func = callee_function_name;
-                                    callee_position.file = block.inlined_file;
-                                    callee_position.line = callee_line_number;
-                                    callee_position.discr = 0;
-                                    
-                                    data.add_file_name(block.inlined_file);
-                
-                                    gooda::afdo_stack stack;
-                                    stack.count = block.exec_count;
-                                    stack.num_inst = 2; 
 
-                                    stack.stack.push_back(caller_position);
-                                    stack.stack.push_back(std::move(callee_position));
-                                    
-                                    function.stacks.push_back(std::move(stack));
+                                    //It is possible that a basic block is not made only 
+                                    //of inlined lines
+                                    if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
+                                        auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
+
+                                        stack.count = std::max(stack.count, block.exec_count);
+                                    } else {
+                                        auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
+
+                                        data.add_file_name(callee_function_name);
+                            
+                                        //The caller position
+                                        gooda::afdo_pos caller_position;
+                                        caller_position.func = function.name;
+                                        caller_position.file = function.file;
+                                        caller_position.line = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                                        caller_position.discr = 0;
+
+                                        //The callee position
+                                        gooda::afdo_pos callee_position;
+                                        callee_position.func = callee_function_name;
+                                        callee_position.file = block.inlined_file;
+                                        callee_position.line = callee_line_number;
+                                        callee_position.discr = 0;
+
+                                        data.add_file_name(block.inlined_file);
+
+                                        gooda::afdo_stack stack;
+                                        stack.count = block.exec_count;
+                                        stack.num_inst = 2; 
+
+                                        stack.stack.push_back(std::move(caller_position));
+                                        stack.stack.push_back(std::move(callee_position));
+
+                                        function.stacks.push_back(std::move(stack));
+                                    }
                                 }
                             }
 
