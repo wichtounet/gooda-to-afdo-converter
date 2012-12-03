@@ -49,12 +49,12 @@ void process(const std::string& directory, po::variables_map& vm){
 } //end of anonymous namespace
 
 int main(int argc, char **argv){
+    po::options_description description("converter [options] spreadsheets_directory");
+
     po::variables_map vm;
-    po::parsed_options* parsed;
+    po::parsed_options parsed_options(&description);
     
     try {
-        po::options_description description("converter [options] spreadsheets_directory");
-
         description.add_options()
             ("help,h", "Display this help message")
             
@@ -75,9 +75,8 @@ int main(int argc, char **argv){
         po::positional_options_description p;
         p.add("input-file", -1);
 
-        auto pa = po::command_line_parser(argc, argv).options(description).positional(p).allow_unregistered().run();
-        po::store(pa, vm);
-        parsed = &pa;
+        parsed_options = po::command_line_parser(argc, argv).options(description).positional(p).allow_unregistered().run();
+        po::store(parsed_options, vm);
 
         if(vm.count("help")){
             std::cout << description;
@@ -145,7 +144,7 @@ int main(int argc, char **argv){
             profile_command = "sudo bash " + gooda_dir + "/scripts/" + script + " ";
         }
 
-        auto further_options = po::collect_unrecognized(parsed->options, po::include_positional);
+        auto further_options = po::collect_unrecognized(parsed_options.options, po::include_positional);
 
         //Append the application
         for(auto& option : further_options){
@@ -175,17 +174,9 @@ int main(int argc, char **argv){
 
         return 0;
     }
-
-    try {
-        //Must be done after the test for help/profile to handle required arguments
-        po::notify(vm);
-    } catch (std::exception& e ) {
-        log::emit<log::Error>() << e.what() << log::endl;
-        return 1;
-    }
-
+    
     //No further options are allowed if not in profile mode
-    /*auto further_options = po::collect_unrecognized(parsed->options, po::exclude_positional);
+    auto further_options = po::collect_unrecognized(parsed_options.options, po::exclude_positional);
     if(!further_options.empty()){
         std::cerr << "Error: Unrecognized options " << further_options[0];
 
@@ -196,7 +187,15 @@ int main(int argc, char **argv){
         std::cerr << std::endl;
 
         return 1;
-    }*/
+    }
+
+    try {
+        //Must be done after the test for help/profile to handle required arguments
+        po::notify(vm);
+    } catch (std::exception& e ) {
+        log::emit<log::Error>() << e.what() << log::endl;
+        return 1;
+    }
 
     if(!vm.count("input-file")){
         log::emit<log::Error>() << "Error: No spreadsheets directory provided" << log::endl;
