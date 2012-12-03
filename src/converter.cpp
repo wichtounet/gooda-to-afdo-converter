@@ -190,6 +190,18 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             } 
         }
     }
+    
+    //There is no inlining for now in normal mode, so it is safe to not consider it here
+    if(report.has_asm_file(i)){
+        auto& function = data.functions.at(i);
+        auto& file = report.asm_file(i);
+
+        for(auto& line : file){
+            auto& stack = get_stack(function, function.name, function.file, line.get_counter(file.column(PRINC_LINE))); 
+
+            ++stack.num_inst;
+        }
+    }
 }
 
 //LBR Mode
@@ -325,6 +337,10 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
 
 void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
+        BOOST_ASSERT_MSG(report.has_src_file(i), "Something went wrong with BB collection");
+
+        auto& asm_file = report.asm_file(i);
+
         std::vector<lbr_bb> normal_blocks;
 
         //Extract the normal blocks
@@ -347,7 +363,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
             auto line_number = line.get_counter(file.column(LINE));
 
             if(line_number >= function.first_line && line_number <= function.last_line){
-                gcov_type counter = 0;
+                auto& stack = get_stack(function, function.name, function.file, line_number);
 
                 //Several basic blocks can be on the same line
                 //=> Take the max as the value of the line
@@ -356,21 +372,27 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                                 (j + 1 < normal_blocks.size() && line_number >= normal_blocks.at(j).line_start && line_number < normal_blocks.at(j + 1).line_start)
                             ||  (j + 1 == normal_blocks.size() && line_number >= normal_blocks.at(j).line_start))
                     {
-                        counter = std::max(counter, normal_blocks.at(j).exec_count);
+                        auto& block = normal_blocks.at(j);
+                        stack.count = std::max(block.exec_count, stack.count);
                     }
                 }
+            }
+        }
+
+        //1.1 Count dynamic instructions
+        for(auto& block : normal_blocks){
+            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                BOOST_ASSERT_MSG(j < asm_file.lines(), "Something went wrong with BB collection");
+
+                auto& asm_line = asm_file.line(j);
                 
-                auto& stack = get_stack(function, function.name, function.file, line_number);
-                stack.count = std::max(counter, stack.count);
+                auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
+                ++stack.num_inst;
             }
         }
 
         //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
-            BOOST_ASSERT_MSG(report.has_src_file(i), "Something went wrong with BB collection");
-
-            auto& asm_file = report.asm_file(i);
-
             for(auto& source_line : file){
                 auto line_number = source_line.get_counter(file.column(LINE));
 
@@ -397,6 +419,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                                         auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
 
                                         stack.count = std::max(stack.count, block.exec_count);
+                                        ++stack.num_inst;
                                     } else {
                                         auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
 
@@ -409,6 +432,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
                                         data.add_file_name(block.inlined_file);
 
                                         stack.count = std::max(stack.count, block.exec_count);
+                                        ++stack.num_inst;
                                     }
                                 }
                             }
@@ -596,7 +620,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         }
     }
 
-    compute_working_set(data);
+    //compute_working_set(data);
     compute_lengths(data);
 
     //Note: No need to fill the modules because it is not used by GCC
