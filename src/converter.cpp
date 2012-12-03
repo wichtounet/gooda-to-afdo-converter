@@ -5,8 +5,8 @@
 #include <map>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/assert.hpp>
 
+#include "assert.hpp"
 #include "converter.hpp"
 #include "utils.hpp"
 #include "logger.hpp"
@@ -170,9 +170,9 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
             }
         }
 
-        BOOST_ASSERT_MSG(!function.file.empty(), "The function file must be set");
-        BOOST_ASSERT_MSG(function.first_line < std::numeric_limits<decltype(function.first_line)>::max(), "The function first line must be set");
-        BOOST_ASSERT_MSG(function.last_line > std::numeric_limits<decltype(function.last_line)>::min(), "The function last line must be set");
+        gooda_assert(!function.file.empty(), "The function file must be set");
+        gooda_assert(function.first_line < std::numeric_limits<decltype(function.first_line)>::max(), "The function first line must be set");
+        gooda_assert(function.last_line > std::numeric_limits<decltype(function.last_line)>::min(), "The function last line must be set");
     }
 }
 
@@ -338,7 +338,7 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
 
 void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
     if(report.has_src_file(i)){
-        BOOST_ASSERT_MSG(report.has_src_file(i), "Something went wrong with BB collection");
+        gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
 
         auto& asm_file = report.asm_file(i);
 
@@ -383,7 +383,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
         //1.1 Count dynamic instructions
         for(auto& block : normal_blocks){
             for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                BOOST_ASSERT_MSG(j < asm_file.lines(), "Something went wrong with BB collection");
+                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                 auto& asm_line = asm_file.line(j);
                 
@@ -399,7 +399,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                 if(line_number >= function.first_line && line_number <= function.last_line){
                     for(auto& block_set : inlined_block_sets){
-                        BOOST_ASSERT_MSG(block_set.size() > 0, "Something went wrong with BB Collection");
+                        gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
 
                         auto& first_bb = block_set.at(0);
 
@@ -410,7 +410,7 @@ void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::
 
                             for(auto& block : block_set){
                                 for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                                    BOOST_ASSERT_MSG(j < asm_file.lines(), "Something went wrong with BB collection");
+                                    gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                                     auto& asm_line = asm_file.line(j);
 

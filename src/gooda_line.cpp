@@ -1,7 +1,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/assert.hpp>
 
+#include "assert.hpp"
 #include "gooda_line.hpp"
 
 std::string& gooda::gooda_line::line(){
@@ -40,14 +40,14 @@ unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
 long gooda::gooda_line::get_address(std::size_t index) const {
     auto value = get_string(index);
     
-    BOOST_ASSERT_MSG(!value.empty(), "Cannot convert and empty string to an address");
+    gooda_assert(!value.empty(), "Cannot convert and empty string to an address");
 
     long x = 0;   
     std::stringstream ss;
     ss << std::hex << value;
     ss >> x;
 
-    BOOST_ASSERT_MSG(x != 0, "Address cannot be zero");
+    gooda_assert(x != 0, "Address cannot be zero");
 
     return x;
 }
