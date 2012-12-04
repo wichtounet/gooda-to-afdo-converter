@@ -456,7 +456,8 @@ unsigned int sizeof_string(const std::string& str){
 void prune_non_dynamic_stacks(gooda::afdo_data& data){
     for(auto& function : data.functions){
         function.stacks.erase(
-                std::remove_if(function.stacks.begin(), function.stacks.end(), [](gooda::afdo_stack& stack){ return stack.num_inst == 0;}), 
+                std::remove_if(function.stacks.begin(), function.stacks.end(), 
+                    [](gooda::afdo_stack& stack){ return stack.num_inst == 0 && stack.count == 0;}), 
                 function.stacks.end());
     }
 }
