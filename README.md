@@ -12,6 +12,8 @@ To build the application, CMake 2.8 and GCC 4.7 are necessary. Boost >= 1.41 is 
     cd gooda-to-afdo-converter
     cmake .
     make
+
+The application make uses of objdump during the execution. It is necessary to install objdump prior to use this converter. 
     
 Usage
 -----
