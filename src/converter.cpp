@@ -205,9 +205,11 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         auto& file = report.asm_file(i);
 
         for(auto& line : file){
-            auto& stack = get_stack(function, function.name, function.file, line.get_counter(file.column(PRINC_LINE))); 
+            if(!line.get_string(file.column(PRINC_LINE)).empty()){
+                auto& stack = get_stack(function, function.name, function.file, line.get_counter(file.column(PRINC_LINE))); 
 
-            ++stack.num_inst;
+                ++stack.num_inst;
+            }
         }
     }
 }
