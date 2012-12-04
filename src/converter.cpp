@@ -595,6 +595,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
         //Some functions are filled empty by Gooda for some reason
         //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
+        //Necessary to create it to keep the i index in the data.functions vector
         if(string_cycles.empty()){
             gooda::afdo_function function;
             function.valid = false;
