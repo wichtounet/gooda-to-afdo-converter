@@ -21,7 +21,7 @@ std::string pretty_size(unsigned int size){
     return stream.str();
 }
 
-void gooda::dump_afdo(const afdo_data& data){
+void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_map& vm){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
     for(std::size_t i = 0; i < data.file_names.size(); ++i){
@@ -36,8 +36,13 @@ void gooda::dump_afdo(const afdo_data& data){
         for(auto& stack : function.stacks){
             std::cout << "   Stack of size " << stack.stack.size() 
                 << ", with " << stack.num_inst << " dynamic instructions " 
-                << "[count=" << stack.count << ", misses=" << stack.cache_misses << "]" 
-                << std::endl;
+                << "[count=" << stack.count;
+            
+            if(vm.count("misses")){
+                std::cout << ", misses=" << stack.cache_misses;
+            }
+            
+            std::cout << "]" << std::endl;
 
             for(auto& pos : stack.stack){
                 std::cout << "      Instruction at " 
@@ -60,7 +65,7 @@ void gooda::dump_afdo(const afdo_data& data){
     std::cout << "   Working Set Table: " << pretty_size(data.length_working_set_section * 4) << std::endl;
 }
 
-void gooda::dump_afdo_light(const afdo_data& data){
+void gooda::dump_afdo_light(const afdo_data& data, boost::program_options::variables_map& /*vm*/){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
     for(auto& function : data.functions) {

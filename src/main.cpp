@@ -33,9 +33,9 @@ void process(const std::string& directory, po::variables_map& vm){
 
     //Execute the specified action
     if(vm.count("dump")){
-        gooda::dump_afdo_light(data);
+        gooda::dump_afdo_light(data, vm);
     } else if(vm.count("full-dump")){
-        gooda::dump_afdo(data);
+        gooda::dump_afdo(data, vm);
     } else {
         gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
     }
