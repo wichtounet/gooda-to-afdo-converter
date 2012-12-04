@@ -207,7 +207,7 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 
 //LBR Mode
 
-struct lbr_bb {
+struct gooda_bb {
     std::string file;
     unsigned long line_start;
     unsigned long exec_count;
@@ -222,7 +222,7 @@ struct lbr_bb {
     unsigned long inlined_line_start;
 };
 
-std::string get_function_name(const std::string& application_file, std::vector<lbr_bb> block_set){
+std::string get_function_name(const std::string& application_file, std::vector<gooda_bb> block_set){
     log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
 
     long start_address = std::numeric_limits<long>::max();
@@ -261,8 +261,8 @@ std::string get_function_name(const std::string& application_file, std::vector<l
     return function_name;
 }
 
-std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter_name){
-    std::vector<lbr_bb> basic_blocks;
+std::vector<gooda_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter_name){
+    std::vector<gooda_bb> basic_blocks;
 
     if(report.has_asm_file(i)){
         auto& file = report.asm_file(i);
@@ -273,7 +273,7 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
             
             if(boost::starts_with(disassembly, "Basic Block ")){
-                lbr_bb block;
+                gooda_bb block;
                 
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
@@ -317,8 +317,8 @@ std::vector<lbr_bb> collect_bb(const gooda::gooda_report& report, std::size_t i,
     return basic_blocks;
 }
 
-std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_set){
-    std::unordered_map<inlined_key, std::vector<lbr_bb>> inline_mappings;
+std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> block_set){
+    std::unordered_map<inlined_key, std::vector<gooda_bb>> inline_mappings;
 
     for(auto& block : block_set){
         //If this block comes from an inlined function
@@ -327,7 +327,7 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
         }
     }
     
-    std::vector<std::vector<lbr_bb>> inlined_sets;
+    std::vector<std::vector<gooda_bb>> inlined_sets;
 
     for(auto& pair : inline_mappings){
        inlined_sets.push_back(std::move(pair.second)); 
@@ -336,13 +336,13 @@ std::vector<std::vector<lbr_bb>> compute_inlined_sets(std::vector<lbr_bb> block_
     return inlined_sets;
 }
 
-void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<lbr_bb>& basic_blocks){
+void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
     if(report.has_src_file(i)){
         gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
 
         auto& asm_file = report.asm_file(i);
 
-        std::vector<lbr_bb> normal_blocks;
+        std::vector<gooda_bb> normal_blocks;
 
         //Extract the normal blocks
         for(auto& block : basic_blocks){
@@ -575,7 +575,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         counter_name = UNHALTED_CORE_CYCLES;
     }
 
-    std::vector<std::vector<lbr_bb>> basic_block_sets;
+    std::vector<std::vector<gooda_bb>> basic_block_sets;
 
     //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
