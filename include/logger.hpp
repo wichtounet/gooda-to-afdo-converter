@@ -54,7 +54,7 @@ struct log {
      */
     struct Warning {
         constexpr static const char* label = "WARNING";     //!< The label of the level
-        static const int level = 1;;                        //!< The level of the level
+        static const int level = 1;                         //!< The level of the level
     };
     
     /*!
@@ -63,7 +63,7 @@ struct log {
      */
     struct Debug {
         constexpr static const char* label = "DEBUG";       //!< The label of the level
-        static const int level = 2;;                        //!< The level of the level
+        static const int level = 2;                         //!< The level of the level
     };
 
 #ifdef LOGGING
