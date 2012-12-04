@@ -11,7 +11,14 @@
  * \brief Contains the data structure representing a Gooda line. 
  */
 
+/*!
+ * \brief An iterator on a string
+ */
 typedef std::string::const_iterator string_iter;
+
+/*!
+ * \brief A pair of iterators on strings. Represent a substrings on another string. 
+ */
 typedef boost::iterator_range<string_iter> string_view;
 
 namespace gooda {
