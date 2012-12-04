@@ -585,8 +585,6 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         counter_name = UNHALTED_CORE_CYCLES;
     }
 
-    std::vector<std::vector<gooda_bb>> basic_block_sets;
-
     //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
@@ -633,8 +631,6 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
             auto basic_blocks = collect_bb(report, i, counter_name);
 
             annotate_src_file(report, i, data, basic_blocks);
-            
-            basic_block_sets.push_back(std::move(basic_blocks));
         } else {
             read_src_file(report, i, data, counter_name);
         }
