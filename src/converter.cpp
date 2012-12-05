@@ -47,6 +47,21 @@ namespace {
 
 //Common utilities
 
+struct gooda_bb {
+    std::string file;
+    unsigned long line_start;
+    unsigned long exec_count;
+    long address;
+
+    std::size_t gooda_function;
+    std::size_t gooda_line_start;   //Inside asm_file
+    std::size_t gooda_line_end;     //Inside asm_file
+    
+    //If the basic block comes from an inlined function
+    std::string inlined_file;
+    unsigned long inlined_line_start;
+};
+
 gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string src_func, std::string src_file, std::size_t src_line, std::string dest_func, std::string dest_file, std::size_t dest_line){
     for(auto& stack : function.stacks){
         if(stack.stack.size() == 2){
@@ -116,7 +131,9 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
 
 //Normal mode
 
-void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+std::vector<gooda_bb> read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+    std::vector<gooda_bb> basic_blocks;
+
     if(report.has_asm_file(i)){
         auto& function = data.functions.at(i);
         auto& file = report.asm_file(i);
@@ -132,21 +149,64 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         function.first_line = std::numeric_limits<decltype(function.first_line)>::max();
         function.last_line = std::numeric_limits<decltype(function.last_line)>::min();
 
-        for(auto& line : file){
+        for(std::size_t j = 0; j < file.lines(); ++j){
+            auto& line = file.line(j);
+
             //Gooda does not always found the source file of a function
             //In that case, declare the function as invalid and return quickly
             if(line.get_string(file.column(PRINC_FILE)) == "null"){
                 function.valid = false;
                 log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
-                return;
+                return {};
             }
 
             //It indicates the last line, that is not a valid assembly line but a summary of the data
             if(line.get_string(file.column(ADDRESS)).empty()){
-                return;
+                return basic_blocks;
             }
 
             auto disassembly = line.get_string(file.column(DISASSEMBLY));
+
+            //Collect Basic Block informations
+            if(boost::starts_with(disassembly, "Basic Block ")){
+                gooda_bb block;
+
+                block.file = line.get_string(file.column(PRINC_FILE));
+                block.line_start = line.get_counter(file.column(PRINC_LINE));
+                block.exec_count = line.get_counter(file.column(counter_name));
+                block.address = line.get_address(file.column(ADDRESS));
+                block.gooda_function = i;
+
+                //Compute the start and end line
+                block.gooda_line_start = j;
+
+                auto k = j+1;
+                while(k < file.lines() - 1 && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                    k++;
+                }
+
+                block.gooda_line_end = k == file.lines() ? k - 1 : k;
+
+                //By default considered as not coming from inlined function
+                block.inlined_line_start = 0;
+
+                //Look at the next line to find out if the line comes from an inlined function
+                if(j + 1 < file.lines()){
+                    auto& next_line = file.line(j + 1);
+
+                    //If the next line is part of the same basic block
+                    if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
+                        auto init_file = next_line.get_string(file.column(INIT_FILE));
+
+                        if(!init_file.empty()){
+                            block.inlined_line_start = next_line.get_counter(file.column(INIT_LINE));
+                            block.inlined_file = init_file;
+                        }
+                    }
+                }
+
+                basic_blocks.push_back(std::move(block));
+            } 
             
             //Get the entry basic block
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
@@ -181,9 +241,11 @@ void read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
         gooda_assert(function.first_line < std::numeric_limits<decltype(function.first_line)>::max(), "The function first line must be set");
         gooda_assert(function.last_line > std::numeric_limits<decltype(function.last_line)>::min(), "The function last line must be set");
     }
+
+    return basic_blocks;
 }
 
-void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_src_file(i)){
         auto& function = data.functions.at(i);
 
@@ -215,21 +277,6 @@ void read_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo
 }
 
 //LBR Mode
-
-struct gooda_bb {
-    std::string file;
-    unsigned long line_start;
-    unsigned long exec_count;
-    long address;
-
-    std::size_t gooda_function;
-    std::size_t gooda_line_start;   //Inside asm_file
-    std::size_t gooda_line_end;     //Inside asm_file
-    
-    //If the basic block comes from an inlined function
-    std::string inlined_file;
-    unsigned long inlined_line_start;
-};
 
 std::string get_function_name(const std::string& application_file, std::vector<gooda_bb> block_set){
     log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
@@ -270,62 +317,6 @@ std::string get_function_name(const std::string& application_file, std::vector<g
     return function_name;
 }
 
-std::vector<gooda_bb> collect_bb(const gooda::gooda_report& report, std::size_t i, const std::string& counter_name){
-    std::vector<gooda_bb> basic_blocks;
-
-    if(report.has_asm_file(i)){
-        auto& file = report.asm_file(i);
-
-        for(std::size_t j = 0; j < file.lines(); ++j){
-            auto& line = file.line(j);
-            
-            auto disassembly = line.get_string(file.column(DISASSEMBLY));
-            
-            if(boost::starts_with(disassembly, "Basic Block ")){
-                gooda_bb block;
-                
-                block.file = line.get_string(file.column(PRINC_FILE));
-                block.line_start = line.get_counter(file.column(PRINC_LINE));
-                block.exec_count = line.get_counter(file.column(counter_name));
-                block.address = line.get_address(file.column(ADDRESS));
-                block.gooda_function = i;
-
-                //Compute the start and end line
-                block.gooda_line_start = j;
-
-                auto k = j+1;
-                while(k < file.lines() - 1 && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
-                    k++;
-                }
-
-                block.gooda_line_end = k == file.lines() ? k - 1 : k;
-
-                //By default considered as not coming from inlined function
-                block.inlined_line_start = 0;
-
-                //Look at the next line to find out if the line comes from an inlined function
-                if(j + 1 < file.lines()){
-                    auto& next_line = file.line(j + 1);
-
-                    //If the next line is part of the same basic block
-                    if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
-                        auto init_file = next_line.get_string(file.column(INIT_FILE));
-
-                        if(!init_file.empty()){
-                            block.inlined_line_start = next_line.get_counter(file.column(INIT_LINE));
-                            block.inlined_file = init_file;
-                        }
-                    }
-                }
-
-                basic_blocks.push_back(std::move(block));
-            } 
-        }
-    }
-
-    return basic_blocks;
-}
-
 std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> block_set){
     std::unordered_map<inlined_key, std::vector<gooda_bb>> inline_mappings;
 
@@ -345,7 +336,7 @@ std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> bl
     return inlined_sets;
 }
 
-void annotate_src_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
+void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
     if(report.has_src_file(i)){
         gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
 
@@ -585,6 +576,9 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         counter_name = UNHALTED_CORE_CYCLES;
     }
 
+    //The set of basic blocks of each function
+    std::map<std::size_t, std::vector<gooda_bb>> basic_blocks;
+
     //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
@@ -614,7 +608,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         data.functions.push_back(std::move(function));
         
         //Collect function.file and function.entry_count
-        read_asm_file(report, i, data, counter_name);
+        basic_blocks[i] = read_asm_file(report, i, data, counter_name);
     }
         
     //Second pass, get the inline stacks for all the functions
@@ -628,11 +622,9 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         }
 
         if(lbr){
-            auto basic_blocks = collect_bb(report, i, counter_name);
-
-            annotate_src_file(report, i, data, basic_blocks);
+            lbr_annotate(report, i, data, basic_blocks[i]);
         } else {
-            read_src_file(report, i, data, counter_name);
+            ca_annotate(report, i, data, counter_name);
         }
     }
 
