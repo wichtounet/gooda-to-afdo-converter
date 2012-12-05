@@ -386,23 +386,15 @@ void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_
         auto& file = report.src_file(i);
 
         //1. Normal pass for non-inlined blocks
-        for(auto& line : file){
-            auto line_number = line.get_counter(file.column(LINE));
+        for(auto& block : normal_blocks){
+            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
-            if(line_number >= function.first_line && line_number <= function.last_line){
+                auto& asm_line = asm_file.line(j);
+                auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+
                 auto& stack = get_stack(function, function.name, function.file, line_number);
-
-                //Several basic blocks can be on the same line
-                //=> Take the max as the value of the line
-                for(std::size_t j = 0; j < normal_blocks.size(); ++j){
-                    if(
-                                (j + 1 < normal_blocks.size() && line_number >= normal_blocks.at(j).line_start && line_number < normal_blocks.at(j + 1).line_start)
-                            ||  (j + 1 == normal_blocks.size() && line_number >= normal_blocks.at(j).line_start))
-                    {
-                        auto& block = normal_blocks.at(j);
-                        stack.count = std::max(block.exec_count, stack.count);
-                    }
-                }
+                stack.count = std::max(stack.count, block.exec_count);
             }
         }
 
