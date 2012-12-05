@@ -606,7 +606,6 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     //The set of basic blocks of each function
     std::map<std::size_t, bb_vector> basic_blocks;
 
-    //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
@@ -635,23 +634,16 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         data.functions.push_back(std::move(function));
         
         //Collect function.file and function.entry_count
-        basic_blocks[i] = collect_basic_blocks(report, i, data, counter_name);
-    }
+        auto bbs = collect_basic_blocks(report, i, data, counter_name);
         
-    //Second pass, get the inline stacks for all the functions
-    //Necessary to make to pass for the functions to be present in the data structure
-    //when inlined function are found in the source
-    for(std::size_t i = 0; i < report.functions(); ++i){
-        auto& function = data.functions.at(i);
-
         if(!function.valid){
             continue;
         }
 
         if(lbr){
-            lbr_annotate(report, i, data, basic_blocks[i]);
+            lbr_annotate(report, i, data, bbs);
         } else {
-            ca_annotate(report, i, data, basic_blocks[i]);
+            ca_annotate(report, i, data, bbs);
         }
     }
 
