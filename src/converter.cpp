@@ -350,7 +350,6 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
         std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
 
         auto& function = data.functions.at(i);
-        //auto& file = report.src_file(i);
         
         //1. Normal pass for non-inlined blocks
         for(auto& block : normal_blocks){
@@ -367,6 +366,43 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 
         //1.1 Count dynamic instructions
         count_dynamic_instructions(report, i, data, normal_blocks);
+        
+        //2. Handle inlined blocks if any
+        for(auto& block_set : inlined_block_sets){
+            gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
+
+            auto callee_function_name = get_function_name(data.application_file, block_set);
+
+            for(auto& block : block_set){
+                for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                    gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
+
+                    auto& asm_line = asm_file.line(j);
+
+                    //It is possible that a basic block is not made only 
+                    //of inlined lines
+                    if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
+                        auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
+
+                        stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                        ++stack.num_inst;
+                    } else {
+                        auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
+
+                        auto& stack = get_inlined_stack(
+                                function, 
+                                function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE)),
+                                callee_function_name, block.inlined_file, callee_line_number); 
+
+                        data.add_file_name(callee_function_name);
+                        data.add_file_name(block.inlined_file);
+
+                        stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                        ++stack.num_inst;
+                    }
+                }
+            }
+        }
     }
 }
 
