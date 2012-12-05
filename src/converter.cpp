@@ -321,36 +321,52 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, std::size_t i,
     return basic_blocks;
 }
 
+void count_dynamic_instructions(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& normal_blocks){
+    auto& function = data.functions.at(i);
+    auto& asm_file = report.asm_file(i);
+
+    for(auto& block : normal_blocks){
+        for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+            gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
+
+            auto& asm_line = asm_file.line(j);
+
+            auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
+            ++stack.num_inst;
+        }
+    }
+}
+
 //Cycle Accounting mode
 
 void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
     if(report.has_src_file(i)){
+        gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
+
+        auto& asm_file = report.asm_file(i);
+
+        bb_vector normal_blocks;
+        std::vector<bb_vector> inlined_block_sets;
+        std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
+
         auto& function = data.functions.at(i);
+        //auto& file = report.src_file(i);
+        
+        //1. Normal pass for non-inlined blocks
+        for(auto& block : normal_blocks){
+            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
-        auto& file = report.src_file(i);
+                auto& asm_line = asm_file.line(j);
+                auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
 
-        for(auto& line : file){
-            auto line_number = line.get_counter(file.column(LINE));
-
-            if(line_number >= function.first_line && line_number <= function.last_line){
                 auto& stack = get_stack(function, function.name, function.file, line_number);
-                stack.count = std::max(stack.count, line.get_counter(file.column(UNHALTED_CORE_CYCLES)));
-            } 
-        }
-    }
-    
-    //There is no inlining for now in normal mode, so it is safe to not consider it here
-    if(report.has_asm_file(i)){
-        auto& function = data.functions.at(i);
-        auto& file = report.asm_file(i);
-
-        for(auto& line : file){
-            if(!line.get_string(file.column(PRINC_LINE)).empty()){
-                auto& stack = get_stack(function, function.name, function.file, line.get_counter(file.column(PRINC_LINE))); 
-
-                ++stack.num_inst;
+                stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
             }
         }
+
+        //1.1 Count dynamic instructions
+        count_dynamic_instructions(report, i, data, normal_blocks);
     }
 }
 
@@ -391,16 +407,7 @@ void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_
         }
 
         //1.1 Count dynamic instructions
-        for(auto& block : normal_blocks){
-            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-                auto& asm_line = asm_file.line(j);
-                
-                auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
-                ++stack.num_inst;
-            }
-        }
+        count_dynamic_instructions(report, i, data, normal_blocks);
 
         //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
