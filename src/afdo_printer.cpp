@@ -76,6 +76,6 @@ void gooda::dump_afdo_light(const afdo_data& data, boost::program_options::varia
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
     for(auto& function : data.functions) {
-        std::cout << function.name << " (" << function.file << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
+        std::cout << "   " << function.name << " (" << function.file << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
     }
 }
