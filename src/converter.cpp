@@ -207,16 +207,15 @@ std::string get_function_name(const std::string& application_file, bb_vector& bl
     return function_name;
 }
 
-bb_vector collect_basic_blocks(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, const std::string& counter_name){
     bb_vector basic_blocks;
 
-    if(report.has_asm_file(i)){
-        auto& function = data.functions.at(i);
-        auto& file = report.asm_file(i);
+    if(report.has_asm_file(function.i)){
+        auto& file = report.asm_file(function.i);
 
         //Compute the addresses of the first and the last instructions
-        auto start_instruction = report.hotspot_function(i).get_address(report.get_hotspot_file().column(OFFSET));
-        auto length = report.hotspot_function(i).get_address(report.get_hotspot_file().column(LENGTH));
+        auto start_instruction = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(OFFSET));
+        auto length = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(LENGTH));
         auto last_instruction = start_instruction + length;
 
         bool bb_found = false;
@@ -251,7 +250,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, std::size_t i,
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.exec_count = line.get_counter(file.column(counter_name));
                 block.address = line.get_address(file.column(ADDRESS));
-                block.gooda_function = i;
+                block.gooda_function = function.i;
 
                 //Compute the start and end line
                 block.gooda_line_start = j;
@@ -321,9 +320,8 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, std::size_t i,
     return basic_blocks;
 }
 
-void count_dynamic_instructions(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& normal_blocks){
-    auto& function = data.functions.at(i);
-    auto& asm_file = report.asm_file(i);
+void count_dynamic_instructions(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bb_vector& normal_blocks){
+    auto& asm_file = report.asm_file(function.i);
 
     for(auto& block : normal_blocks){
         for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
@@ -339,15 +337,13 @@ void count_dynamic_instructions(const gooda::gooda_report& report, std::size_t i
 
 //Cycle Accounting mode
 
-void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
-    if(report.has_asm_file(i)){
-        auto& asm_file = report.asm_file(i);
+void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bb_vector& basic_blocks){
+    if(report.has_asm_file(function.i)){
+        auto& asm_file = report.asm_file(function.i);
 
         bb_vector normal_blocks;
         std::vector<bb_vector> inlined_block_sets;
         std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-
-        auto& function = data.functions.at(i);
         
         //1. Normal pass for non-inlined blocks
         for(auto& block : normal_blocks){
@@ -363,7 +359,7 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
         }
 
         //1.1 Count dynamic instructions
-        count_dynamic_instructions(report, i, data, normal_blocks);
+        count_dynamic_instructions(report, data, function, normal_blocks);
         
         //2. Handle inlined blocks if any
         for(auto& block_set : inlined_block_sets){
@@ -406,15 +402,13 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 
 //LBR Mode
 
-void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
-    if(report.has_asm_file(i)){
-        auto& asm_file = report.asm_file(i);
+void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bb_vector& basic_blocks){
+    if(report.has_asm_file(function.i)){
+        auto& asm_file = report.asm_file(function.i);
 
         bb_vector normal_blocks;
         std::vector<bb_vector> inlined_block_sets;
         std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-
-        auto& function = data.functions.at(i);
 
         //1. Normal pass for non-inlined blocks
         for(auto& block : normal_blocks){
@@ -430,7 +424,7 @@ void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_
         }
 
         //1.1 Count dynamic instructions
-        count_dynamic_instructions(report, i, data, normal_blocks);
+        count_dynamic_instructions(report, data, function, normal_blocks);
 
         //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
@@ -613,13 +607,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
 
         //Some functions are filled empty by Gooda for some reason
         //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
-        //Necessary to create it to keep the i index in the data.functions vector
         if(string_cycles.empty()){
-            gooda::afdo_function function;
-            function.valid = false;
-
-            data.functions.push_back(std::move(function));
-
             continue;
         }
     
@@ -627,24 +615,25 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
         function.file = "unknown"; //The file will be filled by read_asm
         function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
+        function.i = i;
 
         data.add_file_name(function.file);
         data.add_file_name(function.name);
-
-        data.functions.push_back(std::move(function));
         
         //Collect function.file and function.entry_count
-        auto bbs = collect_basic_blocks(report, i, data, counter_name);
+        auto bbs = collect_basic_blocks(report, data, function, counter_name);
         
         if(!function.valid){
             continue;
         }
 
         if(lbr){
-            lbr_annotate(report, i, data, bbs);
+            lbr_annotate(report, data, function, bbs);
         } else {
-            ca_annotate(report, i, data, bbs);
+            ca_annotate(report, data, function, bbs);
         }
+
+        data.functions.push_back(std::move(function));
     }
 
     prune_non_dynamic_stacks(data);
