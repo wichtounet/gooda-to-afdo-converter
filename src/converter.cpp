@@ -129,9 +129,65 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
     return function.stacks.back(); 
 }
 
-//Normal mode
+std::string get_function_name(const std::string& application_file, std::vector<gooda_bb> block_set){
+    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
 
-std::vector<gooda_bb> read_asm_file(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+    long start_address = std::numeric_limits<long>::max();
+    for(auto& block : block_set){
+        start_address = std::min(start_address, block.address);
+    }
+
+    long stop_address = start_address + 3;
+    
+    std::stringstream ss;
+    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+    
+    log::emit<log::Debug>() << "=> Command:" << ss.str() << log::endl;
+
+    std::string command = ss.str();
+    auto result = gooda::exec_command_result(command);
+
+    std::istringstream result_stream(result);
+    std::string str_line;    
+    bool next = false;
+    std::string function_name;
+
+    while (std::getline(result_stream, str_line)) {
+        if(boost::starts_with(str_line, "00000")){
+            next = true;
+        } else if(next){
+            function_name = str_line; 
+            break;
+        }
+    }
+
+    function_name = function_name.substr(0, function_name.size() - 3);
+
+    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
+
+    return function_name;
+}
+
+std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> block_set){
+    std::unordered_map<inlined_key, std::vector<gooda_bb>> inline_mappings;
+
+    for(auto& block : block_set){
+        //If this block comes from an inlined function
+        if(!block.inlined_file.empty()){
+            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
+        }
+    }
+    
+    std::vector<std::vector<gooda_bb>> inlined_sets;
+
+    for(auto& pair : inline_mappings){
+       inlined_sets.push_back(std::move(pair.second)); 
+    }
+
+    return inlined_sets;
+}
+
+std::vector<gooda_bb> collect_basic_blocks(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     std::vector<gooda_bb> basic_blocks;
 
     if(report.has_asm_file(i)){
@@ -245,6 +301,8 @@ std::vector<gooda_bb> read_asm_file(const gooda::gooda_report& report, std::size
     return basic_blocks;
 }
 
+//Cycle Accounting mode
+
 void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
     if(report.has_src_file(i)){
         auto& function = data.functions.at(i);
@@ -277,64 +335,6 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 }
 
 //LBR Mode
-
-std::string get_function_name(const std::string& application_file, std::vector<gooda_bb> block_set){
-    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
-
-    long start_address = std::numeric_limits<long>::max();
-    for(auto& block : block_set){
-        start_address = std::min(start_address, block.address);
-    }
-
-    long stop_address = start_address + 3;
-    
-    std::stringstream ss;
-    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
-    
-    log::emit<log::Debug>() << "=> Command:" << ss.str() << log::endl;
-
-    std::string command = ss.str();
-    auto result = gooda::exec_command_result(command);
-
-    std::istringstream result_stream(result);
-    std::string str_line;    
-    bool next = false;
-    std::string function_name;
-
-    while (std::getline(result_stream, str_line)) {
-        if(boost::starts_with(str_line, "00000")){
-            next = true;
-        } else if(next){
-            function_name = str_line; 
-            break;
-        }
-    }
-
-    function_name = function_name.substr(0, function_name.size() - 3);
-
-    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
-
-    return function_name;
-}
-
-std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> block_set){
-    std::unordered_map<inlined_key, std::vector<gooda_bb>> inline_mappings;
-
-    for(auto& block : block_set){
-        //If this block comes from an inlined function
-        if(!block.inlined_file.empty()){
-            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
-        }
-    }
-    
-    std::vector<std::vector<gooda_bb>> inlined_sets;
-
-    for(auto& pair : inline_mappings){
-       inlined_sets.push_back(std::move(pair.second)); 
-    }
-
-    return inlined_sets;
-}
 
 void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
     if(report.has_src_file(i)){
@@ -608,7 +608,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         data.functions.push_back(std::move(function));
         
         //Collect function.file and function.entry_count
-        basic_blocks[i] = read_asm_file(report, i, data, counter_name);
+        basic_blocks[i] = collect_basic_blocks(report, i, data, counter_name);
     }
         
     //Second pass, get the inline stacks for all the functions
