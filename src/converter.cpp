@@ -320,21 +320,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
     return basic_blocks;
 }
 
-void count_dynamic_instructions(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bb_vector& normal_blocks){
-    auto& asm_file = report.asm_file(function.i);
-
-    for(auto& block : normal_blocks){
-        for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-            gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-            auto& asm_line = asm_file.line(j);
-
-            auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
-            ++stack.num_inst;
-        }
-    }
-}
-
 //Cycle Accounting mode
 
 void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bb_vector& basic_blocks){
@@ -355,11 +340,9 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
 
                 auto& stack = get_stack(function, function.name, function.file, line_number);
                 stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                ++stack.num_inst;
             }
         }
-
-        //1.1 Count dynamic instructions
-        count_dynamic_instructions(report, data, function, normal_blocks);
         
         //2. Handle inlined blocks if any
         for(auto& block_set : inlined_block_sets){
@@ -420,11 +403,9 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, goo
 
                 auto& stack = get_stack(function, function.name, function.file, line_number);
                 stack.count = std::max(stack.count, block.exec_count);
+                ++stack.num_inst;
             }
         }
-
-        //1.1 Count dynamic instructions
-        count_dynamic_instructions(report, data, function, normal_blocks);
 
         //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
