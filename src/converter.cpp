@@ -340,9 +340,7 @@ void count_dynamic_instructions(const gooda::gooda_report& report, std::size_t i
 //Cycle Accounting mode
 
 void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
-    if(report.has_src_file(i)){
-        gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
-
+    if(report.has_asm_file(i)){
         auto& asm_file = report.asm_file(i);
 
         bb_vector normal_blocks;
@@ -409,9 +407,7 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 //LBR Mode
 
 void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
-    if(report.has_src_file(i)){
-        gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
-
+    if(report.has_asm_file(i)){
         auto& asm_file = report.asm_file(i);
 
         bb_vector normal_blocks;
@@ -419,7 +415,6 @@ void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_
         std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
 
         auto& function = data.functions.at(i);
-        auto& file = report.src_file(i);
 
         //1. Normal pass for non-inlined blocks
         for(auto& block : normal_blocks){
@@ -439,51 +434,38 @@ void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_
 
         //2. Handle inlined blocks if any
         if(!inlined_block_sets.empty()){
-            for(auto& source_line : file){
-                auto line_number = source_line.get_counter(file.column(LINE));
+            for(auto& block_set : inlined_block_sets){
+                gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
 
-                if(line_number >= function.first_line && line_number <= function.last_line){
-                    for(auto& block_set : inlined_block_sets){
-                        gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
+                //TODO Perhaps it is faster to look out if it exists first
+                auto callee_function_name = get_function_name(data.application_file, block_set);
 
-                        auto& first_bb = block_set.at(0);
+                for(auto& block : block_set){
+                    for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+                        gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
-                        //There is always one inlined basic block set that match this point
-                        if(first_bb.line_start == line_number){
-                            //TODO Perhaps it is faster to look out if it exists first
-                            auto callee_function_name = get_function_name(data.application_file, block_set);
+                        auto& asm_line = asm_file.line(j);
 
-                            for(auto& block : block_set){
-                                for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                                    gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
+                        //It is possible that a basic block is not made only 
+                        //of inlined lines
+                        if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
+                            auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
 
-                                    auto& asm_line = asm_file.line(j);
+                            stack.count = std::max(stack.count, block.exec_count);
+                            ++stack.num_inst;
+                        } else {
+                            auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
 
-                                    //It is possible that a basic block is not made only 
-                                    //of inlined lines
-                                    if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                                        auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
+                            auto& stack = get_inlined_stack(
+                                    function, 
+                                    function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE)),
+                                    callee_function_name, block.inlined_file, callee_line_number); 
 
-                                        stack.count = std::max(stack.count, block.exec_count);
-                                        ++stack.num_inst;
-                                    } else {
-                                        auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
+                            data.add_file_name(callee_function_name);
+                            data.add_file_name(block.inlined_file);
 
-                                        auto& stack = get_inlined_stack(
-                                                function, 
-                                                function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE)),
-                                                callee_function_name, block.inlined_file, callee_line_number); 
-    
-                                        data.add_file_name(callee_function_name);
-                                        data.add_file_name(block.inlined_file);
-
-                                        stack.count = std::max(stack.count, block.exec_count);
-                                        ++stack.num_inst;
-                                    }
-                                }
-                            }
-
-                            break;
+                            stack.count = std::max(stack.count, block.exec_count);
+                            ++stack.num_inst;
                         }
                     }
                 }
