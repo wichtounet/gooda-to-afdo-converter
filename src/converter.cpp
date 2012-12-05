@@ -129,7 +129,46 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
     return function.stacks.back(); 
 }
 
-std::string get_function_name(const std::string& application_file, std::vector<gooda_bb> block_set){
+typedef std::vector<gooda_bb> bb_vector;
+
+std::vector<bb_vector> compute_inlined_sets(bb_vector block_set){
+    std::unordered_map<inlined_key, bb_vector> inline_mappings;
+
+    for(auto& block : block_set){
+        //If this block comes from an inlined function
+        if(!block.inlined_file.empty()){
+            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
+        }
+    }
+    
+    std::vector<bb_vector> inlined_sets;
+
+    for(auto& pair : inline_mappings){
+       inlined_sets.push_back(std::move(pair.second)); 
+    }
+
+    return inlined_sets;
+}
+
+std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
+    bb_vector normal_blocks;
+
+    //Extract the normal blocks
+    for(auto& block : basic_blocks){
+        if(block.inlined_file.empty()){
+            normal_blocks.push_back(std::move(block));
+        }
+    }
+
+    auto inlined_block_sets = compute_inlined_sets(basic_blocks);
+
+    //Note: From this point basic_blocks contains invalid basic_blocks due to std::moving them
+    basic_blocks.clear();
+    
+    return std::make_pair(normal_blocks, inlined_block_sets);
+}
+
+std::string get_function_name(const std::string& application_file, bb_vector& block_set){
     log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
 
     long start_address = std::numeric_limits<long>::max();
@@ -168,27 +207,8 @@ std::string get_function_name(const std::string& application_file, std::vector<g
     return function_name;
 }
 
-std::vector<std::vector<gooda_bb>> compute_inlined_sets(std::vector<gooda_bb> block_set){
-    std::unordered_map<inlined_key, std::vector<gooda_bb>> inline_mappings;
-
-    for(auto& block : block_set){
-        //If this block comes from an inlined function
-        if(!block.inlined_file.empty()){
-            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
-        }
-    }
-    
-    std::vector<std::vector<gooda_bb>> inlined_sets;
-
-    for(auto& pair : inline_mappings){
-       inlined_sets.push_back(std::move(pair.second)); 
-    }
-
-    return inlined_sets;
-}
-
-std::vector<gooda_bb> collect_basic_blocks(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
-    std::vector<gooda_bb> basic_blocks;
+bb_vector collect_basic_blocks(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+    bb_vector basic_blocks;
 
     if(report.has_asm_file(i)){
         auto& function = data.functions.at(i);
@@ -303,7 +323,7 @@ std::vector<gooda_bb> collect_basic_blocks(const gooda::gooda_report& report, st
 
 //Cycle Accounting mode
 
-void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
+void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
     if(report.has_src_file(i)){
         auto& function = data.functions.at(i);
 
@@ -336,25 +356,15 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 
 //LBR Mode
 
-void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
+void lbr_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, bb_vector& basic_blocks){
     if(report.has_src_file(i)){
         gooda_assert(report.has_src_file(i), "Something went wrong with BB collection");
 
         auto& asm_file = report.asm_file(i);
 
-        std::vector<gooda_bb> normal_blocks;
-
-        //Extract the normal blocks
-        for(auto& block : basic_blocks){
-            if(block.inlined_file.empty()){
-                normal_blocks.push_back(std::move(block));
-            }
-        }
-
-        auto inlined_block_sets = compute_inlined_sets(basic_blocks);
-
-        //Note: From this point basic_blocks contains invalid basic_blocks due to std::moving them
-        basic_blocks.clear();
+        bb_vector normal_blocks;
+        std::vector<bb_vector> inlined_block_sets;
+        std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
 
         auto& function = data.functions.at(i);
         auto& file = report.src_file(i);
@@ -577,7 +587,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
     }
 
     //The set of basic blocks of each function
-    std::map<std::size_t, std::vector<gooda_bb>> basic_blocks;
+    std::map<std::size_t, bb_vector> basic_blocks;
 
     //First pass, only get basic information about the functions
     for(std::size_t i = 0; i < report.functions(); ++i){
