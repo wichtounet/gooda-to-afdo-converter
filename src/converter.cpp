@@ -562,13 +562,21 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
+std::string get_application_file(const gooda::gooda_report& report){
+    auto& line = report.hotspot_function(0);
+    auto application_file = line.get_string(report.get_hotspot_file().column(MODULE));
+
+    log::emit<log::Debug>() << "Found application file in \"" << application_file << "\"" << log::endl;
+
+    return application_file;
+}
+
 } //End of anonymous namespace
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
-    //TODO Find the file
-    data.application_file = "nbench";
+    data.application_file = get_application_file(report);
 
     //Choose the correct counter
     std::string counter_name;

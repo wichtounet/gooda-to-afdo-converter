@@ -37,6 +37,7 @@
 #define OFFSET "Offset"
 #define LENGTH "Length"
 #define ADDRESS "Address"
+#define MODULE "Module"
 
 namespace gooda {
 
