@@ -303,7 +303,7 @@ std::vector<gooda_bb> collect_basic_blocks(const gooda::gooda_report& report, st
 
 //Cycle Accounting mode
 
-void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
+void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, std::vector<gooda_bb>& basic_blocks){
     if(report.has_src_file(i)){
         auto& function = data.functions.at(i);
 
@@ -624,7 +624,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         if(lbr){
             lbr_annotate(report, i, data, basic_blocks[i]);
         } else {
-            ca_annotate(report, i, data);
+            ca_annotate(report, i, data, basic_blocks[i]);
         }
     }
 
