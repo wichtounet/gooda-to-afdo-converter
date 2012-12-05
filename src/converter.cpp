@@ -303,7 +303,7 @@ std::vector<gooda_bb> collect_basic_blocks(const gooda::gooda_report& report, st
 
 //Cycle Accounting mode
 
-void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data, const std::string& counter_name){
+void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_data& data){
     if(report.has_src_file(i)){
         auto& function = data.functions.at(i);
 
@@ -314,7 +314,7 @@ void ca_annotate(const gooda::gooda_report& report, std::size_t i, gooda::afdo_d
 
             if(line_number >= function.first_line && line_number <= function.last_line){
                 auto& stack = get_stack(function, function.name, function.file, line_number);
-                stack.count = std::max(stack.count, line.get_counter(file.column(counter_name)));
+                stack.count = std::max(stack.count, line.get_counter(file.column(UNHALTED_CORE_CYCLES)));
             } 
         }
     }
@@ -624,7 +624,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         if(lbr){
             lbr_annotate(report, i, data, basic_blocks[i]);
         } else {
-            ca_annotate(report, i, data, counter_name);
+            ca_annotate(report, i, data);
         }
     }
 
