@@ -348,7 +348,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
         for(auto& block_set : inlined_block_sets){
             gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
 
-            auto callee_function_name = get_function_name(data.application_file, block_set);
+            auto callee_function_name = get_function_name(function.executable_file, block_set);
 
             for(auto& block : block_set){
                 for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
@@ -413,7 +413,7 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, goo
                 gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
 
                 //TODO Perhaps it is faster to look out if it exists first
-                auto callee_function_name = get_function_name(data.application_file, block_set);
+                auto callee_function_name = get_function_name(function.executable_file, block_set);
 
                 for(auto& block : block_set){
                     for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
@@ -562,8 +562,8 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
-std::string get_application_file(const gooda::gooda_report& report){
-    auto& line = report.hotspot_function(0);
+std::string get_application_file(const gooda::gooda_report& report, std::size_t i){
+    auto& line = report.hotspot_function(i);
     auto application_file = line.get_string(report.get_hotspot_file().column(MODULE));
 
     log::emit<log::Debug>() << "Found application file in \"" << application_file << "\"" << log::endl;
@@ -575,8 +575,6 @@ std::string get_application_file(const gooda::gooda_report& report){
 
 void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
-
-    data.application_file = get_application_file(report);
 
     //Choose the correct counter
     std::string counter_name;
@@ -605,6 +603,7 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         function.file = "unknown"; //The file will be filled by read_asm
         function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
         function.i = i;
+        function.executable_file = get_application_file(report, i);
 
         data.add_file_name(function.file);
         data.add_file_name(function.name);
