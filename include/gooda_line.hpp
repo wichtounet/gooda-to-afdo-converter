@@ -55,6 +55,11 @@ class gooda_line {
          */
         unsigned long get_counter(std::size_t index) const;
         
+        /*!
+         * \brief Read an hexadecimal address and return its decimal signed value. 
+         * \param index The column index
+         * \return The decimal signed value of the address
+         */
         long get_address(std::size_t index) const;
     
         /*!

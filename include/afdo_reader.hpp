@@ -21,6 +21,12 @@
 
 namespace gooda {
 
+/*!
+ * \brief Read an AFDO file and populate an AFDO data structure with its data. 
+ * \param afdo_file The path to the AFDO file. 
+ * \param data The data to populate. 
+ * \param vm The user configuration. 
+ */
 void read_afdo(const std::string& afdo_file, gooda::afdo_data& data, boost::program_options::variables_map& vm);
 
 }

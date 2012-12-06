@@ -38,8 +38,17 @@ bool is_directory(const std::string& file);
  */
 int exec_command(const std::string& command);
 
+/*!
+ * \brief Execute a command and return the its output.
+ * \param command The command to execute.  
+ * \return The output of the command. 
+ */
 std::string exec_command_result(const std::string& command);
 
+/*!
+ * \return The model of the current processor. 
+ * \return The model of the current processor or -1 if not able to find it. 
+ */
 int processor_model();
 
 }

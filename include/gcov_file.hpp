@@ -24,21 +24,79 @@
 
 namespace gooda {
 
+/*!
+ * \class gcov_file
+ * \brief Represent a GCOV File. Can be used for reading or writing GCOV files.
+ */
 class gcov_file {
     public:
+        /*!
+         * \brief Open the file for writing. 
+         * \param file The path to the file.
+         * \return true if the file has been successfully opened, false otherwise. 
+         */
         bool open(const std::string& file);
+        
+        /*!
+         * \brief Open the file for writing.
+         * \param file The path to the file.
+         * \return true if the file has been successfully opened, false otherwise. 
+         */
         bool open_for_write(const std::string& file);
+
+        /*!
+         * \brief Open the file for reading. 
+         * \param file The path to the file.
+         * \return true if the file has been successfully opened, false otherwise. 
+         */
         bool open_for_read(const std::string& file);
         
+        /*!
+         * \brief Write GCOV header for AFDO. 
+         */
         void write_header();
+
+        /*!
+         * \brief Write header of a GCOV section. 
+         * \param tag The tag of the section. 
+         * \param length The lenght of the section. 
+         */
         void write_section_header(gcov_unsigned_t tag, unsigned int length);
 
+        /*!
+         * \brief Write an unsigned to the file. 
+         * \param value The value to write to the file. 
+         */
         void write_unsigned(gcov_unsigned_t value);
+
+        /*!
+         * \brief Write a counter to the file. 
+         * \param value The value to write to the file. 
+         */
         void write_counter(gcov_type value);
+
+        /*!
+         * \brief Write a string to the file. 
+         * \param value The value to write to the file. 
+         */
         void write_string (const std::string& value);
 
+        /*!
+         * \brief Read an unsigned from the file. 
+         * \return The value read from the file. 
+         */
         gcov_unsigned_t read_unsigned();
+
+        /*!
+         * \brief Read a string from the file. 
+         * \return The value read from the file. 
+         */
         std::string read_string();
+
+        /*!
+         * \brief Read a counter from the file. 
+         * \return The value read from the file. 
+         */
         gcov_type read_counter();
 
     private:

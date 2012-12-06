@@ -29,12 +29,21 @@ static const int current_level = 0;
  */
 template<typename Level>
 struct logger {
+    /*!
+     * \brief Construct a new logger.
+     */
     logger(){
         if(Level::level <= current_level){
             std::cout << "[" << Level::label << "] ";
         }
     }
 
+    /*!
+     * \brief Log a message to the console.
+     * \param t The message to output
+     * \tparam T The type of message. 
+     * \return A reference to the logger to allow chaining of operators. 
+     */
     template<typename T>
     logger& operator<<(T t){
         if(Level::level <= current_level){
@@ -45,6 +54,9 @@ struct logger {
     }
 };
 
+/*!
+ * \brief Contains all the utilities to log messages to the standard output.
+ */
 struct log {
     /*!
      * \struct Error
@@ -73,13 +85,15 @@ struct log {
         static const int level = 2;                         //!< The level of the level
     };
 
-#ifdef LOGGING
+    /*!
+     * \brief Set the current level logging. 
+     * \param level The new current level of logging. 
+     */
     static void set_level(int level){
+#ifdef LOGGING
         current_level = level;
-    }
-#else
-    static void set_level(int){}
 #endif
+    }
 
     /*!
      * \brief Return a logger for the given Level.
