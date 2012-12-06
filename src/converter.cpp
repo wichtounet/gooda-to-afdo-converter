@@ -522,7 +522,7 @@ void compute_working_set(gooda::afdo_data& data){
 
     std::map<std::size_t, std::size_t> histogram;
     std::size_t total_count = 0;
-
+    
     for(auto& function : data.functions){
         for(auto& stack : function.stacks){
             histogram[stack.count] += stack.num_inst;
@@ -540,23 +540,23 @@ void compute_working_set(gooda::afdo_data& data){
 
     while(rit != rend && bucket_num < gooda::WS_SIZE){
         auto count = rit->first;
-        auto inst = rit->second;
+        auto num_inst = rit->second;
 
-        while(count * inst + accumulated_count > one_bucket_count * (bucket_num + 1)){
-            auto offset = (one_bucket_count * (bucket_num + 1) - accumulated_count) / count;
+        while(count * num_inst + accumulated_count > one_bucket_count * (bucket_num + 1)){
+            int offset = (one_bucket_count * (bucket_num + 1) - accumulated_count) / count;
 
             accumulated_inst += offset;
             accumulated_count += offset * count;
 
-            inst -= offset;
+            num_inst -= offset;
 
             data.working_set.at(bucket_num).num_counter = accumulated_inst;
             data.working_set.at(bucket_num).min_counter = count;
             ++bucket_num;
         }
 
-        accumulated_inst += inst;
-        accumulated_count += inst * count;
+        accumulated_inst += num_inst;
+        accumulated_count += num_inst * count;
 
         ++rit;
     }
