@@ -78,6 +78,13 @@ gcov_unsigned_t gooda::gcov_file::read_unsigned(){
     return value;
 }
 
+gcov_type gooda::gcov_file::read_counter(){
+    int low = read_unsigned();
+    int high = read_unsigned();
+    gcov_type value = low + (static_cast<gcov_type>(high) << 32);
+    return value;
+}
+
 std::string gooda::gcov_file::read_string(){
     auto alloc = read_unsigned();
 

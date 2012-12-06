@@ -29,15 +29,17 @@ class gcov_file {
         bool open(const std::string& file);
         bool open_for_write(const std::string& file);
         bool open_for_read(const std::string& file);
+        
+        void write_header();
+        void write_section_header(gcov_unsigned_t tag, unsigned int length);
 
         void write_unsigned(gcov_unsigned_t value);
         void write_counter(gcov_type value);
         void write_string (const std::string& value);
-        void write_header();
-        void write_section_header(gcov_unsigned_t tag, unsigned int length);
 
         gcov_unsigned_t read_unsigned();
         std::string read_string();
+        gcov_type read_counter();
 
     private:
         std::ofstream gcov_file_w;
