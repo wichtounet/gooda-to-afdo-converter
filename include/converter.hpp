@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_READER_HPP
-#define GOODA_READER_HPP
+#ifndef GOODA_CONVERTER_HPP
+#define GOODA_CONVERTER_HPP
 
 #include <string>
 
