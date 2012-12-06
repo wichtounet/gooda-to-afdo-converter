@@ -16,4 +16,20 @@ void gooda::read_afdo(const std::string& afdo_file, gooda::afdo_data& data, boos
         return;
     }
 
+    //Magic number
+    gcov_file.read_unsigned();
+    
+    //GCOV Version
+    gcov_file.read_unsigned();
+    
+    //Unused unsigned
+    gcov_file.read_unsigned();
+
+    //File names section
+    
+    //AFDO TAG
+    gcov_file.read_unsigned();
+
+    //The length of the section
+    data.length_file_section = gcov_file.read_unsigned();
 }

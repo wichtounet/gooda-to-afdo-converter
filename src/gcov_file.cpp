@@ -14,19 +14,21 @@ bool gooda::gcov_file::open(const std::string& file){
 }
 
 bool gooda::gcov_file::open_for_write(const std::string& file){
-    gcov_file.open(file.c_str(), std::ios::binary | std::ios::out );
+    gcov_file_w.open(file.c_str(), std::ios::binary | std::ios::out );
 
-    return gcov_file;
+    return gcov_file_w;
 }
 
 bool gooda::gcov_file::open_for_read(const std::string& file){
-    gcov_file.open(file.c_str(), std::ios::binary | std::ios::in );
+    gcov_file_r.open(file.c_str(), std::ios::binary | std::ios::in );
 
-    return gcov_file;
+    return gcov_file_r;
 }
 
+//Writing
+
 void gooda::gcov_file::write_unsigned(gcov_unsigned_t value){
-    gcov_file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+    gcov_file_w.write(reinterpret_cast<const char*>(&value), sizeof(value));
 }
 
 void gooda::gcov_file::write_counter(gcov_type value){
@@ -47,7 +49,7 @@ void gooda::gcov_file::write_string (const std::string& value){
 
     memcpy (&buffer[0], string, length);
     
-    gcov_file.write(buffer, alloc * 4);
+    gcov_file_w.write(buffer, alloc * 4);
 
     delete[] buffer;
 }
@@ -66,4 +68,12 @@ void gooda::gcov_file::write_section_header(gcov_unsigned_t tag, unsigned int le
 
     //The size of the section, skipped by AFDO, but important to make a GCOV-valid file
     write_unsigned(length);
+}
+
+//Reading
+
+gcov_unsigned_t gooda::gcov_file::read_unsigned(){
+    gcov_unsigned_t value;
+    gcov_file_r.read(reinterpret_cast<char*>(&value), sizeof(gcov_unsigned_t));
+    return value;
 }
