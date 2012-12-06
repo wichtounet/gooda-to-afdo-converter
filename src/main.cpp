@@ -211,6 +211,11 @@ int main(int argc, char **argv){
 
     log::set_level(vm["log"].as<int>());
 
+    if(vm.count("lbr") && vm.count("cache-misses")){
+        log::emit<log::Error>() << "Gooda does not support cache misses in LBR mode" << log::endl;
+        return 1;
+    }
+
     //Profiling mode
     if(vm.count("profile")){
         return profile_application(vm, parsed_options);
