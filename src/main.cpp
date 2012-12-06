@@ -17,6 +17,7 @@
 #include "converter.hpp"
 #include "afdo_generator.hpp"
 #include "afdo_printer.hpp"
+#include "afdo_reader.hpp"
 #include "logger.hpp"
     
 namespace po = boost::program_options;
@@ -27,7 +28,7 @@ namespace {
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds milliseconds;
 
-void process(const std::string& directory, po::variables_map& vm){
+void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
     //Read the Gooda Spreadsheets
@@ -50,6 +51,28 @@ void process(const std::string& directory, po::variables_map& vm){
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
 
+    log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
+}
+
+void process_afdo(const std::string& afdo_file, po::variables_map& vm){
+    Clock::time_point t0 = Clock::now();
+    
+    gooda::afdo_data data;
+
+    //Read the AFDO file into data structure
+    gooda::read_afdo(afdo_file, data, vm);
+
+    if(vm.count("dump")){
+        gooda::dump_afdo_light(data, vm);
+    } 
+    //The default option is to print the full dump
+    else {
+        gooda::dump_afdo(data, vm);
+    }
+    
+    Clock::time_point t1 = Clock::now();
+    milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
+    
     log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
@@ -132,7 +155,7 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
     //If no option is specified, just as as a wrapper of Gooda
     if(vm.count("afdo")){
         //Process the spreadsheets to generate AFDO
-        process("spreadsheets", vm); 
+        process_spreadsheets("spreadsheets", vm); 
     }
 
     return 0;
@@ -155,6 +178,8 @@ int main(int argc, char **argv){
             ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
+
+            ("read-afdo", "Read an AFDO profile and prints its content")
 
             //Ideally filter would have a std::string with an implicit empty string
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time
@@ -214,7 +239,7 @@ int main(int argc, char **argv){
     }
 
     if(!vm.count("input-file")){
-        log::emit<log::Error>() << "Error: No spreadsheets directory provided" << log::endl;
+        log::emit<log::Error>() << "No file provided" << log::endl;
 
         return 1;
     }
@@ -223,33 +248,39 @@ int main(int argc, char **argv){
 
     //Test that there is a least one file
     if(input_files.empty()){
-        log::emit<log::Error>() << "No spreadsheets directory provided" << log::endl;
+        log::emit<log::Error>() << "No file provided" << log::endl;
 
         return 1;
     }
 
     //Verify that only one directory is provided
     if(input_files.size() > 1){
-        log::emit<log::Error>() << "Only one directory can be analyzed at a time" << log::endl;
+        log::emit<log::Error>() << "Only one file can be analyzed at a time" << log::endl;
 
         return 1;
     }
 
-    std::string directory = input_files[0];
+    std::string input_file = input_files[0];
 
     //The file must exists
-    if(!gooda::exists(directory)){
-        log::emit<log::Error>() << "\"" << directory << "\" does not exists" << log::endl;
+    if(!gooda::exists(input_file)){
+        log::emit<log::Error>() << "\"" << input_file << "\" does not exists" << log::endl;
         return 1;
     }
 
-    //The file must be a directory
-    if(!gooda::is_directory(directory)){
-        log::emit<log::Error>() << "\"" << directory << "\" is not a directory" << log::endl;
-        return 1;
-    }
+    if(vm.count("read-afdo")){
+       process_afdo(input_file, vm); 
+    } 
+    //By default, read spreadsheets
+    else {
+        //The file must be a directory 
+        if(!gooda::is_directory(input_file)){
+            log::emit<log::Error>() << "\"" << input_file << "\" is not a directory" << log::endl;
+            return 1;
+        }
 
-    process(directory, vm);
+        process_spreadsheets(input_file, vm);
+    }
 
     return 0;
 }
