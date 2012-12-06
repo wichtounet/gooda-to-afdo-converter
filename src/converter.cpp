@@ -573,27 +573,25 @@ std::string get_application_file(const gooda::gooda_report& report, std::size_t 
 
 std::string get_process_filter(const gooda::gooda_report& report, boost::program_options::variables_map& vm, std::string& counter_name){
     if(vm.count("filter")){
-        auto filter = vm["filter"].as<std::string>();
+        std::string max_process = "";
+        std::size_t max_value = 0;
 
-        if(filter.empty()){
-            std::string max_process = "";
-            std::size_t max_value = 0;
+        for(std::size_t i = 0; i < report.processes(); ++i){
+            auto& line = report.process(i);
 
-            for(std::size_t i = 0; i < report.processes(); ++i){
-                auto& line = report.process(i);
+            auto value = line.get_counter(report.get_process_file().column(counter_name));
 
-                auto value = line.get_counter(report.get_process_file().column(counter_name));
-
-                if(value > max_value){
-                    max_value = value;
-                    max_process = line.get_string(report.get_process_file().column(PROCESS_PATH));
-                }
+            if(value > max_value){
+                max_value = value;
+                max_process = line.get_string(report.get_process_file().column(PROCESS_PATH));
             }
-
-            return max_process;
-        } else {
-            return filter;
         }
+
+        return max_process;
+    } else if(vm.count("process")){
+        auto filter = vm["process"].as<std::string>();
+
+        return filter;
     } else {
         return "";
     }

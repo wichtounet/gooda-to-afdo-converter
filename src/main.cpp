@@ -156,7 +156,10 @@ int main(int argc, char **argv){
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
 
-            ("filter", po::value<std::string>()->implicit_value(""), "Filter the hotspot functions by process. If no value, filter by the hottest process")
+            //Ideally filter would have a std::string with an implicit empty string
+            //There is a bug in Boost PO that prevent implicit value and positional options at the same time
+            ("filter,f", "Only consider functions of the hottest process.")
+            ("process", po::value<std::string>(), "Filter the hotspot functions by process.")
 
             ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
 
