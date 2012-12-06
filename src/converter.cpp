@@ -579,11 +579,18 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
         for(std::size_t i = 0; i < report.processes(); ++i){
             auto& line = report.process(i);
 
+            auto process = line.get_string(report.get_process_file().column(PROCESS_PATH));
+
+            //The summary of the process view
+            if(process == "Global sample breakdown"){
+                continue;
+            }
+
             auto value = line.get_counter(report.get_process_file().column(counter_name));
 
             if(value > max_value){
                 max_value = value;
-                max_process = line.get_string(report.get_process_file().column(PROCESS_PATH));
+                max_process = process;
             }
         }
 
