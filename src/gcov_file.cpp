@@ -10,7 +10,17 @@
 #include "gcov_file.hpp"
 
 bool gooda::gcov_file::open(const std::string& file){
+    return open_for_write(file);
+}
+
+bool gooda::gcov_file::open_for_write(const std::string& file){
     gcov_file.open(file.c_str(), std::ios::binary | std::ios::out );
+
+    return gcov_file;
+}
+
+bool gooda::gcov_file::open_for_read(const std::string& file){
+    gcov_file.open(file.c_str(), std::ios::binary | std::ios::in );
 
     return gcov_file;
 }

@@ -27,6 +27,8 @@ namespace gooda {
 class gcov_file {
     public:
         bool open(const std::string& file);
+        bool open_for_write(const std::string& file);
+        bool open_for_read(const std::string& file);
 
         void write_unsigned(gcov_unsigned_t value);
         void write_counter(gcov_type value);
