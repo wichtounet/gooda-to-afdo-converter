@@ -31,8 +31,9 @@ std::string pretty_size(unsigned int size){
 void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_map& vm){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
+    std::cout << "Strings" << std::endl;
     for(std::size_t i = 0; i < data.file_names.size(); ++i){
-        std::cout << i << ":" << data.file_names[i] << std::endl;
+        std::cout << "   " << i << ":" << data.file_names[i] << std::endl;
     }
 
     std::cout << "Hotspot functions" << std::endl;
