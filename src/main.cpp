@@ -150,11 +150,13 @@ int main(int argc, char **argv){
         description.add_options()
             ("help,h", "Display this help message")
             
-            ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("dump", "Dump the AFDO on standard output")
             ("full-dump", "Dump the complete AFDO information on standard output")
+            ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
+
+            ("filter", po::value<std::string>()->implicit_value(""), "Filter the hotspot functions by process. If no value, filter by the hottest process")
 
             ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
 

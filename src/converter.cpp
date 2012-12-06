@@ -571,9 +571,37 @@ std::string get_application_file(const gooda::gooda_report& report, std::size_t 
     return application_file;
 }
 
+std::string get_process_filter(const gooda::gooda_report& report, boost::program_options::variables_map& vm, std::string& counter_name){
+    if(vm.count("filter")){
+        auto filter = vm["filter"].as<std::string>();
+
+        if(filter.empty()){
+            std::string max_process = "";
+            std::size_t max_value = 0;
+
+            for(std::size_t i = 0; i < report.processes(); ++i){
+                auto& line = report.process(i);
+
+                auto value = line.get_counter(report.get_process_file().column(counter_name));
+
+                if(value > max_value){
+                    max_value = value;
+                    max_process = line.get_string(report.get_process_file().column(PROCESS_PATH));
+                }
+            }
+
+            return max_process;
+        } else {
+            return filter;
+        }
+    } else {
+        return "";
+    }
+}
+
 } //End of anonymous namespace
 
-void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+void gooda::read_report(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
     //Choose the correct counter
@@ -584,44 +612,49 @@ void gooda::read_report(const gooda_report& report, gooda::afdo_data& data, boos
         counter_name = UNHALTED_CORE_CYCLES;
     }
 
+    auto filter = get_process_filter(report, vm, counter_name);
+
     //The set of basic blocks of each function
     std::map<std::size_t, bb_vector> basic_blocks;
 
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
-        auto string_cycles = line.get_string(report.get_hotspot_file().column(counter_name));
+        //Only if the function passes the filters
+        if(filter.empty() || line.get_string(report.get_hotspot_file().column(PROCESS)) == filter){
+            auto string_cycles = line.get_string(report.get_hotspot_file().column(counter_name));
 
-        //Some functions are filled empty by Gooda for some reason
-        //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
-        if(string_cycles.empty()){
-            continue;
+            //Some functions are filled empty by Gooda for some reason
+            //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
+            if(string_cycles.empty()){
+                continue;
+            }
+
+            gooda::afdo_function function;
+            function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
+            function.file = "unknown"; //The file will be filled by read_asm
+            function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
+            function.i = i;
+            function.executable_file = get_application_file(report, i);
+
+            data.add_file_name(function.file);
+            data.add_file_name(function.name);
+
+            //Collect function.file and function.entry_count
+            auto bbs = collect_basic_blocks(report, data, function, counter_name);
+
+            if(!function.valid){
+                continue;
+            }
+
+            if(lbr){
+                lbr_annotate(report, data, function, bbs);
+            } else {
+                ca_annotate(report, data, function, bbs);
+            }
+
+            data.functions.push_back(std::move(function));
         }
-    
-        gooda::afdo_function function;
-        function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
-        function.file = "unknown"; //The file will be filled by read_asm
-        function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
-        function.i = i;
-        function.executable_file = get_application_file(report, i);
-
-        data.add_file_name(function.file);
-        data.add_file_name(function.name);
-        
-        //Collect function.file and function.entry_count
-        auto bbs = collect_basic_blocks(report, data, function, counter_name);
-        
-        if(!function.valid){
-            continue;
-        }
-
-        if(lbr){
-            lbr_annotate(report, data, function, bbs);
-        } else {
-            ca_annotate(report, data, function, bbs);
-        }
-
-        data.functions.push_back(std::move(function));
     }
 
     prune_non_dynamic_stacks(data);

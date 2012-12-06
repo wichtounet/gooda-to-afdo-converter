@@ -38,6 +38,10 @@
 #define LENGTH "Length"
 #define ADDRESS "Address"
 #define MODULE "Module"
+#define PROCESS "Process"
+
+//For process view
+#define PROCESS_PATH "Process Path"
 
 namespace gooda {
 
