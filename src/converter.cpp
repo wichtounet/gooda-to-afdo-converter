@@ -525,8 +525,8 @@ void compute_working_set(gooda::afdo_data& data){
     
     for(auto& function : data.functions){
         for(auto& stack : function.stacks){
-            histogram[stack.count] += stack.num_inst;
-            total_count += stack.num_inst * stack.count;
+            histogram[stack.count]++;
+            total_count += stack.count;
         }
     }
 
