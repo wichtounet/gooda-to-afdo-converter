@@ -611,6 +611,7 @@ void gooda::read_report(const gooda::gooda_report& report, gooda::afdo_data& dat
     }
 
     auto filter = get_process_filter(report, vm, counter_name);
+    log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
 
     //The set of basic blocks of each function
     std::map<std::size_t, bb_vector> basic_blocks;
