@@ -77,3 +77,17 @@ gcov_unsigned_t gooda::gcov_file::read_unsigned(){
     gcov_file_r.read(reinterpret_cast<char*>(&value), sizeof(gcov_unsigned_t));
     return value;
 }
+
+std::string gooda::gcov_file::read_string(){
+    auto alloc = read_unsigned();
+
+    char* buffer = new char[alloc * 4];
+
+    gcov_file_r.read(buffer, alloc * 4);
+
+    std::string value(buffer);
+
+    delete[] buffer;
+
+    return value;
+}

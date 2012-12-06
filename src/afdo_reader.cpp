@@ -32,4 +32,11 @@ void gooda::read_afdo(const std::string& afdo_file, gooda::afdo_data& data, boos
 
     //The length of the section
     data.length_file_section = gcov_file.read_unsigned();
+
+    auto files = gcov_file.read_unsigned();
+
+    for(gcov_unsigned_t i = 0; i < files; ++i){
+        auto file_name = gcov_file.read_string();
+        data.add_file_name(file_name);
+    }
 }

@@ -37,6 +37,7 @@ class gcov_file {
         void write_section_header(gcov_unsigned_t tag, unsigned int length);
 
         gcov_unsigned_t read_unsigned();
+        std::string read_string();
 
     private:
         std::ofstream gcov_file_w;
