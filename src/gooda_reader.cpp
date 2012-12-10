@@ -15,6 +15,7 @@
 #include "gooda_reader.hpp"
 #include "utils.hpp"
 #include "logger.hpp"
+#include "likely.hpp"
 
 #define HOTSPOT_CSV "/function_hotspots.csv"
 #define PROCESS_CSV "/process.csv"
@@ -39,10 +40,10 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     while(true){
         auto c = *it;
 
-        if(c == ','){
+        if(unlikely(c == ',')){
             contents.emplace_back(it - length, it);
             length = 0;
-        } else if(c == '\"'){
+        } else if(unlikely(c == '\"')){
             length = 0;
 
             do {
@@ -50,7 +51,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
                 c = *it;
                 ++length;
 
-                if(c == '\\'){
+                if(unlikely(c == '\\')){
                     ++it;
                     ++length;
                 }
@@ -68,11 +69,11 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
             ++length;
         }
         
-        if(it != end){
+        if(likely(it != end)){
             ++it;
         }
 
-        if(it == end){
+        if(unlikely(it == end)){
             if(length > 0){
                 contents.emplace_back(it - length, it);
             }
