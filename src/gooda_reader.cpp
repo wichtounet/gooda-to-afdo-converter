@@ -40,7 +40,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
         auto c = *it;
 
         if(c == ','){
-            contents.push_back({it - length, it});
+            contents.emplace_back(it - length, it);
             length = 0;
         } else if(c == '\"'){
             length = 0;
@@ -56,7 +56,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
                 }
             } while(c != '\"');
 
-            contents.push_back({it - length + 1, it});
+            contents.emplace_back(it - length + 1, it);
             
             while(c != ',' && it != end){
                 ++it;
@@ -74,7 +74,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
 
         if(it == end){
             if(length > 0){
-                contents.push_back({it - length, it});
+                contents.emplace_back(it - length, it);
             }
 
             break;

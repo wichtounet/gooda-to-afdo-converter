@@ -33,10 +33,14 @@ static const unsigned int WS_SIZE = 128;
  * \brief The position of an instruction. 
  */
 struct afdo_pos {
-    std::string func = "";          //!< Source function 
-    std::string file = "";          //!< Source file
-    gcov_unsigned_t line = 0;       //!< Source line
-    gcov_unsigned_t discr = 0;      //!< The DWARF discriminator
+    std::string func;          //!< Source function 
+    std::string file;          //!< Source file
+    gcov_unsigned_t line;      //!< Source line
+    gcov_unsigned_t discr;     //!< The DWARF discriminator
+
+    afdo_pos(){};
+    afdo_pos(const std::string& func, const std::string& file, gcov_unsigned_t line, gcov_unsigned_t discr)
+        : func(func), file(file), line(line), discr(discr) {};
 };
 
 /*!

@@ -47,13 +47,12 @@ void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, 
 
             auto size = gcov_file.read_unsigned();
             for(gcov_unsigned_t k = 0; k < size; ++k){
-                gooda::afdo_pos pos;
-                pos.func = data.file_names[gcov_file.read_unsigned()];
-                pos.file = data.file_names[gcov_file.read_unsigned()];
-                pos.line = gcov_file.read_unsigned();
-                pos.discr = gcov_file.read_unsigned();
-
-                stack.stack.push_back(std::move(pos));
+                stack.stack.emplace_back(
+                            data.file_names[gcov_file.read_unsigned()], 
+                            data.file_names[gcov_file.read_unsigned()], 
+                            gcov_file.read_unsigned(),
+                            gcov_file.read_unsigned()
+                        );
             }
 
             stack.count = gcov_file.read_counter();

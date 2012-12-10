@@ -76,25 +76,16 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
             }
         }
     }
-
-    gooda::afdo_pos src_position;
-    src_position.func = src_func;
-    src_position.file = src_file;
-    src_position.line = src_line;
-    src_position.discr = 0;
-
-    gooda::afdo_pos dest_position;
-    dest_position.func = dest_func;
-    dest_position.file = dest_file;
-    dest_position.line = dest_line;
-    dest_position.discr = 0;
     
     gooda::afdo_stack stack;
     stack.count = 0;
     stack.num_inst = 0;
 
-    stack.stack.push_back(std::move(src_position));
-    stack.stack.push_back(std::move(dest_position));
+    //Source position
+    stack.stack.emplace_back(src_func, src_file, src_line, 0);
+    
+    //Destination position
+    stack.stack.emplace_back(dest_func, dest_file, dest_line, 0);
 
     function.stacks.push_back(std::move(stack));
 
@@ -111,18 +102,12 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
             }
         }
     }
-
-    gooda::afdo_pos position;
-    position.func = func;
-    position.file = file;
-    position.line = line;
-    position.discr = 0;
     
     gooda::afdo_stack stack;
     stack.count = 0;
     stack.num_inst = 0;
 
-    stack.stack.push_back(std::move(position));
+    stack.stack.emplace_back(func, file, line, 0);
 
     function.stacks.push_back(std::move(stack));
 
