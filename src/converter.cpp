@@ -657,7 +657,10 @@ void gooda::read_report(const gooda::gooda_report& report, gooda::afdo_data& dat
 
     prune_non_dynamic_stacks(data);
 
-    compute_working_set(data);
+    if(!vm.count("nows")){
+        compute_working_set(data);
+    }
+
     compute_lengths(data);
 
     //Note: No need to fill the modules because it is not used by GCC

@@ -61,9 +61,11 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
         }
     }
 
-    std::cout << "Working Set" << std::endl;
-    for(std::size_t i = 0; i < data.working_set.size(); ++i){
-        std::cout << "   " << i << ": min= " << data.working_set[i].min_counter << " num= " << data.working_set[i].num_counter << std::endl;
+    if(!vm.count("nows")){
+        std::cout << "Working Set" << std::endl;
+        for(std::size_t i = 0; i < data.working_set.size(); ++i){
+            std::cout << "   " << i << ": min= " << data.working_set[i].min_counter << " num= " << data.working_set[i].num_counter << std::endl;
+        }
     }
 
     std::cout << "Length" << std::endl;

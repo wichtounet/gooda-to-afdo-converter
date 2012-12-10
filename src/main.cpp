@@ -185,6 +185,7 @@ int main(int argc, char **argv){
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time
             ("filter,f", "Only consider functions of the hottest process.")
             ("process", po::value<std::string>(), "Filter the hotspot functions by process.")
+            ("nows", "Do not compute the working set")
 
             ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
 
