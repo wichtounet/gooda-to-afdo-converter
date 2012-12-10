@@ -28,10 +28,9 @@ const std::vector<string_view>& gooda::gooda_line::contents() const {
 }
 
 std::string gooda::gooda_line::get_string(std::size_t index) const {
-    auto& item = m_contents.at(index);
+    auto& item = m_contents[index];
 
-    std::string v(item.begin(), item.end());
-    std::string value = v;
+    std::string value(item.begin(), item.end());
 
     boost::trim(value);
 
