@@ -154,6 +154,13 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
 }
 
 std::string get_function_name(const std::string& application_file, bb_vector& block_set){
+    //Fail quickly because executing objdump is much slower than testing it before
+    if(!gooda::exists(application_file)){
+        log::emit<log::Warning>() << "File " << application_file << " does not exist" << log::endl;
+
+        return "";
+    }
+
     log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
 
     long start_address = std::numeric_limits<long>::max();
