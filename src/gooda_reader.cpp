@@ -37,7 +37,7 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
 
     unsigned long length = 0;
 
-    while(true){
+    while(it != end){
         auto c = *it;
 
         if(unlikely(c == ',')){
@@ -72,14 +72,10 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
         if(likely(it != end)){
             ++it;
         }
-
-        if(unlikely(it == end)){
-            if(length > 0){
-                contents.emplace_back(it - length, it);
-            }
-
-            break;
-        }
+    }
+    
+    if(length > 0){
+        contents.emplace_back(it - length, it);
     }
 
     /*std::cout << line << std::endl;
