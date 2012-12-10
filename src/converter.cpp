@@ -598,7 +598,7 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
 
 } //End of anonymous namespace
 
-void gooda::read_report(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
     //Choose the correct counter

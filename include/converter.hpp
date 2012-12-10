@@ -29,7 +29,7 @@ namespace gooda {
  * \param data The AFDO data. 
  * \param vm The options provided by the user. 
  */
-void read_report(const gooda_report& report, afdo_data& data, boost::program_options::variables_map& vm);
+void convert_to_afdo(const gooda_report& report, afdo_data& data, boost::program_options::variables_map& vm);
 
 }
 

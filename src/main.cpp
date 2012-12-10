@@ -37,7 +37,7 @@ void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     gooda::afdo_data data;
 
     //Convert the Gooda report to AFDO
-    gooda::read_report(report, data, vm);
+    gooda::convert_to_afdo(report, data, vm);
 
     //Execute the specified action
     if(vm.count("dump")){
