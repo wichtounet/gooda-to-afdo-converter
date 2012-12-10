@@ -38,7 +38,6 @@ struct afdo_pos {
     gcov_unsigned_t line;      //!< Source line
     gcov_unsigned_t discr;     //!< The DWARF discriminator
 
-    afdo_pos(){};
     afdo_pos(const std::string& func, const std::string& file, gcov_unsigned_t line, gcov_unsigned_t discr)
         : func(func), file(file), line(line), discr(discr) {};
 };
