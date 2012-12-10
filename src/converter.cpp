@@ -78,8 +78,6 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     }
     
     gooda::afdo_stack stack;
-    stack.count = 0;
-    stack.num_inst = 0;
 
     //Source position
     stack.stack.emplace_back(src_func, src_file, src_line, 0);
@@ -104,8 +102,6 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
     }
     
     gooda::afdo_stack stack;
-    stack.count = 0;
-    stack.num_inst = 0;
 
     stack.stack.emplace_back(func, file, line, 0);
 
