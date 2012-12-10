@@ -67,10 +67,10 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
         if(stack.stack.size() == 2){
             auto& src_pos = stack.stack.front();
 
-            if(src_pos.func == src_func && src_pos.file == src_file && src_pos.line == src_line){
+            if(src_pos.line == src_line && src_pos.func == src_func && src_pos.file == src_file){
                 auto& dest_pos = stack.stack.back();
             
-                if(dest_pos.func == dest_func && dest_pos.file == dest_file && dest_pos.line == dest_line){
+                if(dest_pos.line == dest_line && dest_pos.func == dest_func && dest_pos.file == dest_file){
                     return stack;
                 }
             }
@@ -97,7 +97,7 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
         if(stack.stack.size() == 1){
             auto& pos = stack.stack.front();
 
-            if(pos.func == func && pos.file == file && pos.line == line){
+            if(pos.line == line && pos.func == func && pos.file == file){
                 return stack;
             }
         }
