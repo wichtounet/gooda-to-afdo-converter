@@ -19,6 +19,7 @@
 #include "afdo_printer.hpp"
 #include "afdo_reader.hpp"
 #include "logger.hpp"
+#include "diff.hpp"
     
 namespace po = boost::program_options;
 
@@ -60,6 +61,8 @@ void diff(const std::string& first, const std::string& second, po::variables_map
     //Read the Gooda Spreadsheets
     auto first_report = gooda::read_spreadsheets(first);
     auto second_report = gooda::read_spreadsheets(second);
+
+    diff(first_report, second_report, vm);
     
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);

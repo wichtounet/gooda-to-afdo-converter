@@ -5,29 +5,27 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_CONVERTER_HPP
-#define GOODA_CONVERTER_HPP
+#ifndef GOODA_DIFF_HPP
+#define GOODA_DIFF_HPP
 
 #include <boost/program_options/variables_map.hpp>
 
-#include "afdo_data.hpp"
 #include "gooda_report.hpp"
 
 /*!
- * \file converter.hpp
- * \brief Contains the necessary functions to convert Gooda Spreadsheets 
- * to AFDO file. 
+ * \file diff.hpp
+ * \brief Contains the necessary functions to perform diff between two sets of spreadsheets. 
  */
 
 namespace gooda {
 
 /*!
- * \brief Populate the AFDO data report from the Gooda report. 
- * \param report The Gooda report
- * \param data The AFDO data. 
+ * \brief Performs a diff between two Gooda reports. 
+ * \param first_report The first Gooda report
+ * \param second_report The second Gooda report. 
  * \param vm The options provided by the user. 
  */
-void convert_to_afdo(const gooda_report& report, afdo_data& data, boost::program_options::variables_map& vm);
+void diff(const gooda_report& first_report, const gooda_report& second_report, boost::program_options::variables_map& vm);
 
 }
 
