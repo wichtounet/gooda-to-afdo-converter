@@ -17,28 +17,22 @@
 #include "converter.hpp"
 #include "utils.hpp"
 #include "logger.hpp"
-
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v){
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
+#include "hash.hpp"
 
 typedef std::pair<std::string, std::size_t> inlined_key;
 
 namespace std {
 
 template<>
-class hash<inlined_key> {
-    public:
-        std::size_t operator()(const inlined_key& key) const {
-            std::size_t seed = 0;
+struct hash<inlined_key> {
+    std::size_t operator()(const inlined_key& key) const {
+        std::size_t seed = 0;
 
-            hash_combine(seed, key.first);
-            hash_combine(seed, key.second);
+        gooda::hash_combine(seed, key.first);
+        gooda::hash_combine(seed, key.second);
 
-            return seed;
-        }
+        return seed;
+    }
 };
 
 } //end of namespace std

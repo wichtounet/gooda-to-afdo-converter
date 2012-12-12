@@ -24,7 +24,8 @@
 #define BB_EXEC "BB_Exec"
 
 #define FUNCTION_NAME "Function Name"
-#define LINE "Line Number"
+#define LINE_NUMBER "Line Number"
+#define SOURCE "Source"
 
 //For ASM
 #define PRINC_FILE "Principal File"
