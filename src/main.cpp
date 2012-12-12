@@ -54,6 +54,19 @@ void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
+void diff(const std::string& first, const std::string& second, po::variables_map& vm){
+    Clock::time_point t0 = Clock::now();
+
+    //Read the Gooda Spreadsheets
+    auto first_report = gooda::read_spreadsheets(first);
+    auto second_report = gooda::read_spreadsheets(second);
+    
+    Clock::time_point t1 = Clock::now();
+    milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
+
+    log::emit<log::Debug>() << "Diff took " << ms.count() << "ms" << log::endl;
+}
+
 void process_afdo(const std::string& afdo_file, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
     
@@ -260,34 +273,75 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    //Verify that only one directory is provided
-    if(input_files.size() > 1){
-        log::emit<log::Error>() << "Only one file can be analyzed at a time" << log::endl;
+    if(vm.count("diff")){
+        //Verify that there are two difrections
+        if(input_files.size() != 2){
+            log::emit<log::Error>() << "Two directories are necessary to perform a diff" << log::endl;
 
-        return 1;
-    }
-
-    std::string input_file = input_files[0];
-
-    //The file must exists
-    if(!gooda::exists(input_file)){
-        log::emit<log::Error>() << "\"" << input_file << "\" does not exists" << log::endl;
-        return 1;
-    }
-
-    if(vm.count("read-afdo")){
-       process_afdo(input_file, vm); 
-    } 
-    //By default, read spreadsheets
-    else {
+            return 1;
+        }
+        
+        std::string first = input_files[0];
+        std::string second = input_files[1];
+        
+        //The directories must exists
+        if(!gooda::exists(first)){
+            log::emit<log::Error>() << "\"" << first << "\" does not exists" << log::endl;
+            return 1;
+        }
+        
+        //The directories must exists
+        if(!gooda::exists(second)){
+            log::emit<log::Error>() << "\"" << second << "\" does not exists" << log::endl;
+            return 1;
+        }
+        
         //The file must be a directory 
-        if(!gooda::is_directory(input_file)){
-            log::emit<log::Error>() << "\"" << input_file << "\" is not a directory" << log::endl;
+        if(!gooda::is_directory(first)){
+            log::emit<log::Error>() << "\"" << first << "\" is not a directory" << log::endl;
+            return 1;
+        }
+        
+        //The file must be a directory 
+        if(!gooda::is_directory(second)){
+            log::emit<log::Error>() << "\"" << second << "\" is not a directory" << log::endl;
             return 1;
         }
 
-        process_spreadsheets(input_file, vm);
-    }
+        //Perform the diff
+        diff(first, second, vm);
 
-    return 0;
+        return 0;
+    } else {
+        //Verify that only one directory is provided
+        if(input_files.size() > 1){
+            log::emit<log::Error>() << "Only one file can be analyzed at a time" << log::endl;
+
+            return 1;
+        }
+
+        std::string input_file = input_files[0];
+
+        //The file must exists
+        if(!gooda::exists(input_file)){
+            log::emit<log::Error>() << "\"" << input_file << "\" does not exists" << log::endl;
+            return 1;
+        }
+
+        if(vm.count("read-afdo")){
+            process_afdo(input_file, vm); 
+        } 
+        //By default, read spreadsheets
+        else {
+            //The file must be a directory 
+            if(!gooda::is_directory(input_file)){
+                log::emit<log::Error>() << "\"" << input_file << "\" is not a directory" << log::endl;
+                return 1;
+            }
+
+            process_spreadsheets(input_file, vm);
+        }
+
+        return 0;
+    }
 }
