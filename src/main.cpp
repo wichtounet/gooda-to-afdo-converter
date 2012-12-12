@@ -173,23 +173,24 @@ int main(int argc, char **argv){
         description.add_options()
             ("help,h", "Display this help message")
             
-            ("dump", "Dump the AFDO on standard output")
-            ("full-dump", "Dump the complete AFDO information on standard output")
-            ("afdo", "Generate an AFDO profile file (default if --profile is not selected)")
-            ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
-            ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
-
+            //All the possible actions
+            ("dump", "Process the spreadsheets and dump the AFDO on standard output")
+            ("full-dump", "Process the spreadsheets and dump the complete AFDO information on standard output")
+            ("afdo", "Process the spreadsheets and generate an AFDO profile file (default if --profile is not selected)")
             ("read-afdo", "Read an AFDO profile and prints its content")
+            ("profile,p", "Profile the given application. Can be combined with --afdo to make everything at once")
+            ("diff", "Make a diff between two sets of spreadsheets (only prototype)")
+            
+            ("nows", "Do not compute the working set")
+            ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
 
             //Ideally filter would have a std::string with an implicit empty string
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time
             ("filter,f", "Only consider functions of the hottest process.")
             ("process", po::value<std::string>(), "Filter the hotspot functions by process.")
-            ("nows", "Do not compute the working set")
-
+            ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
 
-            ("profile,p", "Profile the given application")
             ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
             ("lbr", "Performs precise profile with LBR")
 
