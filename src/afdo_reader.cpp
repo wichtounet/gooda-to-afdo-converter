@@ -7,10 +7,13 @@
 
 #include "afdo_reader.hpp"
 #include "gcov_file.hpp"
+#include "logger.hpp"
 
 namespace {
 
 void read_string_table(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
+    log::emit<log::Debug>() << "Read the string table" << log::endl;
+
     //AFDO TAG
     gcov_file.read_unsigned();
 
@@ -22,6 +25,8 @@ void read_string_table(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     for(gcov_unsigned_t i = 0; i < files; ++i){
         auto file_name = gcov_file.read_string();
         data.add_file_name(file_name);
+    
+        log::emit<log::Debug>() << "Found file name \"" << file_name << "\"" << log::endl;
     }
 }
 
@@ -37,7 +42,7 @@ void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, 
     for(gcov_unsigned_t i = 0; i < functions; ++i){
         gooda::afdo_function function;
         function.name = gcov_file.read_string();
-        function.file = data.file_names[gcov_file.read_unsigned()];
+        function.file = data.file_name(gcov_file.read_unsigned());
         function.total_count = gcov_file.read_counter();
         function.entry_count = gcov_file.read_counter();
 
@@ -48,8 +53,8 @@ void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, 
             auto size = gcov_file.read_unsigned();
             for(gcov_unsigned_t k = 0; k < size; ++k){
                 stack.stack.emplace_back(
-                            data.file_names[gcov_file.read_unsigned()], 
-                            data.file_names[gcov_file.read_unsigned()], 
+                            data.file_name(gcov_file.read_unsigned()), 
+                            data.file_name(gcov_file.read_unsigned()), 
                             gcov_file.read_unsigned(),
                             gcov_file.read_unsigned()
                         );

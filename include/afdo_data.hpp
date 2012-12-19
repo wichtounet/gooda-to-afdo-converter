@@ -133,6 +133,8 @@ struct afdo_data {
      */
     gcov_unsigned_t get_file_index(const std::string& file) const;
 
+    const std::string& file_name(std::size_t i) const;
+
     /*!
      * \brief Add a file name to the string/file index.
      * \param file The string/file to add to the index.

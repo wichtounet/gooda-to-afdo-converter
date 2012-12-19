@@ -72,6 +72,8 @@ void diff(const std::string& first, const std::string& second, po::variables_map
 
 void process_afdo(const std::string& afdo_file, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
+
+    log::emit<log::Debug>() << "Start reading " << afdo_file << log::endl;
     
     gooda::afdo_data data;
 
