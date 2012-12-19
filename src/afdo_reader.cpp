@@ -49,7 +49,6 @@ void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, 
             gooda::afdo_stack stack;
 
             auto size = gcov_file.read_unsigned();
-            std::cout << "size=" << size << std::endl;
             for(gcov_unsigned_t k = 0; k < size; ++k){
                 auto func = data.file_name(gcov_file.read_unsigned());
                 auto file = data.file_name(gcov_file.read_unsigned());
