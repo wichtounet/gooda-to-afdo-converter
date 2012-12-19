@@ -23,4 +23,7 @@ typedef unsigned int gcov_unsigned_t;
  */
 typedef unsigned long gcov_type;
 
+static_assert(sizeof(gcov_unsigned_t) == 4, "A gcov_unsigned_t must be 32 bits");
+static_assert(sizeof(gcov_type) == 8, "A gcov_type must be 64 bits");
+
 #endif
