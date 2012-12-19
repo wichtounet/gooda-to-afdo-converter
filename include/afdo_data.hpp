@@ -122,6 +122,11 @@ struct afdo_data {
     unsigned int length_modules_section = 0;                //!< The length of the modules section
     unsigned int length_working_set_section = 0;            //!< The length of the working set section
 
+    afdo_data(){}
+
+    afdo_data(const afdo_data& other) = delete;
+    afdo_data& operator=(const afdo_data& other) = delete;
+
     /*!
      * \brief Return the index of the given file. Also working for strings. 
      *
