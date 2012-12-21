@@ -156,6 +156,8 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
     }
 
     log::emit<log::Debug>() << "Profile the given application (perf needs to be run in root)" << log::endl;
+    log::emit<log::Debug>() << "Command: \"" << profile_command << "\"" << log::endl;
+
     gooda::exec_command(profile_command);
 
     std::string gooda_command;
@@ -172,6 +174,8 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
     }
 
     log::emit<log::Debug>() << "Run Gooda (Gooda needs to be run in root)" << log::endl;
+    log::emit<log::Debug>() << "Command: \"" << gooda_command << "\"" << log::endl;
+
     gooda::exec_command(gooda_command);
 
     //If no option is specified, just as as a wrapper of Gooda
