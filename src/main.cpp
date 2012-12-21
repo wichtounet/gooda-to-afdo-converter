@@ -130,6 +130,11 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
         script = "gooda_bb_exec.sh";
     }
 
+    //Use the special scripts for benchmarking
+    if(vm.count("bench")){
+        script = "wichtounet_" + script;
+    }
+
     //Try to find the Gooda directory
     std::string gooda_dir;
     const char* gooda_dir_val = ::getenv("GOODA_DIR");
@@ -216,7 +221,8 @@ int main(int argc, char **argv){
             ("process", po::value<std::string>(), "Filter the hotspot functions by process.")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
             ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
-	    ("quiet", "Output as less as possible on the console")
+            ("quiet", "Output as less as possible on the console")
+            ("bench", "Use the special scripts for benchmarking")
 
             ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
             ("lbr", "Performs precise profile with LBR")

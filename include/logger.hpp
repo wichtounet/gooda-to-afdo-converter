@@ -84,6 +84,15 @@ struct log {
         constexpr static const char* label = "DEBUG";       //!< The label of the level
         static const int level = 2;                         //!< The level of the level
     };
+    
+    /*!
+     * \struct Trace
+     * \brief Trace Level for the logger
+     */
+    struct Trace {
+        constexpr static const char* label = "TRACE";       //!< The label of the level
+        static const int level = 2;                         //!< The level of the level
+    };
 
     /*!
      * \brief Set the current level logging. 
