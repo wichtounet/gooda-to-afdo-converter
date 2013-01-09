@@ -1,5 +1,26 @@
 #!/bin/bash
 
+function get_results_first(){
+	for line in `cat $1`
+	do
+		if [[ "$line" != "name index value" ]]
+		then
+			rm temp_`echo $line | awk ' { print $2}'`
+			echo $line | awk ' { print "@ ", $1, " & "; printf "%.3f", $3; }' >> temp_`echo $line | awk ' { print $2}'`
+		fi
+	done
+}
+
+function get_results(){
+	for line in `cat $1`
+	do
+		if [[ "$line" != "name index value" ]]
+		then
+			echo $line | awk ' { print " & "; printf "%.3f", $3;}' >> temp_`echo $line | awk ' { print $2}'`
+		fi
+	done
+}
+
 function parse_results(){
 	rm -f $2
 	touch $2
@@ -69,63 +90,101 @@ function parse_results(){
 	cat $2 | sort | awk -f to_latex.awk > $3
 }
 
+function calc_variance(){
+	output=`grep "format: raw -> " $1`
+
+	for line in $output
+	do
+		result_file=${line:23}
+
+		raw_output=`cat $result_file`
+
+		bench_name=""
+
+		sum=0.0
+		numbers=0
+
+		for raw_line in $raw_output
+		do
+			if [[ "$raw_line" == *benchmark:* ]]
+			then
+				index=`expr match "$raw_line" ".*benchmark: "`;
+				bench_name=${raw_line:$index};
+			fi
+
+			if [[ "$raw_line" == *reported_time:* ]]
+			then
+				index=`expr match "$raw_line" ".*reported_time: "`;
+				score=${raw_line:$index};
+
+				sum=`echo "$sum+$score" | bc -l`;
+				numbers=`echo "$numbers+1" | bc -l`;
+			fi
+		done
+
+		mean=`echo "$sum/$numbers" | bc -l`
+		variance=0.0
+		
+		for raw_line in $raw_output
+		do
+			if [[ "$raw_line" == *reported_time:* ]]
+			then
+				index=`expr match "$raw_line" ".*reported_time: "`;
+				score=${raw_line:$index};
+
+				difference=`echo "$score-$mean" | bc -l`;
+				variance=`echo "$variance+$difference*$difference" | bc -l`;
+			fi
+		done
+		
+		variance=`echo "$variance/$numbers" | bc -l`
+		std=`echo "sqrt($variance)" | bc -l`
+
+		printf "%s mean:%.5f variance:%.5f std:%.5f \n" $bench_name $mean $variance $std
+	done
+}
+
 source shrc
 
 IFS_BAK=$IFS
 IFS=$'\n'
 
-echo "Base"
-parse_results overhead_base results_overhead_base overhead_base.dat $1
+if [[ "$1" == "variance" ]]
+then		
+	echo "Base"
+	calc_variance overhead_base
+	echo "Instrumentation"
+	calc_variance overhead_instrumentation
+	echo "UCC Sampling"
+	calc_variance overhead_ucc
+	echo "LBR Sampling"
+	calc_variance overhead_lbr
+else
+	echo "Base"
+	parse_results overhead_base results_overhead_base overhead_base.dat $1
+	echo "Instrumentation"
+	parse_results overhead_instrumentation results_overhead_instrumentation overhead_instrumentation.dat $1
+	echo "UCC Sampling"
+	parse_results overhead_ucc results_overhead_ucc overhead_ucc.dat $1
+	echo "LBR Sampling"
+	parse_results overhead_lbr results_overhead_lbr overhead_lbr.dat $1
 
-echo "Instrumentation"
-parse_results overhead_instrumentation results_overhead_instrumentation overhead_instrumentation.dat $1
+	mv -f overhead.tar.gz overhead_0.tar.gz
+	tar czf overhead.tar.gz overhead_*.dat
 
-echo "UCC Sampling"
-parse_results overhead_ucc results_overhead_ucc overhead_ucc.dat $1
+	#Generate the array
 
-echo "LBR Sampling"
-parse_results overhead_lbr results_overhead_lbr overhead_lbr.dat $1
+	get_results_first overhead_base.dat
+	get_results overhead_instrumentation.dat
+	get_results overhead_ucc.dat
+	get_results overhead_lbr.dat
 
-mv -f overhead.tar.gz overhead_0.tar.gz
-tar czf overhead.tar.gz overhead_*.dat
-
-#Generate the array
-
-function get_results_first(){
-
-for line in `cat $1`
-do
-	if [[ "$line" != "name index value" ]]
-	then
-		rm temp_`echo $line | awk ' { print $2}'`
-		echo $line | awk ' { print "@ ", $1, " & ", $3}' >> temp_`echo $line | awk ' { print $2}'`
-	fi
-done
-
-}
-
-function get_results(){
-
-for line in `cat $1`
-do
-	if [[ "$line" != "name index value" ]]
-	then
-		echo $line | awk ' { print " & ", $3}' >> temp_`echo $line | awk ' { print $2}'`
-	fi
-done
-
-}
-
-get_results_first overhead_base.dat
-get_results overhead_instrumentation.dat
-get_results overhead_ucc.dat
-get_results overhead_lbr.dat
-
-for file in temp_*
-do
-	echo " & & & \\\\ \hline" >> $file
-	cat $file | tr "\\n" " "
-	echo ""
-done
+	for file in temp_*
+	do
+		echo " & & & \\\\ \hline" >> $file
+		cat $file | tr "\\n" " "
+		echo ""
+	done
+fi
 
 IFS=$IFS_BAK
