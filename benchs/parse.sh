@@ -165,6 +165,9 @@ else
 		cat $file | tr "\\n" " "
 		echo ""
 	done
+	
+	rm -f temp_*
+	rm -f new_temp_*
 fi
 
 IFS=$IFS_BAK

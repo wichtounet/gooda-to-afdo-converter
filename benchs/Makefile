@@ -45,6 +45,8 @@ clean:
 
 build: $(BUILD_BENCHS)
 
+.PHONY: build clean overhead_ref overhead_test bench_test bench_ref overhead_ref_tonto overhead_ref_bwaves overhead_ref_milc overhead_ref_sjeng overhead_ref_h264ref overhead_ref_astarBigLakes
+
 define BENCH_REF
 
 $(1)_ref: base_results_ref_$(1) instrumentation_results_ref_$(1) ucc_results_ref_$(1) lbr_results_ref_$(1)
@@ -60,6 +62,8 @@ ucc_results_ref_$(1):
 
 lbr_results_ref_$(1):
 	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_sampling_lbr $(1) > log_ref_lbr.$(1)
+
+#.PHONY: $(1)_ref base_results_ref_$(1) instrumentation_results_ref_$(1) ucc_results_ref_$(1) lbr_results_ref_$(1)
 
 endef
 
@@ -79,6 +83,8 @@ ucc_results_test_$(1):
 lbr_results_test_$(1):
 	+runspec --username=wichtounet --action=validate ---iterations=1 --size=test --config=gcc_google_47_sampling_lbr $(1) > log_test_lbr.$(1)
 
+#.PHONY: $(1)_test base_results_test_$(1) instrumentation_results_test_$(1) ucc_results_test_$(1) lbr_results_test_$(1)
+
 endef
 
 define OVERHEAD_REF
@@ -86,16 +92,18 @@ define OVERHEAD_REF
 overhead_ref_$(1): base_overhead_ref_$(1) instrumentation_overhead_ref_$(1) ucc_overhead_ref_$(1) lbr_overhead_ref_$(1)
 
 base_overhead_ref_$(1):
-	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_base $(1) > overhead_ref_base.$(1)
+	+runspec --username=wichtounet --action=validate --iterations=5 --size=ref --config=gcc_google_47_base $(1) > overhead_ref_base.$(1)
 
 instrumentation_overhead_ref_$(1):
-	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_overhead_instrumentation $(1) > overhead_ref_instrumentation.$(1)
+	+runspec --username=wichtounet --action=validate --iterations=5 --size=ref --config=gcc_google_47_overhead_instrumentation $(1) > overhead_ref_instrumentation.$(1)
 
 ucc_overhead_ref_$(1):
-	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_overhead_sampling_ucc $(1) > overhead_ref_ucc.$(1)
+	+runspec --username=wichtounet --action=validate --iterations=5 --size=ref --config=gcc_google_47_overhead_sampling_ucc $(1) > overhead_ref_ucc.$(1)
 
 lbr_overhead_ref_$(1):
-	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_overhead_sampling_lbr $(1) > overhead_ref_lbr.$(1)
+	+runspec --username=wichtounet --action=validate --iterations=5 --size=ref --config=gcc_google_47_overhead_sampling_lbr $(1) > overhead_ref_lbr.$(1)
+
+#.PHONY: overhead_ref_$(1) base_overhead_ref_$(1) instrumentation_overhead_ref_$(1) ucc_overhead_ref_$(1) lbr_overhead_ref_$(1)
 
 endef
 
@@ -115,6 +123,8 @@ ucc_overhead_test_$(1):
 lbr_overhead_test_$(1):
 	+runspec --username=wichtounet --action=validate --iterations=1 --size=test --config=gcc_google_47_overhead_sampling_lbr $(1) > overhead_test_lbr.$(1)
 
+#.PHONY: overhead_test_$(1) base_overhead_test_$(1) instrumentation_overhead_test_$(1) ucc_overhead_test_$(1) lbr_overhead_test_$(1)
+
 endef
 
 define BUILD
@@ -132,6 +142,8 @@ build_ucc_$(1):
 	
 build_lbr_$(1):	
 	+runspec --username=wichtounet --action=build --config=gcc_google_47_sampling_lbr $(1) > build_log_lbr.$(1)
+
+#.PHONY: build_$(1) build_base_$(1) build_instrumentation_$(1) build_ucc_$(1) build_lbr_$(1)
 	
 endef
 
