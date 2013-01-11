@@ -26,25 +26,13 @@
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds milliseconds;
 
-typedef std::pair<std::string, std::size_t> inlined_key;
+typedef std::pair<std::string, long> inlined_key;
 
 namespace std {
-
+    
 template<>
 struct hash<inlined_key> {
     std::size_t operator()(const inlined_key& key) const {
-        std::size_t seed = 0;
-
-        gooda::hash_combine(seed, key.first);
-        gooda::hash_combine(seed, key.second);
-
-        return seed;
-    }
-};
-    
-template<>
-struct hash<std::pair<std::string, long>> {
-    std::size_t operator()(const std::pair<std::string, long>& key) const {
         std::size_t seed = 0;
 
         gooda::hash_combine(seed, key.first);
@@ -59,6 +47,9 @@ struct hash<std::pair<std::string, long>> {
 namespace {
 
 //Common utilities
+
+//The inlining cache contains the function names for each inlined functions
+std::unordered_map<inlined_key, std::string> inlining_cache;
 
 struct gooda_bb {
     std::string file;
@@ -159,20 +150,21 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
     //Note: From this point basic_blocks contains invalid basic_blocks due to std::moving them
     basic_blocks.clear();
     
-    return std::make_pair(normal_blocks, inlined_block_sets);
+    return std::make_pair(std::move(normal_blocks), std::move(inlined_block_sets));
 }
-
-std::unordered_map<std::pair<std::string, long>, std::string> inlining_cache;
 
 std::string get_function_name(const std::string& application_file, bb_vector& block_set){
     long start_address = std::numeric_limits<long>::max();
     for(auto& block : block_set){
         start_address = std::min(start_address, block.address);
     }
-    
+
     auto key = std::make_pair(application_file, start_address);
+
+    //If the file does not exist, the cache will not be filled
+    //It can also come from an error of addr2line
     if(inlining_cache.find(key) == inlining_cache.end()){
-	log::emit<log::Warning>() << application_file << ":" << start_address << " not in cache" << log::endl;
+        log::emit<log::Warning>() << application_file << ":" << start_address << " not in cache" << log::endl;
 
         return "";
     }
@@ -583,20 +575,14 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     bool lbr = vm.count("lbr");
 
     //Choose the correct counter
-    std::string counter_name;
-    if(lbr){
-        counter_name = BB_EXEC;
-    } else {
-        counter_name = UNHALTED_CORE_CYCLES;
-    }
+    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
     auto filter = get_process_filter(report, vm, counter_name);
     log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
 
+    //Maps index of report.functions() to index of data.functions. -1 indicates that there is no function
     std::vector<long> maps(report.functions());
-    for(auto& i : maps){
-        i = -1;
-    }
+    std::fill(maps.begin(), maps.end(), -1);
 
     std::unordered_map<std::string, std::vector<std::size_t>> addresses;
     
@@ -633,7 +619,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             bb_vector normal_blocks;
             std::vector<bb_vector> inlined_block_sets;
             std::tie(normal_blocks, inlined_block_sets) = split_bbs(bbs);
-            
+
             for(auto& block_set : inlined_block_sets){
                 long start_address = std::numeric_limits<long>::max();
                 for(auto& block : block_set){
@@ -649,39 +635,40 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     }
 
     for(auto& address_set : addresses){
-	    //Fail quickly because executing objdump is much slower than testing it before
-	    if(!gooda::exists(address_set.first)){
-		log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+        if(!gooda::exists(address_set.first)){
+            log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
 
-		continue;
-	    }
+            continue;
+        }
+            
+        log::emit<log::Warning>() << "Query " << address_set.first << " with addr2line" << log::endl;
 
-	std::stringstream ss;
-	ss << "addr2line -f -a -i --exe=" << address_set.first << " ";
+        std::stringstream ss;
+        ss << "addr2line -f -a -i --exe=" << address_set.first << " ";
 
         for(auto& address : address_set.second){
-	    ss << "0x" << std::hex << address << " ";
+            ss << "0x" << std::hex << address << " ";
         }
 
-	auto result = gooda::exec_command_result(ss.str());
+        auto result = gooda::exec_command_result(ss.str());
 
-	std::istringstream result_stream(result);
-	std::string str_line;    
-	bool next = false;
+        std::istringstream result_stream(result);
+        std::string str_line;    
+        bool next = false;
 
-	std::size_t address = 0;
+        std::size_t address = 0;
 
-	while (std::getline(result_stream, str_line)) {
-		if(boost::starts_with(str_line, "0x000000")){
-			std::istringstream convert(str_line);
-			convert >> std::hex >> address;
-			next = true;
-		} else if(next){
-			auto key = std::make_pair(address_set.first, address);
-			inlining_cache[key] = str_line;
-			next = false;
-		}
-	}
+        while (std::getline(result_stream, str_line)) {
+            if(boost::starts_with(str_line, "0x000000")){
+                std::istringstream convert(str_line);
+                convert >> std::hex >> address;
+                next = true;
+            } else if(next){
+                auto key = std::make_pair(address_set.first, address);
+                inlining_cache[key] = str_line;
+                next = false;
+            }
+        }
     }
 
     for(std::size_t i = 0; i < report.functions(); ++i){
