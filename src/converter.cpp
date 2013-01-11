@@ -670,7 +670,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                     start_address = std::min(start_address, block.address);
                 }
 
-                addresses[function.file].push_back(start_address);
+                addresses[function.executable_file].push_back(start_address);
             }
 
             maps[i] = data.functions.size();
