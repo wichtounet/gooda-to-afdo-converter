@@ -179,13 +179,6 @@ std::string get_function_name(const std::string& application_file, bb_vector& bl
         start_address = std::min(start_address, block.address);
     }
 
-    auto key = std::make_pair(application_file, start_address);
-    if(inlining_cache.find(key) != inlining_cache.end()){
-	std::cout << "OUT" << std::endl;
-    } else {
-	inlining_cache.insert(std::move(key));
-    }
-
     long stop_address = start_address + 3;
     
     std::stringstream ss;
@@ -630,6 +623,13 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     auto filter = get_process_filter(report, vm, counter_name);
     log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
 
+    std::vector<long> maps(report.functions());
+    for(auto& i : maps){
+        i = -1;
+    }
+
+    std::unordered_map<std::string, std::vector<std::size_t>> addresses;
+    
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
@@ -660,13 +660,44 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                 continue;
             }
 
+            bb_vector normal_blocks;
+            std::vector<bb_vector> inlined_block_sets;
+            std::tie(normal_blocks, inlined_block_sets) = split_bbs(bbs);
+            
+            for(auto& block_set : inlined_block_sets){
+                long start_address = std::numeric_limits<long>::max();
+                for(auto& block : block_set){
+                    start_address = std::min(start_address, block.address);
+                }
+
+                addresses[function.file].push_back(start_address);
+            }
+
+            maps[i] = data.functions.size();
+            data.functions.push_back(std::move(function));
+        }
+    }
+
+    for(auto& address_set : addresses){
+        std::cout << "File: " << address_set.first << std::endl;
+
+        for(auto& address : address_set.second){
+            std::cout << "\t" << address << std::endl;
+        }
+    }
+
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        if(maps.at(i) > 0){
+            auto& function = data.functions.at(maps.at(i));
+
+            //Collect function.file and function.entry_count
+            auto bbs = collect_basic_blocks(report, data, function, counter_name);
+
             if(lbr){
                 lbr_annotate(report, data, function, bbs);
             } else {
                 ca_annotate(report, data, function, bbs);
             }
-
-            data.functions.push_back(std::move(function));
         }
     }
 
