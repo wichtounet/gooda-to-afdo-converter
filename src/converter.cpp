@@ -162,52 +162,22 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
     return std::make_pair(normal_blocks, inlined_block_sets);
 }
 
-std::unordered_set<std::pair<std::string, long>> inlining_cache;
+std::unordered_map<std::pair<std::string, long>, std::string> inlining_cache;
 
 std::string get_function_name(const std::string& application_file, bb_vector& block_set){
-    //Fail quickly because executing objdump is much slower than testing it before
-    if(!gooda::exists(application_file)){
-        log::emit<log::Warning>() << "File " << application_file << " does not exist" << log::endl;
-
-        return "";
-    }
-
-    log::emit<log::Debug>() << "Get function name with objdump" << log::endl;
-
     long start_address = std::numeric_limits<long>::max();
     for(auto& block : block_set){
         start_address = std::min(start_address, block.address);
     }
-
-    long stop_address = start_address + 3;
     
-    std::stringstream ss;
-    ss << "objdump " << application_file << " -D --section=.text --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
-    
-    log::emit<log::Debug>() << "=> Command:" << ss.str() << log::endl;
+    auto key = std::make_pair(application_file, start_address);
+    if(inlining_cache.find(key) == inlining_cache.end()){
+	log::emit<log::Warning>() << application_file << ":" << start_address << " not in cache" << log::endl;
 
-    std::string command = ss.str();
-    auto result = gooda::exec_command_result(command);
-
-    std::istringstream result_stream(result);
-    std::string str_line;    
-    bool next = false;
-    std::string function_name;
-
-    while (std::getline(result_stream, str_line)) {
-        if(boost::starts_with(str_line, "00000")){
-            next = true;
-        } else if(next){
-            function_name = str_line; 
-            break;
-        }
+        return "";
     }
 
-    function_name = function_name.substr(0, function_name.size() - 3);
-
-    log::emit<log::Debug>() << "Found \"" << function_name << "\"" << log::endl;
-
-    return function_name;
+    return inlining_cache[key];
 }
 
 bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, const std::string& counter_name){
@@ -679,11 +649,39 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     }
 
     for(auto& address_set : addresses){
-        std::cout << "File: " << address_set.first << std::endl;
+	    //Fail quickly because executing objdump is much slower than testing it before
+	    if(!gooda::exists(address_set.first)){
+		log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+
+		continue;
+	    }
+
+	std::stringstream ss;
+	ss << "addr2line -f -a -i --exe=" << address_set.first << " ";
 
         for(auto& address : address_set.second){
-            std::cout << "\t" << address << std::endl;
+	    ss << "0x" << std::hex << address << " ";
         }
+
+	auto result = gooda::exec_command_result(ss.str());
+
+	std::istringstream result_stream(result);
+	std::string str_line;    
+	bool next = false;
+
+	std::size_t address = 0;
+
+	while (std::getline(result_stream, str_line)) {
+		if(boost::starts_with(str_line, "0x000000")){
+			std::istringstream convert(str_line);
+			convert >> std::hex >> address;
+			next = true;
+		} else if(next){
+			auto key = std::make_pair(address_set.first, address);
+			inlining_cache[key] = str_line;
+			next = false;
+		}
+	}
     }
 
     for(std::size_t i = 0; i < report.functions(); ++i){
