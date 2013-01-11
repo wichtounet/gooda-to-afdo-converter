@@ -34,19 +34,19 @@ int gooda::exec_command(const std::string& command) {
 }
 
 std::string gooda::exec_command_result(const std::string& command){
-    std::stringstream output;
+    std::string result;
 
     char buffer[1024];
 
     FILE* stream = popen(command.c_str(), "r");
 
     while (fgets(buffer, 1024, stream) != NULL) {
-        output << buffer;
+        result += buffer;
     }
 
     pclose(stream);
 
-    return output.str();
+    return result;
 }
 
 int gooda::processor_model(){

@@ -89,20 +89,22 @@ function bench(){
 	rm -f perf.data
 }
 
-#bench gcc-google-converter-ucc ucc
-#bench gcc-google-converter-lbr lbr
+#bench gcc-google-converter ucc
+#bench gcc-google-converter lbr
 
-#bench gcc-google-eddic-ucc ucc
-#bench gcc-google-eddic-lbr lbr
+#bench gcc-google-eddic ucc
+#bench gcc-google-eddic lbr
 
-#bench eddic-assembly-ucc ucc
-#bench eddic-assembly-lbr lbr
+#bench eddic-assembly ucc
+#bench eddic-assembly lbr
 
-#bench eddic-list-ucc ucc
-#bench eddic-list-lbr lbr 
+#bench eddic-list ucc
+#bench eddic-list lbr 
 
 bench converter-gcc-ucc ucc
-bench converter-gcc-ucc lbr
-
-bench converter-gcc-lbr ucc
 bench converter-gcc-lbr lbr
+
+bench converter-gcc-ucc ucc
+bench converter-gcc-lbr lbr
+
+tar czf results.tar.gz bench_converter_ucc.dat bench_converter_lbr.dat bench_gooda_ucc.dat bench_gooda_lbr.dat

@@ -5,7 +5,7 @@ function get_results_first(){
 	do
 		if [[ "$line" != "name index value" ]]
 		then
-			rm temp_`echo $line | awk ' { print $2}'`
+			rm -f temp_`echo $line | awk ' { print $2}'`
 			echo $line | awk ' { print "@ ", $1, " & "; printf "%.3f", $3}' >> temp_`echo $line | awk ' { print $2}'`
 		fi
 	done
@@ -62,7 +62,7 @@ function parse_results(){
 			
 			if [[ "$raw_line" == *selected:\ 1 ]]
 			then
-				echo "$bench_name $score" | tee -a $2
+				echo "${bench_name:4} $score" | tee -a $2
 			fi
 		done
 	done
@@ -117,7 +117,7 @@ function calc_variance(){
 		
 		variance=`echo "$variance/$numbers" | bc -l`
 		std=`echo "sqrt($variance)" | bc -l`
-
+		
 		printf "%s mean:%.5f variance:%.5f std:%.5f \n" $bench_name $mean $variance $std
 	done
 }

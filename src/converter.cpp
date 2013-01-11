@@ -10,6 +10,9 @@
 #include <sstream>
 #include <cstring>
 #include <map>
+#include <unordered_set>
+#include <utility>
+#include <chrono>
 
 #include <boost/algorithm/string.hpp>
 
@@ -19,6 +22,10 @@
 #include "logger.hpp"
 #include "hash.hpp"
 
+//Chrono typedefs
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::milliseconds milliseconds;
+
 typedef std::pair<std::string, std::size_t> inlined_key;
 
 namespace std {
@@ -26,6 +33,18 @@ namespace std {
 template<>
 struct hash<inlined_key> {
     std::size_t operator()(const inlined_key& key) const {
+        std::size_t seed = 0;
+
+        gooda::hash_combine(seed, key.first);
+        gooda::hash_combine(seed, key.second);
+
+        return seed;
+    }
+};
+    
+template<>
+struct hash<std::pair<std::string, long>> {
+    std::size_t operator()(const std::pair<std::string, long>& key) const {
         std::size_t seed = 0;
 
         gooda::hash_combine(seed, key.first);
@@ -143,6 +162,8 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
     return std::make_pair(normal_blocks, inlined_block_sets);
 }
 
+std::unordered_set<std::pair<std::string, long>> inlining_cache;
+
 std::string get_function_name(const std::string& application_file, bb_vector& block_set){
     //Fail quickly because executing objdump is much slower than testing it before
     if(!gooda::exists(application_file)){
@@ -158,10 +179,17 @@ std::string get_function_name(const std::string& application_file, bb_vector& bl
         start_address = std::min(start_address, block.address);
     }
 
+    auto key = std::make_pair(application_file, start_address);
+    if(inlining_cache.find(key) != inlining_cache.end()){
+	std::cout << "OUT" << std::endl;
+    } else {
+	inlining_cache.insert(std::move(key));
+    }
+
     long stop_address = start_address + 3;
     
     std::stringstream ss;
-    ss << "objdump " << application_file << " -D --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
+    ss << "objdump " << application_file << " -D --section=.text --line-numbers --start-address=0x" << std::hex << start_address << " --stop-address=0x" << stop_address;
     
     log::emit<log::Debug>() << "=> Command:" << ss.str() << log::endl;
 

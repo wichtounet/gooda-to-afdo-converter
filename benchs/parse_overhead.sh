@@ -75,7 +75,7 @@ function parse_results(){
 				
 				if [[ "$raw_line" == *selected:\ 1 ]]
 				then
-					echo "$bench_name $score" | tee -a $2
+					echo "${bench_name:4} $score" | tee -a $2
 				fi
 			fi
 		done
@@ -83,7 +83,7 @@ function parse_results(){
 		if [[ "$4" == "time" ]]
 		then
 			#current_score=`echo "$current_score/3" | bc -l`
-			echo "$bench_name $current_score" | tee -a $2
+			echo "${bench_name:4} $current_score" | tee -a $2
 		fi
 	done
 
@@ -155,7 +155,7 @@ function calc_variance(){
 		variance=`echo "$variance/$numbers" | bc -l`
 		std=`echo "sqrt($variance)" | bc -l`
 
-		printf "%s:%d mean:%.5f min:%0.5f max:%0.5f variance:%.5f std:%.5f \n" $bench_name $numbers $mean $min $max $variance $std
+		printf "%s:%d mean:%.5f min:%0.5f max:%0.5f variance:%.5f std:%.5f \n" ${bench_name:4} $numbers $mean $min $max $variance $std
 	done
 }
 
