@@ -46,8 +46,8 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
                 << ", with " << stack.num_inst << " dynamic instructions " 
                 << "[count=" << stack.count;
             
-            if(vm.count("misses")){
-                std::cout << ", misses=" << stack.cache_misses;
+            if(vm.count("cache-misses")){
+                std::cout << ", cache-misses=" << stack.cache_misses;
             }
             
             std::cout << "]" << std::endl;
