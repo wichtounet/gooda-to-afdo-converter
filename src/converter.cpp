@@ -649,20 +649,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                 addresses[function.executable_file].push_back(start_address);
             }
 
-            //Collect addresses for discriminator
-            
-            if(report.has_asm_file(function.i)){
-                auto& file = report.asm_file(function.i);
-
-                for(std::size_t j = 0; j < file.lines(); ++j){
-                    auto& line = file.line(j);
-
-                    if(!line.get_string(file.column(ADDRESS)).empty()){
-                        asm_addresses[function.executable_file].push_back(line.get_address(file.column(ADDRESS)));
-                    }
-                }
-            }
-
             //Add the function
 
             maps[i] = data.functions.size();
@@ -710,49 +696,69 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     }
     
     //Fill the discriminator cache
+    
+    if(vm.count("discriminators")){
+        for(std::size_t i = 0; i < report.functions(); ++i){
+            if(maps.at(i) >= 0){
+                auto& function = data.functions.at(maps.at(i));
 
-    for(auto& address_set : asm_addresses){
-        if(!gooda::exists(address_set.first)){
-            log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+                if(report.has_asm_file(function.i)){
+                    auto& file = report.asm_file(function.i);
 
-            continue;
-        }
-            
-        log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with addr2line" << log::endl;
+                    for(std::size_t j = 0; j < file.lines(); ++j){
+                        auto& line = file.line(j);
 
-        std::stringstream ss;
-        ss << "addr2line -a --exe=" << address_set.first << " ";
-
-        for(auto& address : address_set.second){
-            ss << "0x" << std::hex << address << " ";
-        }
-
-        auto result = gooda::exec_command_result(ss.str());
-
-        std::istringstream result_stream(result);
-        std::string str_line;    
-        bool next = false;
-
-        std::size_t address = 0;
-
-        while (std::getline(result_stream, str_line)) {
-            if(boost::starts_with(str_line, "0x000000")){
-                std::istringstream convert(str_line);
-                convert >> std::hex >> address;
-                next = true;
-            } else if(next){
-                auto key = std::make_pair(address_set.first, address);
-
-                auto search = str_line.find("(discriminator ");
-                if(search == std::string::npos){
-                    discriminator_cache[key] = 0;    
-                } else {
-                    auto end = str_line.find(")", search); 
-                    auto discriminator = str_line.substr(search + 15, end - search - 15);
-                    discriminator_cache[key] = boost::lexical_cast<long>(discriminator);    
+                        if(!line.get_string(file.column(ADDRESS)).empty()){
+                            asm_addresses[function.executable_file].push_back(line.get_address(file.column(ADDRESS)));
+                        }
+                    }
                 }
+            }
+        }
 
-                next = false;
+        for(auto& address_set : asm_addresses){
+            if(!gooda::exists(address_set.first)){
+                log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+
+                continue;
+            }
+
+            log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with addr2line" << log::endl;
+
+            std::stringstream ss;
+            ss << "addr2line -a --exe=" << address_set.first << " ";
+
+            for(auto& address : address_set.second){
+                ss << "0x" << std::hex << address << " ";
+            }
+
+            auto result = gooda::exec_command_result(ss.str());
+
+            std::istringstream result_stream(result);
+            std::string str_line;    
+            bool next = false;
+
+            std::size_t address = 0;
+
+            while (std::getline(result_stream, str_line)) {
+                if(boost::starts_with(str_line, "0x000000")){
+                    std::istringstream convert(str_line);
+                    convert >> std::hex >> address;
+                    next = true;
+                } else if(next){
+                    auto key = std::make_pair(address_set.first, address);
+
+                    auto search = str_line.find("(discriminator ");
+                    if(search == std::string::npos){
+                        discriminator_cache[key] = 0;    
+                    } else {
+                        auto end = str_line.find(")", search); 
+                        auto discriminator = str_line.substr(search + 15, end - search - 15);
+                        discriminator_cache[key] = boost::lexical_cast<long>(discriminator);    
+                    }
+
+                    next = false;
+                }
             }
         }
     }
