@@ -23,6 +23,7 @@
 #define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
 #define BB_EXEC "BB_Exec"
 #define LOAD_LATENCY "load_latency"
+#define SW_INST_RETIRED "sw_inst_retired"
 
 #define FUNCTION_NAME "Function Name"
 #define LINE_NUMBER "Line Number"

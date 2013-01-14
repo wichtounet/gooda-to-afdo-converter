@@ -605,12 +605,17 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             gooda::afdo_function function;
             function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
             function.file = "unknown"; //The file will be filled by read_asm
-            function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
             function.i = i;
             function.executable_file = get_application_file(report, i);
-
+            
             data.add_file_name(function.file);
             data.add_file_name(function.name);
+
+            if(lbr){
+                function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
+            } else {
+                function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
+            }
 
             //Collect function.file and function.entry_count
             auto bbs = collect_basic_blocks(report, data, function, counter_name);
