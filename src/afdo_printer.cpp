@@ -45,7 +45,11 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
         std::cout << function.name << " (" << function.file << "(" << data.get_file_index(function.file) << "))" 
             << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
-        for(auto& stack : function.stacks){
+        auto stacks = function.stacks;
+
+        std::sort(stacks.begin(), stacks.end(), [](const gooda::afdo_stack& lhs, const gooda::afdo_stack& rhs){return lhs.stack.front().line < rhs.stack.front().line; });
+
+        for(auto& stack : stacks){
             std::cout << "   Stack of size " << stack.stack.size() 
                 << ", with " << stack.num_inst << " dynamic instructions " 
                 << "[count=" << stack.count;
