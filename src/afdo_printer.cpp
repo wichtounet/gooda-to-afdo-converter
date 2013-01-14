@@ -36,8 +36,12 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
         std::cout << "   " << i << ":" << data.file_names[i] << std::endl;
     }
 
+    auto functions = data.functions;
+
+    std::sort(functions.begin(), functions.end(), [](const gooda::afdo_function& lhs, const gooda::afdo_function& rhs){return lhs.total_count > rhs.total_count; });
+
     std::cout << "Hotspot functions" << std::endl;
-    for(auto& function : data.functions) {
+    for(auto& function : functions) {
         std::cout << function.name << " (" << function.file << "(" << data.get_file_index(function.file) << "))" 
             << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
@@ -78,7 +82,11 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
 void gooda::dump_afdo_light(const afdo_data& data, boost::program_options::variables_map& /*vm*/){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
-    for(auto& function : data.functions) {
+    auto functions = data.functions;
+   
+    std::sort(functions.begin(), functions.end(), [](const gooda::afdo_function& lhs, const gooda::afdo_function& rhs){return lhs.total_count > rhs.total_count; });
+
+    for(auto& function : functions) {
         std::cout << "   " << function.name << " (" << function.file << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
     }
 }
