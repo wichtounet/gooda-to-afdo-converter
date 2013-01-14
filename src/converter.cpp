@@ -305,6 +305,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
 
                 auto& stack = get_stack(function, function.name, function.file, line_number);
                 stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                stack.cache_misses = std::max(stack.count, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
                 ++stack.num_inst;
             }
         }
@@ -327,6 +328,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
                         auto& stack = get_stack(function, function.name, function.file, asm_line.get_counter(asm_file.column(PRINC_LINE))); 
 
                         stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                        stack.cache_misses = std::max(stack.count, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
                         ++stack.num_inst;
                     } else {
                         auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
@@ -340,6 +342,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
                         data.add_file_name(block.inlined_file);
 
                         stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+                        stack.cache_misses = std::max(stack.count, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
                         ++stack.num_inst;
                     }
                 }
@@ -672,7 +675,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     }
 
     for(std::size_t i = 0; i < report.functions(); ++i){
-        if(maps.at(i) > 0){
+        if(maps.at(i) >= 0){
             auto& function = data.functions.at(maps.at(i));
 
             //Collect function.file and function.entry_count
