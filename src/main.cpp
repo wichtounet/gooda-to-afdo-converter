@@ -214,6 +214,7 @@ int main(int argc, char **argv){
             
             ("nows", "Do not compute the working set")
             ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
+            ("discriminators", "Find the DWARF discriminators of instructions, need >=binutils.2.23.1")
 
             //Ideally filter would have a std::string with an implicit empty string
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time

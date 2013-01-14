@@ -48,7 +48,7 @@ void write_function_table(const gooda::afdo_data& data, boost::program_options::
                     gcov_file.write_unsigned(data.get_file_index(s.file));
 
                     gcov_file.write_unsigned(s.line);
-                    gcov_file.write_unsigned(s.discr);
+                    gcov_file.write_unsigned(s.discriminator);
                 });
 
                 gcov_file.write_counter(stack.count);
