@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TIMEFORMAT='%3R'
-ITERATIONS=1
+ITERATIONS=5
 
 ucc_iter=1
 lbr_iter=1
@@ -25,7 +25,7 @@ function bench(){
 	converter_min=0.0
 
 	#Gooda
-	for i in {0..$ITERATIONS-1}
+	for i in `seq 1 $ITERATIONS`
 	do
 		rm -rf spreadsheets
 
@@ -46,7 +46,7 @@ function bench(){
 	printf "gooda %s min:%0.3f \n" $1 $gooda_min
 	
 	#Converter
-	for i in {0..$ITERATIONS-1}
+	for i in `seq 1 $ITERATIONS`
 		do
 		if [[ $2 == "ucc" ]]
 		then
@@ -89,11 +89,11 @@ function bench(){
 	rm -f perf.data
 }
 
-bench gcc-google-converter ucc
-bench gcc-google-converter lbr
+bench gcc-converter ucc
+bench gcc-converter lbr
 
-bench gcc-google-eddic ucc
-bench gcc-google-eddic lbr
+bench gcc-eddic ucc
+bench gcc-eddic lbr
 
 bench eddic-assembly ucc
 bench eddic-assembly lbr
@@ -101,10 +101,10 @@ bench eddic-assembly lbr
 bench eddic-list ucc
 bench eddic-list lbr 
 
-bench converter-gcc-ucc ucc
-bench converter-gcc-lbr lbr
+bench converter-ucc ucc
+bench converter-ucc lbr
 
-bench converter-gcc-ucc ucc
-bench converter-gcc-lbr lbr
+bench converter-lbr ucc
+bench converter-lbr lbr
 
 tar czf results.tar.gz bench_converter_ucc.dat bench_converter_lbr.dat bench_gooda_ucc.dat bench_gooda_lbr.dat

@@ -76,11 +76,15 @@ function calc_variance(){
 	for line in $output
 	do
 		result_file=${line:23}
+
 		raw_output=`cat $result_file`
+
 		bench_name=""
 
 		sum=0.0
 		numbers=0
+		min=0.0
+		max=0.0
 
 		for raw_line in $raw_output
 		do
@@ -90,10 +94,23 @@ function calc_variance(){
 				bench_name=${raw_line:$index};
 			fi
 
-			if [[ "$raw_line" == *reported_time:* ]]
+			if [[ "$raw_line" == *ratio:* ]]
 			then
-				index=`expr match "$raw_line" ".*reported_time: "`;
+				index=`expr match "$raw_line" ".*ratio: "`;
 				score=${raw_line:$index};
+
+				if [[ $score < $min ]]
+				then
+					min=$score;
+				elif [[ $min == 0.0 ]]
+				then
+					min=$score;
+				fi
+				
+				if [[ $score > $max ]]
+				then
+					max=$score;
+				fi
 
 				sum=`echo "$sum+$score" | bc -l`;
 				numbers=`echo "$numbers+1" | bc -l`;
@@ -105,9 +122,9 @@ function calc_variance(){
 		
 		for raw_line in $raw_output
 		do
-			if [[ "$raw_line" == *reported_time:* ]]
+			if [[ "$raw_line" == *ratio:* ]]
 			then
-				index=`expr match "$raw_line" ".*reported_time: "`;
+				index=`expr match "$raw_line" ".*ratio: "`;
 				score=${raw_line:$index};
 
 				difference=`echo "$score-$mean" | bc -l`;
@@ -117,8 +134,8 @@ function calc_variance(){
 		
 		variance=`echo "$variance/$numbers" | bc -l`
 		std=`echo "sqrt($variance)" | bc -l`
-		
-		printf "%s mean:%.5f variance:%.5f std:%.5f \n" $bench_name $mean $variance $std
+
+		printf "%s:%d mean:%.5f min:%0.5f max:%0.5f variance:%.5f std:%.5f \n" ${bench_name:4} $numbers $mean $min $max $variance $std
 	done
 }
 
@@ -159,13 +176,18 @@ else
 	get_results bench_ucc.dat
 	get_results bench_lbr.dat
 
+	rm -f table
+
 	for file in temp_*
 	do
 		echo " & & & & & \\\\ \hline" >> $file
-		cat $file | tr "\\n" " "
-		echo ""
+		cat $file | tr "\\n" " " >> table
+		echo "" >> table
 	done
+
+	awk -vORS= -f compute_table.awk table
 	
+	rm -f table
 	rm -f temp_*
 	rm -f new_temp_*
 fi
