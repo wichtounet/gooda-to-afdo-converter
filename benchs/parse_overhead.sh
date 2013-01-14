@@ -5,7 +5,7 @@ function get_results_first(){
 	do
 		if [[ "$line" != "name index value" ]]
 		then
-			rm temp_`echo $line | awk ' { print $2}'`
+			rm -f temp_`echo $line | awk ' { print $2}'`
 			echo $line | awk ' { print "@ ", $1, " & "; printf "%.3f", $3; }' >> temp_`echo $line | awk ' { print $2}'`
 		fi
 	done
@@ -194,15 +194,18 @@ else
 	get_results overhead_ucc.dat
 	get_results overhead_lbr.dat
 
+	rm -f table
+
 	for file in temp_*
 	do
-		echo " & & & \\\\ \hline" >> $file
-		cat $file | tr "\\n" " "
-		echo ""
+		echo " & & & & & \\\\ \hline" >> $file
+		cat $file | tr "\\n" " " >> table
+		echo "" >> table
 	done
 
-	rm -f temp_*
-	rm -f new_temp_*
+	awk -vORS= -f compute_overhead_table.awk table
+	
+	rm -f table
 fi
 
 IFS=$IFS_BAK
