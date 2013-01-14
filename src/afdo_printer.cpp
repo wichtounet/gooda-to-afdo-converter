@@ -14,6 +14,8 @@ std::string pretty_size(unsigned int size){
     std::stringstream stream;
     std::string unit = "B";
 
+    stream << size << unit;
+
     if(size > 1024){
        size /= 1024; 
        unit = "KB";
@@ -24,7 +26,10 @@ std::string pretty_size(unsigned int size){
        unit = "MB";
     }
 
-    stream << size << unit;
+    if(unit != "B"){
+        stream << "(" << size << unit << ")";
+    }
+
     return stream.str();
 }
 
