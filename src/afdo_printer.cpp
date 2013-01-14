@@ -69,7 +69,7 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
                 std::cout << "      Instruction at " 
                     << pos.file << "(" << data.get_file_index(pos.file) << "):" << pos.line 
                     << ", func=" << pos.func << "(" << data.get_file_index(pos.func) << ")" 
-                    << ", discr=" << pos.discr << std::endl;
+                    << ", discr=" << pos.discriminator << std::endl;
             }
         }
     }
