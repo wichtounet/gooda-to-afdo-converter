@@ -62,7 +62,7 @@ function parse_results(){
 			
 			if [[ "$raw_line" == *selected:\ 1 ]]
 			then
-				echo "${bench_name:4} $score" | tee -a $2
+				echo "${bench_name:4} $score" >> $2
 			fi
 		done
 	done
@@ -155,16 +155,16 @@ then
 	echo "LBR Sampling"
 	calc_variance log_lbr
 else
-	echo "Base"
+	#echo "Base"
 	parse_results log_base results_base bench_base.dat $1
 
-	echo "Instrumentation"
+	#echo "Instrumentation"
 	parse_results log_instrumentation results_instrumentation bench_instrumentation.dat $1
 
-	echo "UCC Sampling"
+	#echo "UCC Sampling"
 	parse_results log_ucc results_ucc bench_ucc.dat $1
 
-	echo "LBR Sampling"
+	#echo "LBR Sampling"
 	parse_results log_lbr results_lbr bench_lbr.dat $1
 
 	tar czf results.tar.gz bench_*.dat
