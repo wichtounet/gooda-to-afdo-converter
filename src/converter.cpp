@@ -691,7 +691,14 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
     prune_non_dynamic_stacks(data);
 
-    if(!vm.count("nows")){
+    //Compute the working set
+    if(vm.count("nows")){
+        //Fill the working set with zero
+        for(auto& working_set : data.working_set){
+            working_set.num_counter = 0;
+            working_set.min_counter = 0;
+        }
+    } else {
         compute_working_set(data);
     }
 
