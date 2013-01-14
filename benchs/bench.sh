@@ -50,10 +50,10 @@ function bench(){
 		do
 		if [[ $2 == "ucc" ]]
 		then
-			{ time /home/wichtounet/gcc/google/build/bin/converter --afdo --nows spreadsheets ; } 2>tmp
+			{ time /home/wichtounet/gcc/google/build/bin/converter --discriminators --afdo --nows spreadsheets ; } 2>tmp
 		elif [[ $2 == "lbr" ]]
 		then
-			{ time /home/wichtounet/gcc/google/build/bin/converter --lbr --afdo --nows spreadsheets ; } 2>tmp
+			{ time /home/wichtounet/gcc/google/build/bin/converter --discriminators --lbr --afdo spreadsheets ; } 2>tmp
 		fi
 		
 		result=`cat tmp`
