@@ -782,12 +782,10 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             }
 
             gooda::afdo_function function;
-            function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
-            function.file = "unknown"; //The file will be filled by read_asm
             function.i = i;
             function.executable_file = get_application_file(report, i);
             
-            data.add_file_name(function.file);
+            function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
             data.add_file_name(function.name);
 
             if(lbr){
