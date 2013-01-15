@@ -418,12 +418,19 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, goo
     }
 }
 
-//Common functions 
-
+/*!
+ * \brief Return the AFDO size of the given string
+ * \param str The string to get the size of.
+ * \return The AFDO size of the given string.
+ */
 unsigned int sizeof_string(const std::string& str){
     return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
 }
 
+/*!
+ * \brief Remove all the stacks that have no corresponding dynamic instructions
+ * \param data The AFDO profile
+ */
 void prune_non_dynamic_stacks(gooda::afdo_data& data){
     for(auto& function : data.functions){
         function.stacks.erase(
@@ -482,6 +489,10 @@ void compute_lengths(gooda::afdo_data& data){
     data.length_working_set_section = data.working_set.size() * 3;
 }
 
+/*!
+ * \brief Compute the working set for the given data. 
+ * \param data the AFDO profile
+ */
 void compute_working_set(gooda::afdo_data& data){
     //Fill the working set with zero
     for(auto& working_set : data.working_set){
@@ -531,6 +542,12 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Return the application executable file of the function i
+ * \param report The Gooda report
+ * \param i The index of the function to get the executable from
+ * \return The ELF file the function is located in. 
+ */
 std::string get_application_file(const gooda::gooda_report& report, std::size_t i){
     auto& line = report.hotspot_function(i);
     auto application_file = line.get_string(report.get_hotspot_file().column(MODULE));
@@ -540,6 +557,13 @@ std::string get_application_file(const gooda::gooda_report& report, std::size_t 
     return application_file;
 }
 
+/*!
+ * \brief Return the process filter
+ * \param report the report to fill. 
+ * \param vm The configuration. 
+ * \param counter_name The name of the counter. 
+ * \return the process filter
+ */
 std::string get_process_filter(const gooda::gooda_report& report, boost::program_options::variables_map& vm, std::string& counter_name){
     if(vm.count("filter")){
         std::string max_process = "";
@@ -573,6 +597,13 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
     }
 }
 
+/*!
+ * \brief Fill the inlining cache
+ * \param report The gooda report to fill
+ * \param data The data already filled
+ * \param maps The indexes map
+ * \param vm The configuration
+ */
 void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
@@ -587,7 +618,6 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         if(maps.at(i) >= 0){
             auto& function = data.functions.at(maps.at(i));
 
-            //Collect function.file and function.entry_count
             auto bbs = collect_basic_blocks(report, data, function, counter_name);
 
             //Collect addresses for inlining
@@ -646,6 +676,13 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
     }
 }
 
+/*!
+ * \brief Fill the discriminator cache
+ * \param report The gooda report to fill
+ * \param data The data already filled
+ * \param maps The indexes map
+ * \param vm The configuration
+ */
 void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     if(vm.count("discriminators")){
         std::unordered_map<std::string, std::vector<std::size_t>> asm_addresses;
