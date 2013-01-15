@@ -801,6 +801,8 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             if(report.has_asm_file(function.i)){
                 auto& file = report.asm_file(function.i);
 
+                bool invalid = false;
+
                 for(std::size_t j = 0; j < file.lines(); ++j){
                     auto& line = file.line(j);
 
@@ -809,8 +811,13 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                     if(line.get_string(file.column(PRINC_FILE)) == "null"){
                         log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
 
-                        continue;
+                        invalid = true;
+                        break;
                     }
+                }
+
+                if(invalid){
+                    continue;
                 }
             }
 
