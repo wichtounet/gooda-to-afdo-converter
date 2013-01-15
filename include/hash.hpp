@@ -23,4 +23,20 @@ inline void hash_combine(std::size_t& seed, const T& v){
 
 }
 
+namespace std {
+
+template<typename U, typename V>
+struct hash<std::pair<U, V>> {
+    std::size_t operator()(const std::pair<U, V>& key) const {
+        std::size_t seed = 0;
+
+        gooda::hash_combine(seed, key.first);
+        gooda::hash_combine(seed, key.second);
+
+        return seed;
+    }
+};
+
+}
+
 #endif

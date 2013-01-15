@@ -13,22 +13,6 @@
 
 typedef std::pair<std::string, std::size_t> line_key;
 
-namespace std {
-
-template<>
-struct hash<line_key> {
-    std::size_t operator()(const line_key& key) const {
-        std::size_t seed = 0;
-
-        gooda::hash_combine(seed, key.first);
-        gooda::hash_combine(seed, key.second);
-
-        return seed;
-    }
-};
-
-}
-
 void gooda::diff(const gooda_report& first, const gooda_report& second, boost::program_options::variables_map&){
     //Verify that both files have the same number of columsn
     if(first.get_hotspot_file().columns() != second.get_hotspot_file().columns()){

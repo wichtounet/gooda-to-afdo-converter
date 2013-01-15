@@ -29,22 +29,6 @@ typedef std::chrono::milliseconds milliseconds;
 
 typedef std::pair<std::string, long> inlined_key;
 
-namespace std {
-    
-template<>
-struct hash<inlined_key> {
-    std::size_t operator()(const inlined_key& key) const {
-        std::size_t seed = 0;
-
-        gooda::hash_combine(seed, key.first);
-        gooda::hash_combine(seed, key.second);
-
-        return seed;
-    }
-};
-
-} //end of namespace std
-
 namespace {
 
 //Common utilities
