@@ -76,7 +76,6 @@ struct afdo_function {
     std::size_t last_line;              //!< The number of the last line in the source file
 
     std::size_t i;                      //!< The position in the Gooda spreadsheets
-    bool valid = true;                  //!< Internal flag indicating if the function will be generated to AFDO (valid=true) or not. 
 
     std::string executable_file;        //!< The ELF file this function is contained in
 };

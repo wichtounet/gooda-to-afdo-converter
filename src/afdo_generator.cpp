@@ -34,31 +34,29 @@ void write_function_table(const gooda::afdo_data& data, boost::program_options::
     gcov_file.write_section_header(GCOV_TAG_AFDO_FUNCTION, data.length_function_section);
 
     write_collection(data.functions, gcov_file, [&data,&vm, &gcov_file](const gooda::afdo_function& function){
-        if(function.valid){
-            gcov_file.write_string(function.name);
+        gcov_file.write_string(function.name);
 
-            gcov_file.write_unsigned(data.get_file_index(function.file));
+        gcov_file.write_unsigned(data.get_file_index(function.file));
 
-            gcov_file.write_counter(function.total_count);
-            gcov_file.write_counter(function.entry_count);
+        gcov_file.write_counter(function.total_count);
+        gcov_file.write_counter(function.entry_count);
 
-            write_collection(function.stacks, gcov_file, [&data,&vm, &gcov_file](const gooda::afdo_stack& stack){
-                write_collection(stack.stack, gcov_file, [&data, &gcov_file](const gooda::afdo_pos& s){
-                    gcov_file.write_unsigned(data.get_file_index(s.func));
-                    gcov_file.write_unsigned(data.get_file_index(s.file));
+        write_collection(function.stacks, gcov_file, [&data,&vm, &gcov_file](const gooda::afdo_stack& stack){
+            write_collection(stack.stack, gcov_file, [&data, &gcov_file](const gooda::afdo_pos& s){
+                gcov_file.write_unsigned(data.get_file_index(s.func));
+                gcov_file.write_unsigned(data.get_file_index(s.file));
 
-                    gcov_file.write_unsigned(s.line);
-                    gcov_file.write_unsigned(s.discriminator);
-                });
-
-                gcov_file.write_counter(stack.count);
-                gcov_file.write_counter(stack.num_inst);
-
-                if(vm.count("cache-misses")){
-                    gcov_file.write_counter(stack.cache_misses);
-                }
+                gcov_file.write_unsigned(s.line);
+                gcov_file.write_unsigned(s.discriminator);
             });
-        }
+
+            gcov_file.write_counter(stack.count);
+            gcov_file.write_counter(stack.num_inst);
+
+            if(vm.count("cache-misses")){
+                gcov_file.write_counter(stack.cache_misses);
+            }
+        });
     });
 }
 
