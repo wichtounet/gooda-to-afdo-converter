@@ -49,11 +49,18 @@ class gooda_line {
         std::string get_string(std::size_t index) const;
         
         /*!
-         * \brief Return a numeric representation of the value in the given column.
+         * \brief Return an integer representation of the value in the given column.
          * \param index The column index. 
-         * \return The counter value at the given column.
+         * \return The integer value at the given column.
          */
         unsigned long get_counter(std::size_t index) const;
+
+        /*!
+         * \brief Return a floating point representation of the value in the given column.
+         * \param index The column index. 
+         * \return The floating point value at the given column.
+         */
+        double get_double(std::size_t index) const;
         
         /*!
          * \brief Read an hexadecimal address and return its decimal signed value. 
