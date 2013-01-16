@@ -67,7 +67,17 @@ class gooda_file {
          */
         gooda_line& new_line();
 
+        /*!
+         * \brief Return the multiplex line of this file
+         * \return The multiplex line. 
+         */
         gooda_line& multiplex_line();
+        
+        /*!
+         * \brief Return the multiplex line of this file
+         * \return The multiplex line. 
+         */
+        const gooda_line& multiplex_line() const;
 
         /*!
          * \brief Returns the number of line of the file.

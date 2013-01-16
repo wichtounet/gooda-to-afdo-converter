@@ -19,6 +19,10 @@ gooda::gooda_line& gooda::gooda_file::multiplex_line(){
     return m_multiplex_line;
 }
 
+const gooda::gooda_line& gooda::gooda_file::multiplex_line() const {
+    return m_multiplex_line;
+}
+
 std::size_t gooda::gooda_file::size() const {
     return m_lines.size();
 }
