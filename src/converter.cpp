@@ -286,7 +286,10 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
 
                 auto& stack = get_stack(function, function.name, function.file, line_number, discriminator);
                 stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
-                stack.cache_misses = std::max(stack.cache_misses, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
+
+                auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+                stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+
                 ++stack.num_inst;
             }
         }
