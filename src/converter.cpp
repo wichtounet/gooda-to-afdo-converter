@@ -160,7 +160,7 @@ std::string get_function_name(const std::string& application_file, bb_vector& bl
     return inlining_cache[key];
 }
 
-bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, const std::string& counter_name){
+bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_data& data, gooda::afdo_function& function, bool lbr){
     bb_vector basic_blocks;
 
     if(report.has_asm_file(function.i)){
@@ -193,9 +193,12 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
 
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
-                block.exec_count = line.get_counter(file.column(counter_name));
                 block.address = line.get_address(file.column(ADDRESS));
                 block.gooda_function = function.i;
+                
+                if(lbr){
+                    block.exec_count = line.get_counter(file.column(BB_EXEC));
+                }
 
                 //Compute the start and end line
                 block.gooda_line_start = j;
@@ -230,7 +233,12 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
             
             //Get the entry basic block and the function file
             if(boost::starts_with(disassembly, "Basic Block 1 <")){
-                function.entry_count = line.get_counter(file.column(counter_name));
+                if(lbr){
+                    function.entry_count = line.get_counter(file.column(BB_EXEC));
+                } else {
+                    auto count = file.multiplex_line().get_double(file.column(UNHALTED_CORE_CYCLES)) * line.get_counter(file.column(UNHALTED_CORE_CYCLES));
+                    function.entry_count = static_cast<gcov_type>(count);
+                }
 
                 bb_found = true;
             } else if(bb_found){
@@ -285,11 +293,14 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
                 auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
                 auto& stack = get_stack(function, function.name, function.file, line_number, discriminator);
-                stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
+
+                auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+                stack.count = std::max(stack.count, static_cast<gcov_type>(count));
 
                 auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
                 stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
-
+                
+                //There is one more dynamic instruction
                 ++stack.num_inst;
             }
         }
@@ -313,8 +324,13 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
                     if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
                         auto& stack = get_stack(function, function.name, function.file, line_number, discriminator); 
 
-                        stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
-                        stack.cache_misses = std::max(stack.cache_misses, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
+                        auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+                        stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+
+                        auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+                        stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+
+                        //There is one more dynamic instruction
                         ++stack.num_inst;
                     } else {
                         auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
@@ -327,8 +343,13 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, good
                         data.add_file_name(callee_function_name);
                         data.add_file_name(block.inlined_file);
 
-                        stack.count = std::max(stack.count, asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES)));
-                        stack.cache_misses = std::max(stack.cache_misses, asm_line.get_counter(asm_file.column(LOAD_LATENCY)));
+                        auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+                        stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+
+                        auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+                        stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+                        
+                        //There is one more dynamic instruction
                         ++stack.num_inst;
                     }
                 }
@@ -594,9 +615,6 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
 void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
-    //Choose the correct counter
-    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
-
     //Collect the inlined addresses
 
     std::unordered_map<std::string, std::vector<std::size_t>> addresses;
@@ -605,7 +623,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         if(maps.at(i) >= 0){
             auto& function = data.functions.at(maps.at(i));
 
-            auto bbs = collect_basic_blocks(report, data, function, counter_name);
+            auto bbs = collect_basic_blocks(report, data, function, lbr);
 
             //Collect addresses for inlining
 
@@ -778,7 +796,11 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             if(lbr){
                 function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
             } else {
-                function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
+                auto count = 
+                        report.get_hotspot_file().multiplex_line().get_double(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES)) 
+                      * line.get_counter(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
+
+                function.total_count = static_cast<gcov_type>(count);
             }
 
             //Check that the function file is correctly set
@@ -824,7 +846,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             auto& function = data.functions.at(maps.at(i));
 
             //Collect function.file and function.entry_count
-            auto bbs = collect_basic_blocks(report, data, function, counter_name);
+            auto bbs = collect_basic_blocks(report, data, function, lbr);
 
             if(lbr){
                 lbr_annotate(report, data, function, bbs);
