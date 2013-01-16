@@ -67,6 +67,8 @@ class gooda_file {
          */
         gooda_line& new_line();
 
+        gooda_line& multiplex_line();
+
         /*!
          * \brief Returns the number of line of the file.
          * \return the number of line of the file.
@@ -116,6 +118,9 @@ class gooda_file {
     private:
         std::vector<gooda_line> m_lines;
         std::unordered_map<std::string, unsigned int> m_columns;
+
+        //Header lines
+        gooda_line m_multiplex_line;
 };
 
 } //end of namespace gooda
