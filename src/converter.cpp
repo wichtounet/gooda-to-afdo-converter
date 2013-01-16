@@ -629,10 +629,10 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
             continue;
         }
 
-        log::emit<log::Warning>() << "Query " << address_set.first << " with addr2line" << log::endl;
+        log::emit<log::Warning>() << "Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
         std::stringstream ss;
-        ss << "addr2line -f -a -i --exe=" << address_set.first << " ";
+        ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << address_set.first << " ";
 
         for(auto& address : address_set.second){
             ss << "0x" << std::hex << address << " ";
@@ -696,10 +696,10 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                 continue;
             }
 
-            log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with addr2line" << log::endl;
+            log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
             std::stringstream ss;
-            ss << "addr2line -a --exe=" << address_set.first << " ";
+            ss << vm["addr2line"].as<std::string>() << " -a --exe=" << address_set.first << " ";
 
             for(auto& address : address_set.second){
                 ss << "0x" << std::hex << address << " ";

@@ -225,7 +225,9 @@ int main(int argc, char **argv){
             ("quiet", "Output as less as possible on the console")
             ("bench", "Use the special scripts for benchmarking")
 
-            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
+            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation directory. If not filled, the converter will use $GOODA_DIR or the current directory")
+            ("addr2line", po::value<std::string>()->default_value("addr2line"), "Specify the addr2line executable to use")
+
             ("lbr", "Performs precise profile with LBR")
 
             ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
