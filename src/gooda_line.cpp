@@ -43,6 +43,12 @@ unsigned long gooda::gooda_line::get_counter(std::size_t index) const {
     return boost::lexical_cast<unsigned long>(value);
 }
 
+double gooda::gooda_line::get_double(std::size_t index) const {
+    auto value = get_string(index);
+
+    return boost::lexical_cast<double>(value);
+}
+
 long gooda::gooda_line::get_address(std::size_t index) const {
     auto value = get_string(index);
     

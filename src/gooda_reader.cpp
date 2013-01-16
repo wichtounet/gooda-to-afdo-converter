@@ -94,6 +94,7 @@ void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
     //Headers
     std::getline(file, line);
     
+    //Parse the column names into the cache
     std::vector<string_view> headers; 
     parse_gooda_line(line, headers);
 
@@ -117,6 +118,11 @@ void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
     
     //Multiplex
     std::getline(file, line);
+
+    auto& multiplex_line = gooda_file.multiplex_line();
+    multiplex_line.line() = line;
+
+    parse_gooda_line(multiplex_line.line(), multiplex_line.contents());
     
     //Penalty
     std::getline(file, line);
