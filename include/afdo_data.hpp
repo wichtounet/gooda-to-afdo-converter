@@ -76,7 +76,6 @@ struct afdo_function {
     std::size_t last_line;              //!< The number of the last line in the source file
 
     std::size_t i;                      //!< The position in the Gooda spreadsheets
-    bool valid = true;                  //!< Internal flag indicating if the function will be generated to AFDO (valid=true) or not. 
 
     std::string executable_file;        //!< The ELF file this function is contained in
 };
@@ -124,7 +123,17 @@ struct afdo_data {
 
     afdo_data(){}
 
+    /*!
+     * \brief Deleted copy constructor
+     * \param other The other afdo_data
+     */
     afdo_data(const afdo_data& other) = delete;
+    
+    /*!
+     * \brief Deleted copy assignment operator
+     * \param other The other afdo_data
+     * \return A reference to this
+     */
     afdo_data& operator=(const afdo_data& other) = delete;
 
     /*!
@@ -138,6 +147,11 @@ struct afdo_data {
      */
     gcov_unsigned_t get_file_index(const std::string& file) const;
 
+    /*!
+     * \brief Return the file name with the given index. 
+     * \param i The index of the of file name to search. 
+     * \return The file name. 
+     */
     const std::string& file_name(std::size_t i) const;
 
     /*!

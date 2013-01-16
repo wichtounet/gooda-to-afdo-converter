@@ -29,22 +29,6 @@ typedef std::chrono::milliseconds milliseconds;
 
 typedef std::pair<std::string, long> inlined_key;
 
-namespace std {
-    
-template<>
-struct hash<inlined_key> {
-    std::size_t operator()(const inlined_key& key) const {
-        std::size_t seed = 0;
-
-        gooda::hash_combine(seed, key.first);
-        gooda::hash_combine(seed, key.second);
-
-        return seed;
-    }
-};
-
-} //end of namespace std
-
 namespace {
 
 //Common utilities
@@ -195,14 +179,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
 
         for(std::size_t j = 0; j < file.lines(); ++j){
             auto& line = file.line(j);
-
-            //Gooda does not always found the source file of a function
-            //In that case, declare the function as invalid and return quickly
-            if(line.get_string(file.column(PRINC_FILE)) == "null"){
-                function.valid = false;
-                log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
-                return {};
-            }
 
             //It indicates the last line, that is not a valid assembly line but a summary of the data
             if(line.get_string(file.column(ADDRESS)).empty()){
@@ -426,12 +402,19 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_data& data, goo
     }
 }
 
-//Common functions 
-
+/*!
+ * \brief Return the AFDO size of the given string
+ * \param str The string to get the size of.
+ * \return The AFDO size of the given string.
+ */
 unsigned int sizeof_string(const std::string& str){
     return 1 + (str.length() + sizeof(gcov_unsigned_t)) / sizeof(gcov_unsigned_t);
 }
 
+/*!
+ * \brief Remove all the stacks that have no corresponding dynamic instructions
+ * \param data The AFDO profile
+ */
 void prune_non_dynamic_stacks(gooda::afdo_data& data){
     for(auto& function : data.functions){
         function.stacks.erase(
@@ -490,6 +473,10 @@ void compute_lengths(gooda::afdo_data& data){
     data.length_working_set_section = data.working_set.size() * 3;
 }
 
+/*!
+ * \brief Compute the working set for the given data. 
+ * \param data the AFDO profile
+ */
 void compute_working_set(gooda::afdo_data& data){
     //Fill the working set with zero
     for(auto& working_set : data.working_set){
@@ -539,6 +526,12 @@ void compute_working_set(gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Return the application executable file of the function i
+ * \param report The Gooda report
+ * \param i The index of the function to get the executable from
+ * \return The ELF file the function is located in. 
+ */
 std::string get_application_file(const gooda::gooda_report& report, std::size_t i){
     auto& line = report.hotspot_function(i);
     auto application_file = line.get_string(report.get_hotspot_file().column(MODULE));
@@ -548,6 +541,13 @@ std::string get_application_file(const gooda::gooda_report& report, std::size_t 
     return application_file;
 }
 
+/*!
+ * \brief Return the process filter
+ * \param report the report to fill. 
+ * \param vm The configuration. 
+ * \param counter_name The name of the counter. 
+ * \return the process filter
+ */
 std::string get_process_filter(const gooda::gooda_report& report, boost::program_options::variables_map& vm, std::string& counter_name){
     if(vm.count("filter")){
         std::string max_process = "";
@@ -581,58 +581,28 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
     }
 }
 
-} //End of anonymous namespace
-
-void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+/*!
+ * \brief Fill the inlining cache
+ * \param report The gooda report to fill
+ * \param data The data already filled
+ * \param maps The indexes map
+ * \param vm The configuration
+ */
+void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
     //Choose the correct counter
     std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
-    auto filter = get_process_filter(report, vm, counter_name);
-    log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
-
-    //Maps index of report.functions() to index of data.functions. -1 indicates that there is no function
-    std::vector<long> maps(report.functions());
-    std::fill(maps.begin(), maps.end(), -1);
+    //Collect the inlined addresses
 
     std::unordered_map<std::string, std::vector<std::size_t>> addresses;
-    std::unordered_map<std::string, std::vector<std::size_t>> asm_addresses;
-    
+
     for(std::size_t i = 0; i < report.functions(); ++i){
-        auto& line = report.hotspot_function(i);
+        if(maps.at(i) >= 0){
+            auto& function = data.functions.at(maps.at(i));
 
-        //Only if the function passes the filters
-        if(filter.empty() || line.get_string(report.get_hotspot_file().column(PROCESS)) == filter){
-            auto string_cycles = line.get_string(report.get_hotspot_file().column(counter_name));
-
-            //Some functions are filled empty by Gooda for some reason
-            //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
-            if(string_cycles.empty()){
-                continue;
-            }
-
-            gooda::afdo_function function;
-            function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
-            function.file = "unknown"; //The file will be filled by read_asm
-            function.i = i;
-            function.executable_file = get_application_file(report, i);
-            
-            data.add_file_name(function.file);
-            data.add_file_name(function.name);
-
-            if(lbr){
-                function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
-            } else {
-                function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
-            }
-
-            //Collect function.file and function.entry_count
             auto bbs = collect_basic_blocks(report, data, function, counter_name);
-
-            if(!function.valid){
-                continue;
-            }
 
             //Collect addresses for inlining
 
@@ -648,27 +618,21 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
                 addresses[function.executable_file].push_back(start_address);
             }
-
-            //Add the function
-
-            maps[i] = data.functions.size();
-            data.functions.push_back(std::move(function));
         }
     }
 
     //Fill the inlining cache
-
     for(auto& address_set : addresses){
         if(!gooda::exists(address_set.first)){
             log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
 
             continue;
         }
-            
-        log::emit<log::Warning>() << "Query " << address_set.first << " with addr2line" << log::endl;
+
+        log::emit<log::Warning>() << "Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
         std::stringstream ss;
-        ss << "addr2line -f -a -i --exe=" << address_set.first << " ";
+        ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << address_set.first << " ";
 
         for(auto& address : address_set.second){
             ss << "0x" << std::hex << address << " ";
@@ -694,10 +658,19 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             }
         }
     }
-    
-    //Fill the discriminator cache
-    
+}
+
+/*!
+ * \brief Fill the discriminator cache
+ * \param report The gooda report to fill
+ * \param data The data already filled
+ * \param maps The indexes map
+ * \param vm The configuration
+ */
+void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     if(vm.count("discriminators")){
+        std::unordered_map<std::string, std::vector<std::size_t>> asm_addresses;
+
         for(std::size_t i = 0; i < report.functions(); ++i){
             if(maps.at(i) >= 0){
                 auto& function = data.functions.at(maps.at(i));
@@ -723,10 +696,10 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                 continue;
             }
 
-            log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with addr2line" << log::endl;
+            log::emit<log::Warning>() << "Discriminator Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
             std::stringstream ss;
-            ss << "addr2line -a --exe=" << address_set.first << " ";
+            ss << vm["addr2line"].as<std::string>() << " -a --exe=" << address_set.first << " ";
 
             for(auto& address : address_set.second){
                 ss << "0x" << std::hex << address << " ";
@@ -762,6 +735,86 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             }
         }
     }
+}
+
+} //End of anonymous namespace
+
+void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+    bool lbr = vm.count("lbr");
+
+    //Choose the correct counter
+    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
+
+    auto filter = get_process_filter(report, vm, counter_name);
+    log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
+
+    //Maps index of report.functions() to index of data.functions. -1 indicates that there is no function
+    std::vector<long> maps(report.functions());
+    std::fill(maps.begin(), maps.end(), -1);
+
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        auto& line = report.hotspot_function(i);
+
+        //Only if the function passes the filters
+        if(filter.empty() || line.get_string(report.get_hotspot_file().column(PROCESS)) == filter){
+            auto string_cycles = line.get_string(report.get_hotspot_file().column(counter_name));
+
+            //Some functions are filled empty by Gooda for some reason
+            //In some case, it means 0, in that case, it is not a problem to ignore it either, cause not really hotspot
+            if(string_cycles.empty()){
+                continue;
+            }
+
+            gooda::afdo_function function;
+            function.i = i;
+            function.executable_file = get_application_file(report, i);
+            
+            function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
+            data.add_file_name(function.name);
+
+            if(lbr){
+                function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
+            } else {
+                function.total_count = line.get_counter(report.get_hotspot_file().column(counter_name));
+            }
+
+            //Check that the function file is correctly set
+            
+            if(report.has_asm_file(function.i)){
+                auto& file = report.asm_file(function.i);
+
+                bool invalid = false;
+
+                for(std::size_t j = 0; j < file.lines(); ++j){
+                    auto& line = file.line(j);
+
+                    //Gooda does not always found the source file of a function
+                    //In that case, declare the function as invalid and return quickly
+                    if(line.get_string(file.column(PRINC_FILE)) == "null"){
+                        log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
+
+                        invalid = true;
+                        break;
+                    }
+                }
+
+                if(invalid){
+                    continue;
+                }
+            }
+
+            //Add the function
+
+            maps[i] = data.functions.size();
+            data.functions.push_back(std::move(function));
+        }
+    }
+
+    //Fill the inlining cache
+    fill_inlining_cache(report, data, maps, vm);
+    
+    //Fill the discriminator cache
+    fill_discriminator_cache(report, data, maps, vm);
 
     for(std::size_t i = 0; i < report.functions(); ++i){
         if(maps.at(i) >= 0){

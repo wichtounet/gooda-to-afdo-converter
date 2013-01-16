@@ -201,34 +201,48 @@ int main(int argc, char **argv){
     po::parsed_options parsed_options(&description);
     
     try {
-        description.add_options()
+        po::options_description input("Input actions");
+        input.add_options()
+            ("read-spreadsheets", "Read Gooda spreadsheets (default)")
+            ("read-afdo", "Read an existing AFDO profile")
+            ("profile,p", "Profile the given application.")
+            ("diff", "Diff between two sets of spreadsheets (prototype)")
+            ;
+        
+        po::options_description output("Output actions");
+        output.add_options()
+            ("dump", "Dump AFDO profile on standard output")
+            ("full-dump", "Dump complete AFDO profile on standard output")
+            ("afdo", "Generate an AFDO profile (default if --profile is not selected)")
+            ;
+        
+        po::options_description afdo("AFDO Options");
+        afdo.add_options()
+            ("lbr", "Performs precise profile with LBR")
+            ("nows", "Do not compute the working set")
+            ("cache-misses", "Fill cache misses information in the AFDO file")
+            ("discriminators", "Find the DWARF discriminators of instructions, need >=binutils.2.23.1")
+            ;
+
+        po::options_description others("Other Options");
+        others.add_options()
             ("help,h", "Display this help message")
             
-            //All the possible actions
-            ("dump", "Process the spreadsheets and dump the AFDO on standard output")
-            ("full-dump", "Process the spreadsheets and dump the complete AFDO information on standard output")
-            ("afdo", "Process the spreadsheets and generate an AFDO profile file (default if --profile is not selected)")
-            ("read-afdo", "Read an AFDO profile and prints its content")
-            ("profile,p", "Profile the given application. Can be combined with --afdo to make everything at once")
-            ("diff", "Make a diff between two sets of spreadsheets (only prototype)")
-            
-            ("nows", "Do not compute the working set")
-            ("cache-misses", "Indicate that the cache misses information must be filled in the AFDO file")
-            ("discriminators", "Find the DWARF discriminators of instructions, need >=binutils.2.23.1")
+            ("bench", "Use the special scripts for benchmarking")
 
             //Ideally filter would have a std::string with an implicit empty string
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time
-            ("filter,f", "Only consider functions of the hottest process.")
+            ("filter,f", "Only consider the hottest process.")
             ("process", po::value<std::string>(), "Filter the hotspot functions by process.")
             ("output,o", po::value<std::string>()->default_value("fbdata.afdo"), "The name of the generated AFDO file")
-            ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug)")
+            ("log", po::value<int>()->default_value(0), "Define the logging verbosity (0: No logging, 1: warnings, 2:debug 3:trace)")
             ("quiet", "Output as less as possible on the console")
-            ("bench", "Use the special scripts for benchmarking")
 
-            ("gooda", po::value<std::string>(), "Set the path to the Gooda installation. If not filled, use $GOODA_DIR or the current directory")
-            ("lbr", "Performs precise profile with LBR")
+            ("gooda", po::value<std::string>(), "Path to the Gooda installation directory. By default, $GOODA_DIR or the current directory will be used")
+            ("addr2line", po::value<std::string>()->default_value("addr2line"), "Specify the addr2line executable to use")
+            ("input-file", po::value<std::vector<std::string>>(), "Input file(s)");
 
-            ("input-file", po::value<std::vector<std::string>>(), "Directory containing the spreadsheets");
+        description.add(input).add(output).add(afdo).add(others);
 
         po::positional_options_description p;
         p.add("input-file", -1);

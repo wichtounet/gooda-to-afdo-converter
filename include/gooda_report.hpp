@@ -20,30 +20,112 @@
  * \brief Contains the data structures holding the Gooda report. 
  */
 
+/*!
+ * \def UNHALTED_CORE_CYCLES 
+ * The column for unhalted core cycles
+ */
 #define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
+
+/*!
+ * \def BB_EXEC 
+ * The column for basic block execution
+ */
 #define BB_EXEC "BB_Exec"
+
+/*!
+ * \def LOAD_LATENCY 
+ * The column for load latency
+ */
 #define LOAD_LATENCY "load_latency"
+
+/*!
+ * \def SW_INST_RETIRED 
+ * The column for software instruction retired
+ */
 #define SW_INST_RETIRED "sw_inst_retired"
 
+/*!
+ * \def FUNCTION_NAME
+ * The column for the function name
+ */
 #define FUNCTION_NAME "Function Name"
+
+/*!
+ * \def LINE_NUMBER
+ * The column for the line number
+ */
 #define LINE_NUMBER "Line Number"
+
+/*!
+ * \def SOURCE
+ * The column for the source
+ */
 #define SOURCE "Source"
 
-//For ASM
+/*!
+ * \def PRINC_FILE
+ * The column for the principal file
+ */
 #define PRINC_FILE "Principal File"
+
+/*!
+ * \def PRINC_LINE
+ * The column for the principal line
+ */
 #define PRINC_LINE "Princ_L#"
+
+/*!
+ * \def INIT_LINE
+ * The column for the initial line
+ */
 #define INIT_LINE "Init_L#"
+
+/*!
+ * \def INIT_FILE
+ * The column for the initial file
+ */
 #define INIT_FILE "Initial File"
+
+/*!
+ * \def DISASSEMBLY
+ * The column for the disassembly
+ */
 #define DISASSEMBLY "Disassembly"
 
-//For hotspot functions
+/*!
+ * \def OFFSET
+ * The column for the offset
+ */
 #define OFFSET "Offset"
+
+/*!
+ * \def LENGTH
+ * The column for the length
+ */
 #define LENGTH "Length"
+
+/*!
+ * \def ADDRESS
+ * The column for the address
+ */
 #define ADDRESS "Address"
+
+/*!
+ * \def MODULE
+ * The column for the module
+ */
 #define MODULE "Module"
+
+/*!
+ * \def PROCESS
+ * The column for the process
+ */
 #define PROCESS "Process"
 
-//For process view
+/*!
+ * \def PROCESS_PATH
+ * The column for the process path
+ */
 #define PROCESS_PATH "Process Path"
 
 namespace gooda {
