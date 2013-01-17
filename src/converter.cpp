@@ -227,10 +227,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
         auto last_instruction = start_instruction + length;
 
         bool bb_found = false;
-        bool collection = false;
-
-        function.first_line = std::numeric_limits<decltype(function.first_line)>::max();
-        function.last_line = std::numeric_limits<decltype(function.last_line)>::min();
 
         for(std::size_t j = 0; j < file.lines(); ++j){
             auto& line = file.line(j);
@@ -303,23 +299,12 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
             }
 
             auto address = line.get_address(file.column(ADDRESS)); 
-
-            if(address == start_instruction){
-                collection = true;
-            } else if(address >= last_instruction){
+            if(address != start_instruction && address >= last_instruction){
                 break;
-            }
-            
-            //If we are inside the function
-            if(collection){
-                function.first_line = std::min(line.get_counter(file.column(PRINC_LINE)), function.first_line);
-                function.last_line = std::max(line.get_counter(file.column(PRINC_LINE)), function.last_line);
             }
         }
 
         gooda_assert(!function.file.empty(), "The function file must be set");
-        gooda_assert(function.first_line < std::numeric_limits<decltype(function.first_line)>::max(), "The function first line must be set");
-        gooda_assert(function.last_line > std::numeric_limits<decltype(function.last_line)>::min(), "The function last line must be set");
     }
 
     return basic_blocks;

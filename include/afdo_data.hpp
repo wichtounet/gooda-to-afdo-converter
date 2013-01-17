@@ -75,11 +75,7 @@ struct afdo_function {
     std::vector<afdo_stack> stacks;     //!< The inline stacks of the function
 
     //Not generated in AFDO
-    std::size_t first_line;             //!< The number of the first line in the source file
-    std::size_t last_line;              //!< The number of the last line in the source file
-
     std::size_t i;                      //!< The position in the Gooda spreadsheets
-
     std::string executable_file;        //!< The ELF file this function is contained in
 };
 
