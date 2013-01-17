@@ -786,14 +786,19 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         std::istringstream result_stream(result);
         std::string str_line;    
+        bool next = false;
 
         std::string address;
 
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "0x000000")){
                 address = extract_address(str_line);
-            } else {
+
+                next = true;
+            } else if(next){
                 mangled_names[{address_set.first, address}] = str_line;
+
+                next = false;
             }
         }
     }
