@@ -676,7 +676,8 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         }
     }
 
-    //Fill the inlining cache
+    //Fill the inlining cache by using addr2line
+
     for(auto& address_set : addresses){
         if(!gooda::exists(address_set.first)){
             log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
