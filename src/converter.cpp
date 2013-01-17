@@ -823,8 +823,6 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
                 address += str_line.substr(i, str_line.size() - i);
 
-                std::cout << address << std::endl;
-
                 next = true;
             } else if(next){
                 mangled_names[{address_set.first, address}] = str_line;
