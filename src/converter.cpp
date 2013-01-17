@@ -661,7 +661,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
 
         auto command = ss.str();
         auto result = gooda::exec_command_result(command);
-        log::emit<log::Debug>() << "Run command \"" << command << "\"" << log::endl;
+        log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
         std::istringstream result_stream(result);
         std::string str_line;    
@@ -730,7 +730,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
             auto command = ss.str();
             auto result = gooda::exec_command_result(command);
-            log::emit<log::Debug>() << "Run command \"" << command << "\"" << log::endl;
+            log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
             std::istringstream result_stream(result);
             std::string str_line;    
@@ -810,7 +810,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         auto command = ss.str();
         auto result = gooda::exec_command_result(command);
-        log::emit<log::Debug>() << "Run command \"" << command << "\"" << log::endl;
+        log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
         std::istringstream result_stream(result);
         std::string str_line;    
