@@ -45,13 +45,11 @@ struct gooda_bb {
     unsigned long exec_count;
     long address;
 
-    std::size_t gooda_function;
     std::size_t gooda_line_start;   //Inside asm_file
     std::size_t gooda_line_end;     //Inside asm_file
     
     //If the basic block comes from an inlined function
     std::string inlined_file;
-    unsigned long inlined_line_start;
 };
 
 typedef std::vector<gooda_bb> bb_vector;
@@ -245,7 +243,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
                 block.address = line.get_address(file.column(ADDRESS));
-                block.gooda_function = function.i;
                 
                 if(lbr){
                     block.exec_count = line.get_counter(file.column(BB_EXEC));
@@ -261,9 +258,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
 
                 block.gooda_line_end = k == file.lines() ? k - 1 : k;
 
-                //By default considered as not coming from inlined function
-                block.inlined_line_start = 0;
-
                 //Look at the next line to find out if the line comes from an inlined function
                 if(j + 1 < file.lines()){
                     auto& next_line = file.line(j + 1);
@@ -273,7 +267,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
                         auto init_file = next_line.get_string(file.column(INIT_FILE));
 
                         if(!init_file.empty()){
-                            block.inlined_line_start = next_line.get_counter(file.column(INIT_LINE));
                             block.inlined_file = init_file;
                         }
                     }
