@@ -53,19 +53,22 @@ struct gooda_bb {
 
 typedef std::vector<gooda_bb> bb_vector;
 
-gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, std::string file, std::size_t line, std::size_t discriminator){
+gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& position){
+    //Try to find an equivalent stack
+
     for(auto& stack : function.stacks){
         if(stack.stack.size() == 1){
-            auto& pos = stack.stack.front();
-            if(pos.line == line && pos.func == func && pos.file == file && pos.discriminator == discriminator){
+            if(stack.stack.front() == position){
                 return stack;
             }
         }
     }
+
+    //If not found, create a new stack
     
     gooda::afdo_stack stack;
 
-    stack.stack.emplace_back(func, file, line, discriminator);
+    stack.stack.emplace_back(std::move(position));
 
     function.stacks.push_back(std::move(stack));
 
@@ -261,10 +264,10 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                 gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                 auto& asm_line = asm_file.line(j);
-                auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
                 auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
-                auto& stack = get_stack(function, function.name, function.file, line_number, discriminator);
+                auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
                 auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
                 stack.count = std::max(stack.count, static_cast<gcov_type>(count));
@@ -286,13 +289,13 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                     gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                     auto& asm_line = asm_file.line(j);
-                    auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                    gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
                     auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
                     //It is possible that a basic block is not made only 
                     //of inlined lines
                     if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                        auto& stack = get_stack(function, function.name, function.file, line_number, discriminator); 
+                        auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
                         auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
                         stack.count = std::max(stack.count, static_cast<gcov_type>(count));
@@ -336,10 +339,10 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
                 gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                 auto& asm_line = asm_file.line(j);
-                auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
                 auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
-                auto& stack = get_stack(function, function.name, function.file, line_number, discriminator);
+                auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
                 stack.count = std::max(stack.count, block.exec_count);
                 
                 //There is one more dynamic instruction
@@ -357,13 +360,13 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
                         gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
                         auto& asm_line = asm_file.line(j);
-                        auto line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                        gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
                         auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
                         //It is possible that a basic block is not made only 
                         //of inlined lines
                         if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                            auto& stack = get_stack(function, function.name, function.file, line_number, discriminator); 
+                            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
                             stack.count = std::max(stack.count, block.exec_count);
                             
