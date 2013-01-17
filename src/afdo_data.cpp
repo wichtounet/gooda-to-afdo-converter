@@ -11,11 +11,11 @@
 #include "afdo_data.hpp"
 
 gcov_unsigned_t gooda::afdo_data::get_file_index(const std::string& file) const {
-    assert(file_index.count(file) > 0);
+    gooda_assert(file_index.find(file) != file_index.end(), "The file is not contained in the index");
 
     auto index = file_index.at(file);
     gooda_assert(index < file_names.size(), "The index is not contained in the file name table");
-    return index;
+    return static_cast<gcov_unsigned_t>(index);
 }
 
 const std::string& gooda::afdo_data::file_name(std::size_t i) const {

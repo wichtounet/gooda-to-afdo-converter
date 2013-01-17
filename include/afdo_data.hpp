@@ -161,7 +161,7 @@ struct afdo_data {
     void add_file_name(const std::string& file);
     
     private:
-        std::unordered_map<std::string, gcov_unsigned_t> file_index;
+        std::unordered_map<std::string, std::size_t> file_index;
 };
 
 }
