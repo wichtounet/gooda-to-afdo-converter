@@ -705,15 +705,13 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
             std::istringstream result_stream(result);
             std::string str_line;    
-            bool next = false;
 
             std::string address;
 
             while (std::getline(result_stream, str_line)) {
                 if(boost::starts_with(str_line, "0x000000")){
                     address = extract_address(str_line);
-                    next = true;
-                } else if(next){
+                } else {
                     auto key = std::make_pair(address_set.first, address);
 
                     auto search = str_line.find("(discriminator ");
@@ -724,8 +722,6 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                         auto discriminator = str_line.substr(search + 15, end - search - 15);
                         discriminator_cache[key] = boost::lexical_cast<gcov_unsigned_t>(discriminator);    
                     }
-
-                    next = false;
                 }
             }
         }
@@ -790,19 +786,14 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         std::istringstream result_stream(result);
         std::string str_line;    
-        bool next = false;
 
         std::string address;
 
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "0x000000")){
                 address = extract_address(str_line);
-
-                next = true;
-            } else if(next){
+            } else {
                 mangled_names[{address_set.first, address}] = str_line;
-
-                next = false;
             }
         }
     }
