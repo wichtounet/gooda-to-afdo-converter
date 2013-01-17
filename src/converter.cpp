@@ -162,88 +162,86 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
 bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_function& function, bool lbr){
     bb_vector basic_blocks;
 
-    if(report.has_asm_file(function.i)){
-        auto& file = report.asm_file(function.i);
+    auto& file = report.asm_file(function.i);
 
-        //Compute the addresses of the first and the last instructions
-        auto start_instruction = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(OFFSET));
-        auto length = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(LENGTH));
-        auto last_instruction = start_instruction + length;
+    //Compute the addresses of the first and the last instructions
+    auto start_instruction = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(OFFSET));
+    auto length = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(LENGTH));
+    auto last_instruction = start_instruction + length;
 
-        bool bb_found = false;
+    bool bb_found = false;
 
-        for(std::size_t j = 0; j < file.lines(); ++j){
-            auto& line = file.line(j);
+    for(std::size_t j = 0; j < file.lines(); ++j){
+        auto& line = file.line(j);
 
-            //It indicates the last line, that is not a valid assembly line but a summary of the data
-            if(line.get_string(file.column(ADDRESS)).empty()){
-                return basic_blocks;
-            }
-
-            auto disassembly = line.get_string(file.column(DISASSEMBLY));
-
-            //Collect Basic Block informations
-            if(boost::starts_with(disassembly, "Basic Block ")){
-                gooda_bb block;
-
-                block.file = line.get_string(file.column(PRINC_FILE));
-                block.line_start = line.get_counter(file.column(PRINC_LINE));
-                
-                if(lbr){
-                    block.exec_count = line.get_counter(file.column(BB_EXEC));
-                }
-
-                //Compute the start and end line
-                block.gooda_line_start = j;
-
-                auto k = j+1;
-                while(k < file.lines() - 1 && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
-                    k++;
-                }
-
-                block.gooda_line_end = k == file.lines() ? k - 1 : k;
-
-                //Look at the next line to find out if the line comes from an inlined function
-                if(j + 1 < file.lines()){
-                    auto& next_line = file.line(j + 1);
-
-                    //If the next line is part of the same basic block
-                    if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
-                        auto init_file = next_line.get_string(file.column(INIT_FILE));
-
-                        if(!init_file.empty()){
-                            block.inlined_file = init_file;
-                        }
-                    }
-                }
-
-                basic_blocks.push_back(std::move(block));
-            } 
-            
-            //Get the entry basic block and the function file
-            if(boost::starts_with(disassembly, "Basic Block 1 <")){
-                if(lbr){
-                    function.entry_count = line.get_counter(file.column(BB_EXEC));
-                } else {
-                    auto count = file.multiplex_line().get_double(file.column(UNHALTED_CORE_CYCLES)) * line.get_counter(file.column(UNHALTED_CORE_CYCLES));
-                    function.entry_count = static_cast<gcov_type>(count);
-                }
-
-                bb_found = true;
-            } else if(bb_found){
-                function.file = line.get_string(file.column(PRINC_FILE));
-
-                bb_found = false;
-            }
-
-            auto address = line.get_address(file.column(ADDRESS)); 
-            if(address != start_instruction && address >= last_instruction){
-                break;
-            }
+        //It indicates the last line, that is not a valid assembly line but a summary of the data
+        if(line.get_string(file.column(ADDRESS)).empty()){
+            return basic_blocks;
         }
 
-        gooda_assert(!function.file.empty(), "The function file must be set");
+        auto disassembly = line.get_string(file.column(DISASSEMBLY));
+
+        //Collect Basic Block informations
+        if(boost::starts_with(disassembly, "Basic Block ")){
+            gooda_bb block;
+
+            block.file = line.get_string(file.column(PRINC_FILE));
+            block.line_start = line.get_counter(file.column(PRINC_LINE));
+
+            if(lbr){
+                block.exec_count = line.get_counter(file.column(BB_EXEC));
+            }
+
+            //Compute the start and end line
+            block.gooda_line_start = j;
+
+            auto k = j+1;
+            while(k < file.lines() - 1 && !boost::starts_with(file.line(k).get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                k++;
+            }
+
+            block.gooda_line_end = k == file.lines() ? k - 1 : k;
+
+            //Look at the next line to find out if the line comes from an inlined function
+            if(j + 1 < file.lines()){
+                auto& next_line = file.line(j + 1);
+
+                //If the next line is part of the same basic block
+                if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
+                    auto init_file = next_line.get_string(file.column(INIT_FILE));
+
+                    if(!init_file.empty()){
+                        block.inlined_file = init_file;
+                    }
+                }
+            }
+
+            basic_blocks.push_back(std::move(block));
+        } 
+
+        //Get the entry basic block and the function file
+        if(boost::starts_with(disassembly, "Basic Block 1 <")){
+            if(lbr){
+                function.entry_count = line.get_counter(file.column(BB_EXEC));
+            } else {
+                auto count = file.multiplex_line().get_double(file.column(UNHALTED_CORE_CYCLES)) * line.get_counter(file.column(UNHALTED_CORE_CYCLES));
+                function.entry_count = static_cast<gcov_type>(count);
+            }
+
+            bb_found = true;
+        } else if(bb_found){
+            function.file = line.get_string(file.column(PRINC_FILE));
+
+            bb_found = false;
+        }
+
+        auto address = line.get_address(file.column(ADDRESS)); 
+        if(address != start_instruction && address >= last_instruction){
+            break;
+        }
     }
+
+    gooda_assert(!function.file.empty(), "The function file must be set");
 
     return basic_blocks;
 }
@@ -251,15 +249,39 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
 //Cycle Accounting mode
 
 void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
-    if(report.has_asm_file(function.i)){
-        auto& asm_file = report.asm_file(function.i);
+    auto& asm_file = report.asm_file(function.i);
 
-        bb_vector normal_blocks;
-        std::vector<bb_vector> inlined_block_sets;
-        std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-        
-        //1. Normal pass for non-inlined blocks
-        for(auto& block : normal_blocks){
+    bb_vector normal_blocks;
+    std::vector<bb_vector> inlined_block_sets;
+    std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
+
+    //1. Normal pass for non-inlined blocks
+    for(auto& block : normal_blocks){
+        for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+            gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
+
+            auto& asm_line = asm_file.line(j);
+            gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+
+            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
+
+            auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+            stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+
+            auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+            stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+
+            //There is one more dynamic instruction
+            ++stack.num_inst;
+        }
+    }
+
+    //2. Handle inlined blocks if any
+    for(auto& block_set : inlined_block_sets){
+        gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
+
+        for(auto& block : block_set){
             for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
                 gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
@@ -267,20 +289,64 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                 gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
                 auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
 
-                auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
+                //It is possible that a basic block is not made only 
+                //of inlined lines
+                if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
+                    auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
-                auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-                stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+                    auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+                    stack.count = std::max(stack.count, static_cast<gcov_type>(count));
 
-                auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
-                stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
-                
-                //There is one more dynamic instruction
-                ++stack.num_inst;
+                    auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+                    stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+
+                    //There is one more dynamic instruction
+                    ++stack.num_inst;
+                } else {
+                    auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
+
+                    auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
+                    stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+
+                    auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
+                    stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+
+                    //There is one more dynamic instruction
+                    ++stack.num_inst;
+                }
             }
         }
-        
-        //2. Handle inlined blocks if any
+    }
+}
+
+//LBR Mode
+
+void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
+    auto& asm_file = report.asm_file(function.i);
+
+    bb_vector normal_blocks;
+    std::vector<bb_vector> inlined_block_sets;
+    std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
+
+    //1. Normal pass for non-inlined blocks
+    for(auto& block : normal_blocks){
+        for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
+            gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
+
+            auto& asm_line = asm_file.line(j);
+            gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+
+            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
+            stack.count = std::max(stack.count, block.exec_count);
+
+            //There is one more dynamic instruction
+            ++stack.num_inst;
+        }
+    }
+
+    //2. Handle inlined blocks if any
+    if(!inlined_block_sets.empty()){
         for(auto& block_set : inlined_block_sets){
             gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
 
@@ -297,89 +363,17 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                     if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
                         auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
-                        auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-                        stack.count = std::max(stack.count, static_cast<gcov_type>(count));
-
-                        auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
-                        stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
+                        stack.count = std::max(stack.count, block.exec_count);
 
                         //There is one more dynamic instruction
                         ++stack.num_inst;
                     } else {
                         auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
 
-                        auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-                        stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+                        stack.count = std::max(stack.count, block.exec_count);
 
-                        auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
-                        stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
-                        
                         //There is one more dynamic instruction
                         ++stack.num_inst;
-                    }
-                }
-            }
-        }
-    }
-}
-
-//LBR Mode
-
-void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
-    if(report.has_asm_file(function.i)){
-        auto& asm_file = report.asm_file(function.i);
-
-        bb_vector normal_blocks;
-        std::vector<bb_vector> inlined_block_sets;
-        std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-
-        //1. Normal pass for non-inlined blocks
-        for(auto& block : normal_blocks){
-            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-                auto& asm_line = asm_file.line(j);
-                gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
-
-                auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
-                stack.count = std::max(stack.count, block.exec_count);
-                
-                //There is one more dynamic instruction
-                ++stack.num_inst;
-            }
-        }
-
-        //2. Handle inlined blocks if any
-        if(!inlined_block_sets.empty()){
-            for(auto& block_set : inlined_block_sets){
-                gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
-
-                for(auto& block : block_set){
-                    for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                        gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-                        auto& asm_line = asm_file.line(j);
-                        gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                        auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
-
-                        //It is possible that a basic block is not made only 
-                        //of inlined lines
-                        if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
-
-                            stack.count = std::max(stack.count, block.exec_count);
-                            
-                            //There is one more dynamic instruction
-                            ++stack.num_inst;
-                        } else {
-                            auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
-
-                            stack.count = std::max(stack.count, block.exec_count);
-                
-                            //There is one more dynamic instruction
-                            ++stack.num_inst;
-                        }
                     }
                 }
             }
