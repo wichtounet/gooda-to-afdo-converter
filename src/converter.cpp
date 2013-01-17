@@ -43,7 +43,6 @@ struct gooda_bb {
     std::string file;
     unsigned long line_start;
     unsigned long exec_count;
-    long address;
 
     std::size_t gooda_line_start;   //Inside asm_file
     std::size_t gooda_line_end;     //Inside asm_file
@@ -67,62 +66,6 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, std::string func, s
     gooda::afdo_stack stack;
 
     stack.stack.emplace_back(func, file, line, discriminator);
-
-    function.stacks.push_back(std::move(stack));
-
-    return function.stacks.back(); 
-}
-
-long get_min_address(bb_vector& block_set){
-    long start_address = std::numeric_limits<long>::max();
-    
-    for(auto& block : block_set){
-        start_address = std::min(start_address, block.address);
-    }
-
-    return start_address;
-}
-
-std::string get_function_name(const std::string& application_file, bb_vector& block_set){
-    auto start_address = get_min_address(block_set);
-
-    auto key = std::make_pair(application_file, start_address);
-
-    //If the file does not exist, the cache will not be filled
-    //It can also come from an error of addr2line
-    if(inlining_cache.find(key) == inlining_cache.end()){
-        log::emit<log::Debug>() << application_file << ":" << start_address << " not in cache" << log::endl;
-
-        return "";
-    }
-
-    //TODO Change that
-    return inlining_cache[key].front().func;
-}
-
-gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string src_func, std::string src_file, std::size_t src_line, std::size_t src_discriminator,
-            std::string dest_func, std::string dest_file, std::size_t dest_line, std::size_t dest_discriminator){
-    for(auto& stack : function.stacks){
-        if(stack.stack.size() == 2){
-            auto& src_pos = stack.stack.front();
-
-            if(src_pos.line == src_line && src_pos.func == src_func && src_pos.file == src_file && src_pos.discriminator == src_discriminator){
-                auto& dest_pos = stack.stack.back();
-            
-                if(dest_pos.line == dest_line && dest_pos.func == dest_func && dest_pos.file == dest_file && dest_pos.discriminator == dest_discriminator){
-                    return stack;
-                }
-            }
-        }
-    }
-    
-    gooda::afdo_stack stack;
-
-    //Source position
-    stack.stack.emplace_back(src_func, src_file, src_line, src_discriminator);
-    
-    //Destination position
-    stack.stack.emplace_back(dest_func, dest_file, dest_line, dest_discriminator);
 
     function.stacks.push_back(std::move(stack));
 
@@ -242,7 +185,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
 
                 block.file = line.get_string(file.column(PRINC_FILE));
                 block.line_start = line.get_counter(file.column(PRINC_LINE));
-                block.address = line.get_address(file.column(ADDRESS));
                 
                 if(lbr){
                     block.exec_count = line.get_counter(file.column(BB_EXEC));
@@ -361,13 +303,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                         //There is one more dynamic instruction
                         ++stack.num_inst;
                     } else {
-                        auto callee_function_name = get_function_name(function.executable_file, block_set);
-                        auto callee_line_number = asm_line.get_counter(asm_file.column(INIT_LINE));
-
-                        auto& stack = get_inlined_stack(
-                                function, 
-                                function.name, function.file, line_number, discriminator,
-                                callee_function_name, block.inlined_file, callee_line_number, 0); 
+                        auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
 
                         auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
                         stack.count = std::max(stack.count, static_cast<gcov_type>(count));
@@ -405,6 +341,8 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
 
                 auto& stack = get_stack(function, function.name, function.file, line_number, discriminator);
                 stack.count = std::max(stack.count, block.exec_count);
+                
+                //There is one more dynamic instruction
                 ++stack.num_inst;
             }
         }
@@ -428,11 +366,15 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
                             auto& stack = get_stack(function, function.name, function.file, line_number, discriminator); 
 
                             stack.count = std::max(stack.count, block.exec_count);
+                            
+                            //There is one more dynamic instruction
                             ++stack.num_inst;
                         } else {
                             auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
 
                             stack.count = std::max(stack.count, block.exec_count);
+                
+                            //There is one more dynamic instruction
                             ++stack.num_inst;
                         }
                     }
