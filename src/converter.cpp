@@ -501,11 +501,16 @@ void compute_lengths(gooda::afdo_data& data){
  * \brief Compute the working set for the given data. 
  * \param data the AFDO profile
  */
-void compute_working_set(gooda::afdo_data& data){
+void compute_working_set(gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //Fill the working set with zero
     for(auto& working_set : data.working_set){
         working_set.num_counter = 0;
         working_set.min_counter = 0;
+    }
+
+    //Let it be zero if the user does not want it
+    if(vm.count("nows")){
+        return;
     }
 
     std::map<std::size_t, std::size_t> histogram;
@@ -762,6 +767,13 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
     }
 }
 
+/*!
+ * \brief Update the function names to use the mangled names. 
+ * \param report The gooda report to fill
+ * \param data The data already filled
+ * \param maps The indexes map
+ * \param vm The configuration
+ */
 void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     std::unordered_map<std::string, std::vector<std::string>> asm_addresses;
     std::unordered_map<std::pair<std::string, std::string>, std::string> mangled_names;
@@ -956,6 +968,8 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     //Fill the discriminator cache (gets the discriminators of each lines)
     fill_discriminator_cache(report, data, maps, vm);
 
+    //Generate the inline stacks
+
     for(std::size_t i = 0; i < report.functions(); ++i){
         if(maps.at(i) >= 0){
             auto& function = data.functions.at(maps.at(i));
@@ -971,19 +985,13 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
         }
     }
 
+    //Remove all the stacks that have no dynamic instructions
     prune_non_dynamic_stacks(data);
 
     //Compute the working set
-    if(vm.count("nows")){
-        //Fill the working set with zero
-        for(auto& working_set : data.working_set){
-            working_set.num_counter = 0;
-            working_set.min_counter = 0;
-        }
-    } else {
-        compute_working_set(data);
-    }
+    compute_working_set(data, vm);
 
+    //Set the sizes of the different sections
     compute_lengths(data);
 
     //Note: No need to fill the modules because it is not used by GCC
