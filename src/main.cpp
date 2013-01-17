@@ -175,7 +175,7 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
     }
 
     if(vm.count("quiet")){
-	gooda_command += " > /dev/null 2> /dev/null";
+        gooda_command += " > /dev/null 2> /dev/null";
     }
 
     log::emit<log::Debug>() << "Run Gooda (Gooda needs to be run in root)" << log::endl;
@@ -183,8 +183,8 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
 
     gooda::exec_command(gooda_command);
 
-    //If no option is specified, just as as a wrapper of Gooda
-    if(vm.count("afdo")){
+    //If no output action is specified, just as as a wrapper of Gooda
+    if(vm.count("afdo") || vm.count("dump") || vm.count("full-dump")){
         //Process the spreadsheets to generate AFDO
         process_spreadsheets("spreadsheets", vm); 
     }
