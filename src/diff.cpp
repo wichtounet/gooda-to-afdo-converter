@@ -11,47 +11,54 @@
 #include "logger.hpp"
 #include "hash.hpp"
 
-typedef std::pair<std::string, std::size_t> line_key;
-
 void gooda::diff(const gooda_report& first, const gooda_report& second, boost::program_options::variables_map&){
-    //Verify that both files have the same number of columsn
-    if(first.get_hotspot_file().columns() != second.get_hotspot_file().columns()){
-        log::emit<log::Error>() << "The two files do not have the same number of columns" << log::endl;
-        return;
-    }
+    auto& first_file = first.get_hotspot_file();
+    auto& second_file = second.get_hotspot_file();
 
-    std::unordered_map<line_key, std::reference_wrapper<const gooda::gooda_line>> sorted_lines;
-
-    //Sort all the source lines of the first report
     for(std::size_t i = 0; i < first.functions(); ++i){
-        if(first.has_src_file(i)){
-            auto& src_file = first.src_file(i);
+        auto& first_line = first.hotspot_function(i);
+        auto first_name = first_line.get_string(first_file.column(FUNCTION_NAME));
 
-            for(auto& line : src_file){
-                line_key key = {line.get_string(src_file.column(SOURCE)), line.get_counter(src_file.column(LINE_NUMBER))};
+        bool found = false;
 
-                sorted_lines.insert(std::make_pair(key, std::cref(line)));
+        for(std::size_t j = 0; j < second.functions(); ++j){
+            auto& second_line = second.hotspot_function(j);
+            auto second_name = second_line.get_string(second_file.column(FUNCTION_NAME));
+
+            if(first_name == second_name){
+                auto diff = first_line.get_counter(first_file.column(UNHALTED_CORE_CYCLES)) - second_line.get_counter(second_file.column(UNHALTED_CORE_CYCLES));
+
+                std::cout << "Diff " << first_name << ": " << diff << " unhalted core cycles" << std::endl;
+
+                found = true;
+                break;
             }
         }
+
+        if(!found){
+            std::cout << "Diff " << first_name << ": 0 unhalted core cycles" << std::endl;
+        }
     }
+    
+    for(std::size_t i = 0; i < second.functions(); ++i){
+        auto& second_line = second.hotspot_function(i);
+        auto second_name = second_line.get_string(second_file.column(FUNCTION_NAME));
+        
+        bool found = false;
 
-    //Match sources lines of the second report with the source lines of the first report
-    for(std::size_t i = 0; i < first.functions(); ++i){
-        if(first.has_src_file(i)){
-            auto& src_file = first.src_file(i);
-            auto column = src_file.column(UNHALTED_CORE_CYCLES);
+        for(std::size_t j = 0; j < first.functions(); ++j){
+            auto& first_line = first.hotspot_function(j);
+            auto first_name = first_line.get_string(first_file.column(FUNCTION_NAME));
 
-            for(auto& second_line : src_file){
-                line_key key = {second_line.get_string(src_file.column(SOURCE)), second_line.get_counter(src_file.column(LINE_NUMBER))};
-
-                auto it = sorted_lines.find(key);
-
-                if(it != sorted_lines.end()){
-                    const gooda::gooda_line& first_line = it->second;
-
-                    std::cout << "Diff " << (first_line.get_counter(column) - second_line.get_counter(column)) << " unhalted core cycles" << std::endl;
-                }
+            if(first_name == second_name){
+                found = true;
+                break;
             }
+        }
+
+
+        if(!found){
+            std::cout << "Diff " << second_name << ": 0 unhalted core cycles" << std::endl;
         }
     }
 }
