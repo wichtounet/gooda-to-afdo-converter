@@ -391,19 +391,6 @@ unsigned int sizeof_string(const std::string& str){
 }
 
 /*!
- * \brief Remove all the stacks that have no corresponding dynamic instructions
- * \param data The AFDO profile
- */
-void prune_non_dynamic_stacks(gooda::afdo_data& data){
-    for(auto& function : data.functions){
-        function.stacks.erase(
-                std::remove_if(function.stacks.begin(), function.stacks.end(), 
-                    [](gooda::afdo_stack& stack){ return stack.num_inst == 0;}), 
-                function.stacks.end());
-    }
-}
-
-/*!
  * \brief Compute the length of each section of the AFDO data file. 
  * \param data the Data file
  */
@@ -963,9 +950,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             }
         }
     }
-
-    //Remove all the stacks that have no dynamic instructions
-    prune_non_dynamic_stacks(data);
 
     //Fill the file name table with the strings from the AFDO profile
     fill_file_name_table(data);
