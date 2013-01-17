@@ -10,6 +10,14 @@
 #include "assert.hpp"
 #include "afdo_data.hpp"
 
+bool gooda::afdo_pos::operator==(const gooda::afdo_pos& rhs){
+    return line == rhs.line && discriminator == rhs.discriminator && func == rhs.func && file == rhs.file;
+}
+
+bool gooda::afdo_pos::operator!=(const gooda::afdo_pos& rhs){
+    return line != rhs.line || discriminator != rhs.discriminator || func != rhs.func || file != rhs.file;
+}
+
 gcov_unsigned_t gooda::afdo_data::get_file_index(const std::string& file) const {
     gooda_assert(file_index.find(file) != file_index.end(), "The file is not contained in the index");
 
