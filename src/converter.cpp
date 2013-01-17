@@ -27,7 +27,7 @@
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds milliseconds;
 
-typedef std::pair<std::string, long> inlined_key;
+typedef std::pair<std::string, std::string> inlined_key;
 
 namespace {
 
@@ -75,7 +75,7 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     return function.stacks.back(); 
 }
 
-gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, long address){
+gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string address){
     auto key = std::make_pair(function.executable_file, address);
 
     //If the file does not exist, the cache will not be filled
@@ -123,7 +123,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, long addres
 }
 
 std::vector<bb_vector> compute_inlined_sets(bb_vector block_set){
-    std::unordered_map<inlined_key, bb_vector> inline_mappings;
+    std::unordered_map<std::pair<std::string, long>, bb_vector> inline_mappings;
 
     for(auto& block : block_set){
         //If this block comes from an inlined function
@@ -262,7 +262,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
 
             auto& asm_line = asm_file.line(j);
             gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
             auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
 
@@ -287,7 +287,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
 
                 auto& asm_line = asm_file.line(j);
                 gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+                auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
                 //It is possible that a basic block is not made only 
                 //of inlined lines
@@ -303,7 +303,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                     //There is one more dynamic instruction
                     ++stack.num_inst;
                 } else {
-                    auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
+                    auto& stack = get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
                     auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
                     stack.count = std::max(stack.count, static_cast<gcov_type>(count));
@@ -335,7 +335,7 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
 
             auto& asm_line = asm_file.line(j);
             gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
             auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
             stack.count = std::max(stack.count, block.exec_count);
@@ -356,7 +356,7 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
 
                     auto& asm_line = asm_file.line(j);
                     gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                    auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_address(asm_file.column(ADDRESS))}];
+                    auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
                     //It is possible that a basic block is not made only 
                     //of inlined lines
@@ -368,7 +368,7 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
                         //There is one more dynamic instruction
                         ++stack.num_inst;
                     } else {
-                        auto& stack = get_inlined_stack(function, asm_line.get_address(asm_file.column(ADDRESS)));
+                        auto& stack = get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
                         stack.count = std::max(stack.count, block.exec_count);
 
@@ -552,6 +552,19 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
     }
 }
 
+std::string extract_address(const std::string& str_line){
+    std::string address = "0x";
+
+    int i = 2;
+    while(str_line[i] == '0'){
+        ++i;
+    }
+
+    address += str_line.substr(i, str_line.size() - i);
+
+    return address;
+}
+
 /*!
  * \brief Fill the inlining cache
  * \param report The gooda report to fill
@@ -560,7 +573,7 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
  * \param vm The configuration
  */
 void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
-    std::unordered_map<std::string, std::vector<std::size_t>> addresses;
+    std::unordered_map<std::string, std::vector<std::string>> addresses;
     
     //Collect the inlined addresses
 
@@ -573,8 +586,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                 auto& line = file.line(j);
 
                 if(!line.get_string(file.column(INIT_LINE)).empty()){
-                    auto address = line.get_address(file.column(ADDRESS));
-                    addresses[function.executable_file].push_back(address);
+                    addresses[function.executable_file].push_back(line.get_string(file.column(ADDRESS)));
                 }
             }
         }
@@ -595,7 +607,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << address_set.first << " ";
 
         for(auto& address : address_set.second){
-            ss << "0x" << std::hex << address << " ";
+            ss << address << " ";
         }
 
         auto command = ss.str();
@@ -605,12 +617,11 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         std::istringstream result_stream(result);
         std::string str_line;    
 
-        std::size_t address = 0;
+        std::string address;
 
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "0x000000")){
-                std::istringstream convert(str_line);
-                convert >> std::hex >> address;
+                address = extract_address(str_line);
             } else {
                 auto key = std::make_pair(address_set.first, address);
 
@@ -654,7 +665,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
  */
 void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
     if(vm.count("discriminators")){
-        std::unordered_map<std::string, std::vector<std::size_t>> asm_addresses;
+        std::unordered_map<std::string, std::vector<std::string>> asm_addresses;
 
         for(std::size_t i = 0; i < report.functions(); ++i){
             if(maps.at(i) >= 0){
@@ -665,7 +676,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                     auto& line = file.line(j);
 
                     if(!line.get_string(file.column(ADDRESS)).empty()){
-                        asm_addresses[function.executable_file].push_back(line.get_address(file.column(ADDRESS)));
+                        asm_addresses[function.executable_file].push_back(line.get_string(file.column(ADDRESS)));
                     }
                 }
             }
@@ -684,7 +695,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
             ss << vm["addr2line"].as<std::string>() << " -a --exe=" << address_set.first << " ";
 
             for(auto& address : address_set.second){
-                ss << "0x" << std::hex << address << " ";
+                ss << address << " ";
             }
 
             auto command = ss.str();
@@ -695,12 +706,11 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
             std::string str_line;    
             bool next = false;
 
-            std::size_t address = 0;
+            std::string address;
 
             while (std::getline(result_stream, str_line)) {
                 if(boost::starts_with(str_line, "0x000000")){
-                    std::istringstream convert(str_line);
-                    convert >> std::hex >> address;
+                    address = extract_address(str_line);
                     next = true;
                 } else if(next){
                     auto key = std::make_pair(address_set.first, address);
@@ -785,14 +795,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "0x000000")){
-                address = "0x";
-
-                int i = 2;
-                while(str_line[i] == '0'){
-                    ++i;
-                }
-
-                address += str_line.substr(i, str_line.size() - i);
+                address = extract_address(str_line);
 
                 next = true;
             } else if(next){
