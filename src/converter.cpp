@@ -244,6 +244,8 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
             } else if(bb_found){
                 auto file_name = line.get_string(file.column(PRINC_FILE));
 
+                std::cout << function.i << ":" << file_name << std::endl;
+
                 function.file = file_name;
                 data.add_file_name(file_name);
 
@@ -789,9 +791,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             gooda::afdo_function function;
             function.i = i;
             function.executable_file = get_application_file(report, i);
-            
             function.name = line.get_string(report.get_hotspot_file().column(FUNCTION_NAME));
-            data.add_file_name(function.name);
 
             if(lbr){
                 function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
@@ -803,32 +803,57 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
                 function.total_count = static_cast<gcov_type>(count);
             }
 
-            //Check that the function file is correctly set
+            //We need the asm file to continue 
             
-            if(report.has_asm_file(function.i)){
-                auto& file = report.asm_file(function.i);
+            if(!report.has_asm_file(function.i)){
+                continue;
+            }
+            
+            //Check that the function file is correctly set
 
-                bool invalid = false;
+            auto& file = report.asm_file(function.i);
 
-                for(std::size_t j = 0; j < file.lines(); ++j){
-                    auto& line = file.line(j);
+            bool invalid = false;
 
-                    //Gooda does not always found the source file of a function
-                    //In that case, declare the function as invalid and return quickly
-                    if(line.get_string(file.column(PRINC_FILE)) == "null"){
-                        log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
+            for(std::size_t j = 0; j < file.lines(); ++j){
+                auto& line = file.line(j);
 
-                        invalid = true;
-                        break;
-                    }
+                //Basic Block have no file
+                if(boost::starts_with(line.get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                    continue;
                 }
 
-                if(invalid){
+                //Line without addresses have special meaning
+                if(line.get_string(file.column(ADDRESS)).empty()){
                     continue;
+                }
+
+                //Gooda does not always found the source file of a function
+                //In that case, declare the function as invalid and return quickly
+                auto princ_file = line.get_string(file.column(PRINC_FILE));
+                if(princ_file == "null"){
+                    log::emit<log::Warning>() << function.name << " is invalid (null file)" << log::endl;
+
+                    invalid = true;
+                    break;
+                }
+
+                if(princ_file.empty()){
+                    log::emit<log::Warning>() << function.name << " is invalid (empty file)" << log::endl;
+                    std::cout << line.get_string(file.column(DISASSEMBLY)) << std::endl;
+
+                    invalid = true;
+                    break;
                 }
             }
 
+            if(invalid){
+                continue;
+            }
+
             //Add the function
+            
+            data.add_file_name(function.name);
 
             maps[i] = data.functions.size();
             data.functions.push_back(std::move(function));

@@ -47,7 +47,6 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
 
     std::cout << "Hotspot functions" << std::endl;
     for(auto& function : functions) {
-        std::cout << function.file << std::endl;
         std::cout << function.name << " (" << function.file << "(" << data.get_file_index(function.file) << "))" 
             << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
