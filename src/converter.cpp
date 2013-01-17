@@ -244,8 +244,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_da
             } else if(bb_found){
                 auto file_name = line.get_string(file.column(PRINC_FILE));
 
-                std::cout << function.i << ":" << file_name << std::endl;
-
                 function.file = file_name;
                 data.add_file_name(file_name);
 
@@ -840,7 +838,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
                 if(princ_file.empty()){
                     log::emit<log::Warning>() << function.name << " is invalid (empty file)" << log::endl;
-                    std::cout << line.get_string(file.column(DISASSEMBLY)) << std::endl;
 
                     invalid = true;
                     break;
