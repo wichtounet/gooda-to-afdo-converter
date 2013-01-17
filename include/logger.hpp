@@ -91,7 +91,7 @@ struct log {
      */
     struct Trace {
         constexpr static const char* label = "TRACE";       //!< The label of the level
-        static const int level = 2;                         //!< The level of the level
+        static const int level = 3;                         //!< The level of the level
     };
 
     /*!
