@@ -758,6 +758,94 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
     }
 }
 
+void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
+    std::unordered_map<std::string, std::vector<std::string>> asm_addresses;
+    std::unordered_map<std::pair<std::string, std::string>, std::string> mangled_names;
+    std::unordered_map<std::size_t, std::pair<std::string, std::string>> function_addresses;
+
+    //Collect one address for each function
+
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        if(maps.at(i) >= 0){
+            auto& function = data.functions.at(maps.at(i));
+
+            auto& file = report.asm_file(function.i);
+
+            //Get the first non empty address and put it on the map
+            for(std::size_t j = 0; j < file.lines(); ++j){
+                auto& line = file.line(j);
+
+                auto address = line.get_string(file.column(ADDRESS));
+
+                if(!address.empty()){
+                    function_addresses[function.i] = {function.executable_file, address};
+                    asm_addresses[function.executable_file].emplace_back(std::move(address));
+                    break;
+                }
+            }
+        }
+    }
+
+    //Collect the mangled function names
+
+    for(auto& address_set : asm_addresses){
+        if(!gooda::exists(address_set.first)){
+            log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+
+            continue;
+        }
+
+        log::emit<log::Warning>() << "Mangled Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
+
+        std::stringstream ss;
+        ss << vm["addr2line"].as<std::string>() << " -a -f --exe=" << address_set.first << " ";
+
+        for(auto& address : address_set.second){
+            ss << address << " ";
+        }
+
+        auto result = gooda::exec_command_result(ss.str());
+
+        std::istringstream result_stream(result);
+        std::string str_line;    
+        bool next = false;
+
+        std::string address;
+
+        while (std::getline(result_stream, str_line)) {
+            if(boost::starts_with(str_line, "0x000000")){
+                address = "0x";
+
+                int i = 2;
+                while(str_line[i] == '0'){
+                    ++i;
+                }
+
+                address += str_line.substr(i, str_line.size() - i);
+
+                std::cout << address << std::endl;
+
+                next = true;
+            } else if(next){
+                mangled_names[{address_set.first, address}] = str_line;
+
+                next = false;
+            }
+        }
+    }
+
+    //Give the functions their names
+    
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        if(maps.at(i) >= 0){
+            auto& function = data.functions.at(maps.at(i));
+
+            function.name = mangled_names[function_addresses[function.i]];
+            data.add_file_name(function.name);
+        }
+    }
+}
+
 } //End of anonymous namespace
 
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
@@ -849,18 +937,19 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             }
 
             //Add the function
-            
-            data.add_file_name(function.name);
 
             maps[i] = data.functions.size();
             data.functions.push_back(std::move(function));
         }
     }
 
-    //Fill the inlining cache
+    //Update function names (replace unmangled with mangled names)
+    update_function_names(report, data, maps, vm);
+
+    //Fill the inlining cache (gets inlined function names)
     fill_inlining_cache(report, data, maps, vm);
     
-    //Fill the discriminator cache
+    //Fill the discriminator cache (gets the discriminators of each lines)
     fill_discriminator_cache(report, data, maps, vm);
 
     for(std::size_t i = 0; i < report.functions(); ++i){
