@@ -37,7 +37,7 @@ namespace {
 std::unordered_map<inlined_key, std::vector<gooda::afdo_pos>> inlining_cache;
 
 //The discriminator cache contains the discriminator for each address
-std::unordered_map<inlined_key, std::size_t> discriminator_cache;
+std::unordered_map<inlined_key, gcov_unsigned_t> discriminator_cache;
 
 struct gooda_bb {
     std::string file;
@@ -806,7 +806,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                     } else {
                         auto end = str_line.find(")", search); 
                         auto discriminator = str_line.substr(search + 15, end - search - 15);
-                        discriminator_cache[key] = boost::lexical_cast<long>(discriminator);    
+                        discriminator_cache[key] = boost::lexical_cast<gcov_unsigned_t>(discriminator);    
                     }
 
                     next = false;
