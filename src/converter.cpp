@@ -675,7 +675,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                 for(std::size_t j = 0; j < file.lines(); ++j){
                     auto& line = file.line(j);
 
-                    if(!line.get_string(file.column(ADDRESS)).empty()){
+                    if(!line.get_string(file.column(ADDRESS)).empty() && line.get_string(file.column(INIT_FILE)).empty()){
                         asm_addresses[function.executable_file].push_back(line.get_string(file.column(ADDRESS)));
                     }
                 }
