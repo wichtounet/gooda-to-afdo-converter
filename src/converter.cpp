@@ -5,7 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstring>
@@ -21,6 +20,11 @@
 #include "utils.hpp"
 #include "logger.hpp"
 #include "hash.hpp"
+
+/*!
+ * \file converter.cpp
+ * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
+ */
 
 typedef std::pair<std::string, std::string> inlined_key;
 
@@ -207,7 +211,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
 /*!
  * \brief Annotate the function with Unhalted Core Cycles counters
  * \param report The Gooda source report
- * \param functoin The AFDO function
+ * \param function The AFDO function
  * \param basic_blocks The basic blocks
  */
 void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
@@ -240,7 +244,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
 /*!
  * \brief Annotate the function with LBR counters
  * \param report The Gooda source report
- * \param functoin The AFDO function
+ * \param function The AFDO function
  * \param basic_blocks The basic blocks
  */
 void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
