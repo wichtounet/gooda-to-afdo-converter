@@ -29,18 +29,18 @@
 namespace {
 
 /*!
- * \typedef inlined_key
+ * \typedef address_key
  * \brief Identifies an instruction inside an ELF file by its address
  */
-typedef std::pair<std::string, std::string> inlined_key;
+typedef std::pair<std::string, std::string> address_key;
 
 //Common utilities
 
 //The inlining cache contains the inline stack for each inlined point
-std::unordered_map<inlined_key, std::vector<gooda::afdo_pos>> inlining_cache;
+std::unordered_map<address_key, std::vector<gooda::afdo_pos>> inlining_cache;
 
 //The discriminator cache contains the discriminator for each address
-std::unordered_map<inlined_key, gcov_unsigned_t> discriminator_cache;
+std::unordered_map<address_key, gcov_unsigned_t> discriminator_cache;
 
 /*!
  * \struct gooda_bb
