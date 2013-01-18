@@ -8,6 +8,11 @@
 #ifndef GOODA_GCOV_FILE_HPP
 #define GOODA_GCOV_FILE_HPP
 
+/*!
+ * \file gcov_file.hpp
+ * \brief Utility to write and read GCOV files
+ */
+
 #include <iostream>
 #include <fstream>
 

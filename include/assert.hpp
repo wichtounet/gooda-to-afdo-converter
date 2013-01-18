@@ -9,7 +9,7 @@
 #define GOODA_ASSERT_HPP
 
 /*!
- * \file utils.hpp
+ * \file assert.hpp
  * \brief Contains assertion functions. 
  */
 

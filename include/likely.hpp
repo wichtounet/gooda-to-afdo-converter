@@ -8,6 +8,11 @@
 #ifndef LIKELY_H
 #define LIKELY_H
 
+/*!
+ * \file likely.hpp
+ * \brief Contains macro helping GCC to produce efficient code.
+ */
+
 #ifdef __GNUC__
 
 #define likely(x)   __builtin_expect(!!(x), 1)
