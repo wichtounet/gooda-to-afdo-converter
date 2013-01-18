@@ -48,8 +48,8 @@ struct afdo_pos {
     afdo_pos(const std::string& func, const std::string& file, gcov_unsigned_t line, gcov_unsigned_t discriminator)
         : func(func), file(file), line(line), discriminator(discriminator) {};
 
-    bool operator==(const afdo_pos& rhs);
-    bool operator!=(const afdo_pos& rhs);
+    bool operator==(const afdo_pos& rhs) const ;
+    bool operator!=(const afdo_pos& rhs) const ;
 };
 
 /*!

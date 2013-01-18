@@ -10,11 +10,11 @@
 #include "assert.hpp"
 #include "afdo_data.hpp"
 
-bool gooda::afdo_pos::operator==(const gooda::afdo_pos& rhs){
+bool gooda::afdo_pos::operator==(const gooda::afdo_pos& rhs) const {
     return line == rhs.line && discriminator == rhs.discriminator && func == rhs.func && file == rhs.file;
 }
 
-bool gooda::afdo_pos::operator!=(const gooda::afdo_pos& rhs){
+bool gooda::afdo_pos::operator!=(const gooda::afdo_pos& rhs) const {
     return line != rhs.line || discriminator != rhs.discriminator || func != rhs.func || file != rhs.file;
 }
 
