@@ -703,6 +703,16 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
             }
         }
     }
+
+    //There is a bug in addr2line 2.23.1 that gives discriminator for each element of the inlining stack
+    //However, only the one from the source is valid. DWARF does not allow discriminators in the inline stack
+
+    for(auto& inlining_entry : inlining_cache){
+        auto& inlining_stack = inlining_entry.second;
+        for(std::size_t i = 0; i < inlining_stack.size() - 1; ++i){
+            inlining_stack.at(i).discriminator = 0;
+        }
+    }
 }
 
 /*!
