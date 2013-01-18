@@ -26,9 +26,13 @@
  * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
  */
 
-typedef std::pair<std::string, std::string> inlined_key;
-
 namespace {
+
+/*!
+ * \typedef inlined_key
+ * \brief Identifies an instruction inside an ELF file by its address
+ */
+typedef std::pair<std::string, std::string> inlined_key;
 
 //Common utilities
 
@@ -38,12 +42,20 @@ std::unordered_map<inlined_key, std::vector<gooda::afdo_pos>> inlining_cache;
 //The discriminator cache contains the discriminator for each address
 std::unordered_map<inlined_key, gcov_unsigned_t> discriminator_cache;
 
+/*!
+ * \struct gooda_bb
+ * \brief A basic block extracted from the assembly view
+ */
 struct gooda_bb {
-    unsigned long exec_count;
-    std::size_t gooda_line_start;   //Inside asm_file
-    std::size_t gooda_line_end;     //Inside asm_file
+    unsigned long exec_count;       //!< The number of executions of the BB (only in LBR)
+    std::size_t gooda_line_start;   //!< The first line (in the assembly spreadsheet)
+    std::size_t gooda_line_end;     //!< The last line (in the assembly spreadsheet)
 };
 
+/*!
+ * \typedef bb_vector
+ * \brief A vector of basic block
+ */
 typedef std::vector<gooda_bb> bb_vector;
 
 /*!
