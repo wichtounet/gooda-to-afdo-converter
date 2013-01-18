@@ -53,6 +53,15 @@ struct gooda_bb {
 
 typedef std::vector<gooda_bb> bb_vector;
 
+/*!
+ * \brief Get an inline stack for the given position. 
+ *
+ * If the inline stack already exists, a reference to it is returned, else a new one is created.
+ *
+ * \param function The AFDO function
+ * \param position The afdo position to search for
+ * \return A reference to the corresponding inline stack
+ */
 gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& position){
     //Try to find an equivalent stack
 
@@ -75,6 +84,12 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     return function.stacks.back(); 
 }
 
+/*!
+ * \brief Get an inline stack for the given address that is coming from an inlined function
+ * \param function The AFDO function
+ * \param address The address of the instruction
+ * \return A reference to the corresponding inline stack
+ */
 gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string address){
     auto key = std::make_pair(function.executable_file, address);
 
@@ -122,6 +137,11 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     return function.stacks.back(); 
 }
 
+/*!
+ * \brief Compute the inlined basic blocks sets from a set of basic blocks
+ * \param block_set All the basic blocks
+ * \return A vector of vector of basic blocks
+ */
 std::vector<bb_vector> compute_inlined_sets(bb_vector block_set){
     std::unordered_map<std::pair<std::string, long>, bb_vector> inline_mappings;
 
@@ -141,6 +161,14 @@ std::vector<bb_vector> compute_inlined_sets(bb_vector block_set){
     return inlined_sets;
 }
 
+/*!
+ * \brief Split the basic blocks in two sets, one containing normal blocks and the other containing blocks coming from inlined functions
+ *
+ * The basic_blocks parameter will be cleared. 
+ *
+ * \param basic_blocks The basic blocks 
+ * \return Two sets of basic blocks, the first containing the normal blocks and the second containing the inlined basic block sets. 
+ */
 std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
     bb_vector normal_blocks;
 
@@ -159,6 +187,13 @@ std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
     return std::make_pair(std::move(normal_blocks), std::move(inlined_block_sets));
 }
 
+/*!
+ * \brief Collect basic blocks of the given function
+ * \param report The Gooda source report
+ * \param function The AFDO function
+ * \param lbr Indicate if lbr is activated or not
+ * \return A vector containing all the basic blocks of the function
+ */
 bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_function& function, bool lbr){
     bb_vector basic_blocks;
 
@@ -246,8 +281,12 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
     return basic_blocks;
 }
 
-//Cycle Accounting mode
-
+/*!
+ * \brief Annotate the function with Unhalted Core Cycles counters
+ * \param report The Gooda source report
+ * \param functoin The AFDO function
+ * \param basic_blocks The basic blocks
+ */
 void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
     auto& asm_file = report.asm_file(function.i);
 
@@ -319,8 +358,12 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
     }
 }
 
-//LBR Mode
-
+/*!
+ * \brief Annotate the function with LBR counters
+ * \param report The Gooda source report
+ * \param functoin The AFDO function
+ * \param basic_blocks The basic blocks
+ */
 void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
     auto& asm_file = report.asm_file(function.i);
 
@@ -442,6 +485,7 @@ void compute_lengths(gooda::afdo_data& data){
 /*!
  * \brief Compute the working set for the given data. 
  * \param data the AFDO profile
+ * \param vm The 
  */
 void compute_working_set(gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //Fill the working set with zero
@@ -552,6 +596,11 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
     }
 }
 
+/*!
+ * \brief Extract the address from a line coming from addr2line
+ * \param str_line The line to parse
+ * \return The address is Gooda format
+ */
 std::string extract_address(const std::string& str_line){
     std::string address = "0x";
 
@@ -814,6 +863,10 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     }
 }
 
+/*!
+ * \brief Fill the string table of the data
+ * \param data The data already filled
+ */
 void fill_file_name_table(gooda::afdo_data& data){
     for(auto& function : data.functions) {
         data.add_file_name(function.name);
