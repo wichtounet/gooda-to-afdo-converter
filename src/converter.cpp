@@ -34,13 +34,9 @@ namespace {
  */
 typedef std::pair<std::string, std::string> address_key;
 
-//Common utilities
+std::unordered_map<address_key, std::vector<gooda::afdo_pos>> inlining_cache;   //!< Inlining stack cache
 
-//The inlining cache contains the inline stack for each inlined point
-std::unordered_map<address_key, std::vector<gooda::afdo_pos>> inlining_cache;
-
-//The discriminator cache contains the discriminator for each address
-std::unordered_map<address_key, gcov_unsigned_t> discriminator_cache;
+std::unordered_map<address_key, gcov_unsigned_t> discriminator_cache;           //!< Discriminator cache
 
 /*!
  * \struct gooda_bb

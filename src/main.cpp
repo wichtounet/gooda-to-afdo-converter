@@ -229,6 +229,7 @@ int main(int argc, char **argv){
             ("help,h", "Display this help message")
             
             ("bench", "Use the special scripts for benchmarking")
+            ("debug", "Make the dump more verbose")
 
             //Ideally filter would have a std::string with an implicit empty string
             //There is a bug in Boost PO that prevent implicit value and positional options at the same time

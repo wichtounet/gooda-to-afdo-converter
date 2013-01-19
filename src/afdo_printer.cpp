@@ -33,6 +33,14 @@ std::string pretty_size(unsigned int size){
     return stream.str();
 }
 
+void print_file(const gooda::afdo_data& data, boost::program_options::variables_map& vm, const std::string& file){
+    if(vm.count("debug")){
+        std::cout << file << "(" << data.get_file_index(file) << ")"; 
+    } else {
+        std::cout << file; 
+    }
+}
+
 void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_map& vm){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;
 
@@ -47,8 +55,9 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
 
     std::cout << "Hotspot functions" << std::endl;
     for(auto& function : functions) {
-        std::cout << function.name << " (" << function.file << "(" << data.get_file_index(function.file) << "))" 
-            << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
+        std::cout << function.name << " (";
+        print_file(data, vm, function.file);
+        std::cout << ")" << " [" << function.total_count << ":" << function.entry_count << "]" << std::endl;
 
         auto stacks = function.stacks;
 
@@ -66,10 +75,11 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
             std::cout << "]" << std::endl;
 
             for(auto& pos : stack.stack){
-                std::cout << "      Instruction at " 
-                    << pos.file << "(" << data.get_file_index(pos.file) << "):" << pos.line 
-                    << ", func=" << pos.func << "(" << data.get_file_index(pos.func) << ")" 
-                    << ", discr=" << pos.discriminator << std::endl;
+                std::cout << "      Instruction at ";
+                print_file(data, vm, pos.file);
+                std::cout << ":" << pos.line << ", func=";
+                print_file(data, vm, pos.func);
+                std::cout << ", discr=" << pos.discriminator << std::endl;
             }
         }
     }
