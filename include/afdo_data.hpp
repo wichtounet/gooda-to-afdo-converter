@@ -48,7 +48,18 @@ struct afdo_pos {
     afdo_pos(const std::string& func, const std::string& file, gcov_unsigned_t line, gcov_unsigned_t discriminator)
         : func(func), file(file), line(line), discriminator(discriminator) {};
 
+    /*!
+     * \brief Compare two afdo_pos
+     * \param rhs The afdo_pos to compare to. 
+     * \return true if both afdo_pos are equals, false otherwise
+     */
     bool operator==(const afdo_pos& rhs) const ;
+
+    /*!
+     * \brief Compare two afdo_pos
+     * \param rhs The afdo_pos to compare to. 
+     * \return true if both afdo_pos are not equals, false otherwise
+     */
     bool operator!=(const afdo_pos& rhs) const ;
 };
 

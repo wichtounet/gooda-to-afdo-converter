@@ -5,14 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstring>
 #include <map>
 #include <unordered_set>
 #include <utility>
-#include <chrono>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -23,36 +21,48 @@
 #include "logger.hpp"
 #include "hash.hpp"
 
-//Chrono typedefs
-typedef std::chrono::high_resolution_clock Clock;
-typedef std::chrono::milliseconds milliseconds;
-
-typedef std::pair<std::string, std::string> inlined_key;
+/*!
+ * \file converter.cpp
+ * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
+ */
 
 namespace {
 
-//Common utilities
+/*!
+ * \typedef address_key
+ * \brief Identifies an instruction inside an ELF file by its address
+ */
+typedef std::pair<std::string, std::string> address_key;
 
-//The inlining cache contains the inline stack for each inlined point
-std::unordered_map<inlined_key, std::vector<gooda::afdo_pos>> inlining_cache;
+std::unordered_map<address_key, std::vector<gooda::afdo_pos>> inlining_cache;   //!< Inlining stack cache
 
-//The discriminator cache contains the discriminator for each address
-std::unordered_map<inlined_key, gcov_unsigned_t> discriminator_cache;
+std::unordered_map<address_key, gcov_unsigned_t> discriminator_cache;           //!< Discriminator cache
 
+/*!
+ * \struct gooda_bb
+ * \brief A basic block extracted from the assembly view
+ */
 struct gooda_bb {
-    std::string file;
-    unsigned long line_start;
-    unsigned long exec_count;
-
-    std::size_t gooda_line_start;   //Inside asm_file
-    std::size_t gooda_line_end;     //Inside asm_file
-    
-    //If the basic block comes from an inlined function
-    std::string inlined_file;
+    unsigned long exec_count;       //!< The number of executions of the BB (only in LBR)
+    std::size_t gooda_line_start;   //!< The first line (in the assembly spreadsheet)
+    std::size_t gooda_line_end;     //!< The last line (in the assembly spreadsheet)
 };
 
+/*!
+ * \typedef bb_vector
+ * \brief A vector of basic block
+ */
 typedef std::vector<gooda_bb> bb_vector;
 
+/*!
+ * \brief Get an inline stack for the given position. 
+ *
+ * If the inline stack already exists, a reference to it is returned, else a new one is created.
+ *
+ * \param function The AFDO function
+ * \param position The afdo position to search for
+ * \return A reference to the corresponding inline stack
+ */
 gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& position){
     //Try to find an equivalent stack
 
@@ -68,13 +78,19 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     
     gooda::afdo_stack stack;
 
-    stack.stack.emplace_back(std::move(position));
+    stack.stack.push_back(std::move(position));
 
     function.stacks.push_back(std::move(stack));
 
     return function.stacks.back(); 
 }
 
+/*!
+ * \brief Get an inline stack for the given address that is coming from an inlined function
+ * \param function The AFDO function
+ * \param address The address of the instruction
+ * \return A reference to the corresponding inline stack
+ */
 gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string address){
     auto key = std::make_pair(function.executable_file, address);
 
@@ -112,9 +128,10 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     //If its not found, create a new stack
     
     gooda::afdo_stack new_stack;
+    new_stack.stack.reserve(vector.size());
 
     for(auto& pos : vector){
-        new_stack.stack.emplace_back(std::move(pos));
+        new_stack.stack.push_back(std::move(pos));
     }
 
     function.stacks.push_back(std::move(new_stack));
@@ -122,45 +139,16 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     return function.stacks.back(); 
 }
 
-std::vector<bb_vector> compute_inlined_sets(bb_vector block_set){
-    std::unordered_map<std::pair<std::string, long>, bb_vector> inline_mappings;
-
-    for(auto& block : block_set){
-        //If this block comes from an inlined function
-        if(!block.inlined_file.empty()){
-            inline_mappings[{block.file, block.line_start}].push_back(std::move(block));
-        }
-    }
-    
-    std::vector<bb_vector> inlined_sets;
-
-    for(auto& pair : inline_mappings){
-       inlined_sets.push_back(std::move(pair.second)); 
-    }
-
-    return inlined_sets;
-}
-
-std::pair<bb_vector, std::vector<bb_vector>> split_bbs(bb_vector& basic_blocks){
-    bb_vector normal_blocks;
-
-    //Extract the normal blocks
-    for(auto& block : basic_blocks){
-        if(block.inlined_file.empty()){
-            normal_blocks.push_back(std::move(block));
-        }
-    }
-
-    auto inlined_block_sets = compute_inlined_sets(basic_blocks);
-
-    //Note: From this point basic_blocks contains invalid basic_blocks due to std::moving them
-    basic_blocks.clear();
-    
-    return std::make_pair(std::move(normal_blocks), std::move(inlined_block_sets));
-}
-
+/*!
+ * \brief Collect basic blocks of the given function
+ * \param report The Gooda source report
+ * \param function The AFDO function
+ * \param lbr Indicate if lbr is activated or not
+ * \return A vector containing all the basic blocks of the function
+ */
 bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_function& function, bool lbr){
     bb_vector basic_blocks;
+    basic_blocks.reserve(10);
 
     auto& file = report.asm_file(function.i);
 
@@ -168,7 +156,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
     auto start_instruction = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(OFFSET));
     auto length = report.hotspot_function(function.i).get_address(report.get_hotspot_file().column(LENGTH));
     auto last_instruction = start_instruction + length;
-
     bool bb_found = false;
 
     for(std::size_t j = 0; j < file.lines(); ++j){
@@ -185,9 +172,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
         if(boost::starts_with(disassembly, "Basic Block ")){
             gooda_bb block;
 
-            block.file = line.get_string(file.column(PRINC_FILE));
-            block.line_start = line.get_counter(file.column(PRINC_LINE));
-
             if(lbr){
                 block.exec_count = line.get_counter(file.column(BB_EXEC));
             }
@@ -201,20 +185,6 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
             }
 
             block.gooda_line_end = k == file.lines() ? k - 1 : k;
-
-            //Look at the next line to find out if the line comes from an inlined function
-            if(j + 1 < file.lines()){
-                auto& next_line = file.line(j + 1);
-
-                //If the next line is part of the same basic block
-                if(next_line.get_counter(file.column(PRINC_LINE)) == block.line_start){
-                    auto init_file = next_line.get_string(file.column(INIT_FILE));
-
-                    if(!init_file.empty()){
-                        block.inlined_file = init_file;
-                    }
-                }
-            }
 
             basic_blocks.push_back(std::move(block));
         } 
@@ -246,17 +216,16 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
     return basic_blocks;
 }
 
-//Cycle Accounting mode
-
+/*!
+ * \brief Annotate the function with Unhalted Core Cycles counters
+ * \param report The Gooda source report
+ * \param function The AFDO function
+ * \param basic_blocks The basic blocks
+ */
 void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
     auto& asm_file = report.asm_file(function.i);
 
-    bb_vector normal_blocks;
-    std::vector<bb_vector> inlined_block_sets;
-    std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-
-    //1. Normal pass for non-inlined blocks
-    for(auto& block : normal_blocks){
+    for(auto& block : basic_blocks){
         for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
             gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
@@ -264,7 +233,9 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
             gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
             auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
-            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
+            auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
+                ? get_stack(function, {function.name, function.file, line_number, discriminator}) 
+                : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
             stack.count = std::max(stack.count, static_cast<gcov_type>(count));
@@ -276,60 +247,18 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
             ++stack.num_inst;
         }
     }
-
-    //2. Handle inlined blocks if any
-    for(auto& block_set : inlined_block_sets){
-        gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
-
-        for(auto& block : block_set){
-            for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-                auto& asm_line = asm_file.line(j);
-                gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
-
-                //It is possible that a basic block is not made only 
-                //of inlined lines
-                if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                    auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
-
-                    auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-                    stack.count = std::max(stack.count, static_cast<gcov_type>(count));
-
-                    auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
-                    stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
-
-                    //There is one more dynamic instruction
-                    ++stack.num_inst;
-                } else {
-                    auto& stack = get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
-
-                    auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-                    stack.count = std::max(stack.count, static_cast<gcov_type>(count));
-
-                    auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
-                    stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
-
-                    //There is one more dynamic instruction
-                    ++stack.num_inst;
-                }
-            }
-        }
-    }
 }
 
-//LBR Mode
-
+/*!
+ * \brief Annotate the function with LBR counters
+ * \param report The Gooda source report
+ * \param function The AFDO function
+ * \param basic_blocks The basic blocks
+ */
 void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& function, bb_vector& basic_blocks){
     auto& asm_file = report.asm_file(function.i);
 
-    bb_vector normal_blocks;
-    std::vector<bb_vector> inlined_block_sets;
-    std::tie(normal_blocks, inlined_block_sets) = split_bbs(basic_blocks);
-
-    //1. Normal pass for non-inlined blocks
-    for(auto& block : normal_blocks){
+    for(auto& block : basic_blocks){
         for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
             gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
@@ -337,46 +266,14 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
             gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
             auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
-            auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
+            auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
+                ? get_stack(function, {function.name, function.file, line_number, discriminator}) 
+                : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
+
             stack.count = std::max(stack.count, block.exec_count);
 
             //There is one more dynamic instruction
             ++stack.num_inst;
-        }
-    }
-
-    //2. Handle inlined blocks if any
-    if(!inlined_block_sets.empty()){
-        for(auto& block_set : inlined_block_sets){
-            gooda_assert(block_set.size() > 0, "Something went wrong with BB Collection");
-
-            for(auto& block : block_set){
-                for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
-                    gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
-                    auto& asm_line = asm_file.line(j);
-                    gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                    auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
-
-                    //It is possible that a basic block is not made only 
-                    //of inlined lines
-                    if(asm_line.get_string(asm_file.column(INIT_FILE)).empty()){
-                        auto& stack = get_stack(function, {function.name, function.file, line_number, discriminator});
-
-                        stack.count = std::max(stack.count, block.exec_count);
-
-                        //There is one more dynamic instruction
-                        ++stack.num_inst;
-                    } else {
-                        auto& stack = get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
-
-                        stack.count = std::max(stack.count, block.exec_count);
-
-                        //There is one more dynamic instruction
-                        ++stack.num_inst;
-                    }
-                }
-            }
         }
     }
 }
@@ -442,6 +339,7 @@ void compute_lengths(gooda::afdo_data& data){
 /*!
  * \brief Compute the working set for the given data. 
  * \param data the AFDO profile
+ * \param vm The 
  */
 void compute_working_set(gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //Fill the working set with zero
@@ -544,14 +442,17 @@ std::string get_process_filter(const gooda::gooda_report& report, boost::program
 
         return max_process;
     } else if(vm.count("process")){
-        auto filter = vm["process"].as<std::string>();
-
-        return filter;
+        return vm["process"].as<std::string>();
     } else {
         return "";
     }
 }
 
+/*!
+ * \brief Extract the address from a line coming from addr2line
+ * \param str_line The line to parse
+ * \return The address is Gooda format
+ */
 std::string extract_address(const std::string& str_line){
     std::string address = "0x";
 
@@ -654,6 +555,16 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
             }
         }
     }
+
+    //There is a bug in addr2line 2.23.1 that gives discriminator for each element of the inlining stack
+    //However, only the one from the source is valid. DWARF does not allow discriminators in the inline stack
+
+    for(auto& inlining_entry : inlining_cache){
+        auto& inlining_stack = inlining_entry.second;
+        for(std::size_t i = 0; i < inlining_stack.size() - 1; ++i){
+            inlining_stack.at(i).discriminator = 0;
+        }
+    }
 }
 
 /*!
@@ -677,7 +588,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
                     auto address = line.get_string(file.column(ADDRESS));
                     if(!address.empty() && line.get_string(file.column(INIT_FILE)).empty()){
-                        asm_addresses[function.executable_file].emplace_back(std::move(address));
+                        asm_addresses[function.executable_file].push_back(std::move(address));
                     }
                 }
             }
@@ -755,7 +666,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
                 if(!address.empty()){
                     function_addresses[function.i] = {function.executable_file, address};
-                    asm_addresses[function.executable_file].emplace_back(std::move(address));
+                    asm_addresses[function.executable_file].push_back(std::move(address));
                     break;
                 }
             }
@@ -814,6 +725,10 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     }
 }
 
+/*!
+ * \brief Fill the string table of the data
+ * \param data The data already filled
+ */
 void fill_file_name_table(gooda::afdo_data& data){
     for(auto& function : data.functions) {
         data.add_file_name(function.name);

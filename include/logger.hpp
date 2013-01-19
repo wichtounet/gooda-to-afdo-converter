@@ -8,6 +8,11 @@
 #ifndef GOODA_LOGGER_HPP
 #define GOODA_LOGGER_HPP
 
+/*!
+ * \file logger.hpp
+ * \brief Contains the logging system. 
+ */
+
 #include <iostream>
 
 #define LOGGING

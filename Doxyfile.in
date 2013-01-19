@@ -130,7 +130,7 @@ FULL_PATH_NAMES        = YES
 # relative paths, which will be relative from the directory where doxygen is
 # started.
 
-STRIP_FROM_PATH        =
+STRIP_FROM_PATH        = @CMAKE_CURRENT_SOURCE_DIR@
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of
 # the path mentioned in the documentation of a class, which tells
@@ -396,7 +396,7 @@ EXTRACT_LOCAL_METHODS  = NO
 # name of the file that contains the anonymous namespace. By default
 # anonymous namespaces are hidden.
 
-EXTRACT_ANON_NSPACES   = NO
+EXTRACT_ANON_NSPACES   = YES
 
 # If the HIDE_UNDOC_MEMBERS tag is set to YES, Doxygen will hide all
 # undocumented members of documented classes, files or namespaces.
