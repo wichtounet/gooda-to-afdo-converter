@@ -167,8 +167,6 @@ else
 	#echo "LBR Sampling"
 	parse_results log_lbr results_lbr bench_lbr.dat $1
 
-	tar czf results.tar.gz bench_*.dat
-
 	#Generate the array
 
 	get_results_first bench_base.dat
@@ -186,6 +184,16 @@ else
 	done
 
 	awk -vORS= -f compute_table.awk table
+
+	rm -f results_base
+	rm -f results_instrumentation
+	rm -f results_ucc
+	rm -f results_lbr
+
+	rm -f bench_base.dat
+	rm -f bench_instrumentation.dat
+	rm -f bench_ucc.dat
+	rm -f bench_lbr.dat
 	
 	rm -f table
 	rm -f temp_*
