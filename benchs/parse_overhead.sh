@@ -51,8 +51,6 @@ function parse_results(){
 					index=`expr match "$raw_line" ".*reported_time: "`;
 					score=${raw_line:$index};
 
-					#current_score=`echo "$current_score+$score" | bc -l`
-					
 					if [[ $score < $current_score ]]
 					then
 						current_score=$score
@@ -62,6 +60,13 @@ function parse_results(){
 					then
 						current_score=$score
 					fi
+					
+					current_score=$score
+				fi
+				
+				if [[ "$raw_line" == *selected:\ 1 ]]
+				then
+					echo "${bench_name:4} $score" >> $2
 				fi
 			fi
 			
@@ -75,16 +80,15 @@ function parse_results(){
 				
 				if [[ "$raw_line" == *selected:\ 1 ]]
 				then
-					echo "${bench_name:4} $score" | tee -a $2
+					echo "${bench_name:4} $score" >> $2
 				fi
 			fi
 		done
-
-		if [[ "$4" == "time" ]]
-		then
-			#current_score=`echo "$current_score/3" | bc -l`
-			echo "${bench_name:4} $current_score" | tee -a $2
-		fi
+#
+#		if [[ "$4" == "time" ]]
+#		then
+#			#echo "${bench_name:4} $current_score" >> $2
+#		fi
 	done
 
 	cat $2 | sort | awk -f to_latex.awk > $3
@@ -175,17 +179,10 @@ then
 	echo "LBR Sampling"
 	calc_variance overhead_lbr
 else
-	echo "Base"
 	parse_results overhead_base results_overhead_base overhead_base.dat $1
-	echo "Instrumentation"
 	parse_results overhead_instrumentation results_overhead_instrumentation overhead_instrumentation.dat $1
-	echo "UCC Sampling"
 	parse_results overhead_ucc results_overhead_ucc overhead_ucc.dat $1
-	echo "LBR Sampling"
 	parse_results overhead_lbr results_overhead_lbr overhead_lbr.dat $1
-
-	mv -f overhead.tar.gz overhead_0.tar.gz
-	tar czf overhead.tar.gz overhead_*.dat
 
 	#Generate the array
 
@@ -205,7 +202,19 @@ else
 
 	awk -vORS= -f compute_overhead_table.awk table
 	
+	rm -f results_overhead_base
+	rm -f results_overhead_instrumentation
+	rm -f results_overhead_ucc
+	rm -f results_overhead_lbr
+
+	rm -f bench_base.dat
+	rm -f bench_instrumentation.dat
+	rm -f bench_ucc.dat
+	rm -f bench_lbr.dat
+	
 	rm -f table
+	rm -f temp_*
+	rm -f new_temp_*
 fi
 
 IFS=$IFS_BAK

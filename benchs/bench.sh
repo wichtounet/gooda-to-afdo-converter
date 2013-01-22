@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TIMEFORMAT='%3R'
-ITERATIONS=5
+ITERATIONS=1
 
 ucc_iter=1
 lbr_iter=1
@@ -53,10 +53,12 @@ function bench(){
 			{ time /home/wichtounet/gcc/google/build/bin/converter --addr2line="/home/wichtounet/gcc/google/binutils/binutils_install/bin/addr2line" --discriminators --afdo --nows spreadsheets ; } 2>tmp
 		elif [[ $2 == "lbr" ]]
 		then
-			{ time /home/wichtounet/gcc/google/build/bin/converter --addr2line="/home/wichtounet/gcc/google/binutils/binutils_install/bin/addr2line" --discriminators --lbr --afdo spreadsheets ; } 2>tmp
+			{ time /home/wichtounet/gcc/google/build/bin/converter --addr2line="/home/wichtounet/gcc/google/binutils/binutils_install/bin/addr2line" --discriminators --nows --lbr --afdo spreadsheets ; } 2>tmp
 		fi
 		
 		result=`cat tmp`
+
+		echo $result
 
 		if [[ $result < $converter_min ]]
 		then
@@ -85,26 +87,26 @@ function bench(){
 
 	rm tmp
 	rm -f fbdata.afdo
-	rm -rf spreadsheets
+#	rm -rf spreadsheets
 	rm -f perf.data
 }
 
-bench gcc-converter ucc
-bench gcc-converter lbr
+#bench gcc-converter ucc
+#bench gcc-converter lbr
 
-bench gcc-eddic ucc
-bench gcc-eddic lbr
+#bench gcc-eddic ucc
+#bench gcc-eddic lbr
 
-bench eddic-assembly ucc
-bench eddic-assembly lbr
+#bench eddic-assembly ucc
+#bench eddic-assembly lbr
 
-bench eddic-list ucc
-bench eddic-list lbr 
+#bench eddic-list ucc
+#bench eddic-list lbr 
 
 bench converter-ucc ucc
-bench converter-ucc lbr
+#bench converter-ucc lbr
 
-bench converter-lbr ucc
-bench converter-lbr lbr
+#bench converter-lbr ucc
+#bench converter-lbr lbr
 
 tar czf results.tar.gz bench_converter_ucc.dat bench_converter_lbr.dat bench_gooda_ucc.dat bench_gooda_lbr.dat
