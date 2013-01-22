@@ -8,8 +8,8 @@ digraph "main"{
 	"Basic Block 4" [fillcolor=1];
 	"Basic Block 5" [fillcolor=1];
 	"Basic Block 6" [fillcolor=1];
-	"Basic Block 7" [fillcolor=9];
-	"Basic Block 8" [fillcolor=1];
+	"Basic Block 7" [fillcolor=3];
+	"Basic Block 8" [fillcolor=9];
 	"Basic Block 9" [fillcolor=1];
 	"Basic Block 10" [fillcolor=1];
 	"Basic Block 11" [fillcolor=1];
