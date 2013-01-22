@@ -39,15 +39,21 @@ include_directories(include)
 # Create the executable
 
 file(
-	GLOB_RECURSE
-	source_files
-	src/*.cpp
+    GLOB_RECURSE
+    converter_files
+    src/*.cpp
 )
 
-add_executable(converter ${source_files})
+file(GLOB to_remove src/main.cpp)
+list(REMOVE_ITEM converter_files ${to_remove})
+
+add_library(Converter OBJECT ${converter_files})
+
+# Create the converter executable
+
+add_executable(converter $<TARGET_OBJECTS:Converter> src/main.cpp)
 
 TARGET_LINK_LIBRARIES(converter boost_program_options)
-#TARGET_LINK_LIBRARIES(converter gcov)
 
 # Specifications for the installation
 
