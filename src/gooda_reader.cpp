@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include "logger.hpp"
 #include "likely.hpp"
+#include "gooda_exception.hpp"
 
 #define HOTSPOT_CSV "/function_hotspots.csv"
 #define PROCESS_CSV "/process.csv"
@@ -138,8 +139,7 @@ bool read_processes(const std::string& directory, gooda::gooda_report& report){
     process_file.open (process_file_name, std::ios::in);
 
     if(!process_file.is_open()){
-        std::cout << "Unable to open \"" << process_file_name << "\"" << std::endl;
-        return false;
+        throw gooda::gooda_exception("Unable to open \"" + process_file_name + "\"");
     }
 
     skip_headers(process_file, report.get_process_file());
@@ -176,8 +176,7 @@ bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
     hotspot_file.open (hotspot_file_name, std::ios::in);
 
     if(!hotspot_file.is_open()){
-        std::cout << "Unable to open \"" << hotspot_file_name << "\"" << std::endl;
-        return false;
+        throw gooda::gooda_exception("Unable to open \"" + hotspot_file_name + "\"");
     }
 
     skip_headers(hotspot_file, report.get_hotspot_file());
@@ -215,8 +214,7 @@ void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_rep
         asm_file.open (asm_file_name, std::ios::in);
 
         if(!asm_file.is_open()){
-            std::cout << "Unable to open \"" << asm_file_name << "\"" << std::endl;
-            return;
+            throw gooda::gooda_exception("Unable to open \"" + asm_file_name + "\"");
         }
 
         auto& gooda_file = report.asm_file(i);
@@ -249,8 +247,7 @@ void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_rep
         src_file.open (src_file_name, std::ios::in);
 
         if(!src_file.is_open()){
-            std::cout << "Unable to open \"" << src_file_name << "\"" << std::endl;
-            return;
+            throw gooda::gooda_exception("Unable to open \"" + src_file_name + "\"");
         }
 
         auto& gooda_file = report.src_file(i);

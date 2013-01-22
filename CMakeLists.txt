@@ -36,18 +36,41 @@ set(EXECUTABLE_OUTPUT_PATH bin)
 # All the headers are in the include directory
 include_directories(include)
 
-# Create the executable
+# Create the pseudo shared object containing the shared source files
 
 file(
-	GLOB_RECURSE
-	source_files
-	src/*.cpp
+    GLOB_RECURSE
+    converter_files
+    src/*.cpp
 )
 
-add_executable(converter ${source_files})
+file(GLOB to_remove src/main.cpp)
+list(REMOVE_ITEM converter_files ${to_remove})
+
+add_library(Converter OBJECT ${converter_files})
+
+# Create the converter executable
+
+add_executable(converter $<TARGET_OBJECTS:Converter> src/main.cpp)
 
 TARGET_LINK_LIBRARIES(converter boost_program_options)
-#TARGET_LINK_LIBRARIES(converter gcov)
+
+# Create the test executable
+
+add_executable(converter_test $<TARGET_OBJECTS:Converter> tests/UnitTest.cpp)
+
+target_link_libraries (converter_test boost_program_options)
+target_link_libraries (converter_test boost_unit_test_framework)
+
+# Enable and configure testing
+INCLUDE(CTest)
+
+ENABLE_TESTING()
+
+ADD_TEST(
+    NAME integration_tests 
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND converter_test --show_progress)
 
 # Specifications for the installation
 
