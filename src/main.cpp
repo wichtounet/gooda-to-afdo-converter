@@ -189,7 +189,7 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
 
 } //end of anonymous namespace
 
-int main(int argc, char **argv){
+int main(int argc, const char **argv){
     gooda::options options;
     
     int code = options.parse(argc, argv);

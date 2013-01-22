@@ -12,7 +12,7 @@
 #include "Options.hpp"
 #include "logger.hpp"
 
-int gooda::options::parse(int argc, char **argv){
+int gooda::options::parse(int argc, const char **argv){
     try {
         po::options_description input("Input actions");
         input.add_options()

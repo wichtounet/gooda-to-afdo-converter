@@ -25,7 +25,7 @@ struct options {
         //Nothing to init
     }
     
-    int parse(int argc, char **argv);
+    int parse(int argc, const char **argv);
     int notify();
 };
 

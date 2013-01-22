@@ -57,13 +57,7 @@ TARGET_LINK_LIBRARIES(converter boost_program_options)
 
 # Create the test executable
 
-file(
-    GLOB_RECURSE
-    test_files
-    test/*.cpp
-)
-
-add_executable(converter_test $<TARGET_OBJECTS:Converter> ${test_files})
+add_executable(converter_test $<TARGET_OBJECTS:Converter> tests/UnitTest.cpp)
 
 target_link_libraries (converter_test boost_program_options)
 target_link_libraries (converter_test boost_unit_test_framework)
