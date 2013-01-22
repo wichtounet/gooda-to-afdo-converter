@@ -66,7 +66,7 @@
 </g>
 <!-- Basic Block 8 -->
 <g id="node8" class="node"><title>Basic Block 8</title>
-<polygon fill="#800026" stroke="black" points="939,-82 831,-82 831,-46 939,-46 939,-82"/>
+<polygon fill="#ffffcc" stroke="black" points="939,-82 831,-82 831,-46 939,-46 939,-82"/>
 <text text-anchor="middle" x="885" y="-59.4" font-family="Times Roman,serif" font-size="14.00">Basic Block 8</text>
 </g>
 <!-- Basic Block 5&#45;&gt;Basic Block 8 -->
@@ -81,7 +81,7 @@
 </g>
 <!-- Basic Block 7 -->
 <g id="node7" class="node"><title>Basic Block 7</title>
-<polygon fill="#fed976" stroke="black" points="1085,-90 977,-90 977,-54 1085,-54 1085,-90"/>
+<polygon fill="#800026" stroke="black" points="1085,-90 977,-90 977,-54 1085,-54 1085,-90"/>
 <text text-anchor="middle" x="1031" y="-67.4" font-family="Times Roman,serif" font-size="14.00">Basic Block 7</text>
 </g>
 <!-- Basic Block 6&#45;&gt;Basic Block 7 -->
