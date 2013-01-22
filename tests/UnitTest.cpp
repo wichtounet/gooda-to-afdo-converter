@@ -24,23 +24,25 @@ inline void parse_options(gooda::options& options, std::string param1, std::stri
     argv[2] = param2.c_str();
     argv[3] = param3.c_str();
 
-    BOOST_REQUIRE (options.parse(4, argv) == 0);
-    BOOST_REQUIRE (options.notify() == 0);
+    BOOST_REQUIRE_EQUAL (options.parse(4, argv), 0);
+    BOOST_REQUIRE_EQUAL (options.notify(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE(MainSuite)
 
-BOOST_AUTO_TEST_CASE( args_lbr ){
+BOOST_AUTO_TEST_CASE( simple_ucc ){
     gooda::options options;
-    parse_options(options, "--quiet", "--discriminators", "--lbr");
+    parse_options(options, "--quiet", "--discriminators", "--nows");
 
     //Read the Gooda Spreadsheets
-    auto report = gooda::read_spreadsheets("tests/cases/simple-lbr/spreadsheets");
+    auto report = gooda::read_spreadsheets("tests/cases/simple/lbr/spreadsheets");
 
     gooda::afdo_data data;
 
     //Convert the Gooda report to AFDO
     gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
