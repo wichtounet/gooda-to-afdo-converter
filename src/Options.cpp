@@ -54,6 +54,7 @@ int gooda::options::parse(int argc, const char **argv){
 
             ("gooda", po::value<std::string>(), "Path to the Gooda installation directory. By default, $GOODA_DIR or the current directory will be used")
             ("addr2line", po::value<std::string>()->default_value("addr2line"), "Specify the addr2line executable to use")
+            ("folder", po::value<std:.string>()->default_value(""), "Specify in which to search the executable")
             ("input-file", po::value<std::vector<std::string>>(), "Input file(s)");
 
         description.add(input).add(output).add(afdo).add(others);
