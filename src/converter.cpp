@@ -496,16 +496,22 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
     //Fill the inlining cache by using addr2line
 
     for(auto& address_set : addresses){
-        if(!gooda::exists(address_set.first)){
-            log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+        auto file = address_set.first;
+
+        if(!vm["folder"].as<std::string>().empty()){
+            file = vm["folder"].as<std::string>() + "/" + file;
+        }
+
+        if(!gooda::exists(file)){
+            log::emit<log::Warning>() << "File " << file << " does not exist" << log::endl;
 
             continue;
         }
 
-        log::emit<log::Debug>() << "Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
+        log::emit<log::Debug>() << "Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
         std::stringstream ss;
-        ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << address_set.first << " ";
+        ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << file << " ";
 
         for(auto& address : address_set.second){
             ss << address << " ";
@@ -597,16 +603,22 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
         }
 
         for(auto& address_set : asm_addresses){
-            if(!gooda::exists(address_set.first)){
-                log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+            auto file = address_set.first;
+
+            if(!vm["folder"].as<std::string>().empty()){
+                file = vm["folder"].as<std::string>() + "/" + file;
+            }
+
+            if(!gooda::exists(file)){
+                log::emit<log::Warning>() << "File " << file << " does not exist" << log::endl;
 
                 continue;
             }
 
-            log::emit<log::Debug>() << "Discriminator Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
+            log::emit<log::Debug>() << "Discriminator Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
             std::stringstream ss;
-            ss << vm["addr2line"].as<std::string>() << " -a --exe=" << address_set.first << " ";
+            ss << vm["addr2line"].as<std::string>() << " -a --exe=" << file << " ";
 
             for(auto& address : address_set.second){
                 ss << address << " ";
@@ -678,16 +690,22 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     //Collect the mangled function names
 
     for(auto& address_set : asm_addresses){
-        if(!gooda::exists(address_set.first)){
-            log::emit<log::Warning>() << "File " << address_set.first << " does not exist" << log::endl;
+        auto file = address_set.first;
+
+        if(!vm["folder"].as<std::string>().empty()){
+            file = vm["folder"].as<std::string>() + "/" + file;
+        }
+
+        if(!gooda::exists(file)){
+            log::emit<log::Warning>() << "File " << file << " does not exist" << log::endl;
 
             continue;
         }
 
-        log::emit<log::Debug>() << "Mangled Query " << address_set.first << " with " << vm["addr2line"].as<std::string>() << log::endl;
+        log::emit<log::Debug>() << "Mangled Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
         std::stringstream ss;
-        ss << vm["addr2line"].as<std::string>() << " -a -f --exe=" << address_set.first << " ";
+        ss << vm["addr2line"].as<std::string>() << " -a -f --exe=" << file << " ";
 
         for(auto& address : address_set.second){
             ss << address << " ";
