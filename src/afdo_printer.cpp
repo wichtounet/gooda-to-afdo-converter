@@ -82,6 +82,8 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
                 std::cout << ", discr=" << pos.discriminator << std::endl;
             }
         }
+
+        std::cout << std::endl;
     }
 
     if(!vm.count("nows")){
