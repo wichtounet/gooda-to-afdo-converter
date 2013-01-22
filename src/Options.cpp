@@ -73,6 +73,8 @@ int gooda::options::parse(int argc, const char **argv){
         log::emit<log::Error>() << e.what() << log::endl;
         return 2;
     }
+    
+    log::set_level(vm["log"].as<int>());
 
     return 0;
 }

@@ -204,8 +204,6 @@ int main(int argc, const char **argv){
         return code;
     }
 
-    log::set_level(options.vm["log"].as<int>());
-
     if(options.vm.count("lbr") && options.vm.count("cache-misses")){
         log::emit<log::Error>() << "Gooda does not support cache misses in LBR mode" << log::endl;
         return 1;
