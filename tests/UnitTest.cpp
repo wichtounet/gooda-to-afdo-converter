@@ -22,7 +22,7 @@ inline void parse_options(gooda::options& options, std::string param1, std::stri
 
     const char* argv[6];
     argv[0] = "./bin/test";
-    argv[1] = "--log=3";
+    argv[1] = "--quiet";
     argv[2] = "--discriminators";
     argv[3] = param1.c_str();
     argv[4] = folder_arg.c_str();
@@ -33,6 +33,51 @@ inline void parse_options(gooda::options& options, std::string param1, std::stri
 }
 
 BOOST_AUTO_TEST_SUITE(MainSuite)
+
+void check_contains_stack(gooda::afdo_function& function, unsigned int line, unsigned int discr, std::size_t count){
+    bool found = false;
+
+    for(auto& stack : function.stacks){
+        if(stack.stack.size() == 1){
+            auto& pos = stack.stack.front();
+
+            if(pos.line == line && pos.discriminator == discr){
+                BOOST_CHECK(!found);
+
+                BOOST_CHECK_EQUAL(stack.count, count);
+                BOOST_CHECK_EQUAL(pos.file, function.file);
+                BOOST_CHECK_EQUAL(pos.func, function.name);
+
+                found = true;
+            }
+        }
+    }
+
+    BOOST_CHECK (found);
+}
+
+void check_contains_inline_stack(gooda::afdo_function& function, unsigned int line1, unsigned int line2, std::string file, std::string inlined, std::size_t count){
+    bool found = false;
+
+    for(auto& stack : function.stacks){
+        if(stack.stack.size() == 2){
+            auto& pos1 = stack.stack.front();
+            auto& pos2 = stack.stack.back();
+
+            if(pos1.line == line1 && pos2.line == line2 && pos1.discriminator == 0 && pos2.discriminator == 0 && pos2.file == file && pos2.func == inlined){
+                BOOST_CHECK(!found);
+
+                BOOST_CHECK_EQUAL(stack.count, count);
+                BOOST_CHECK_EQUAL(pos1.file, function.file);
+                BOOST_CHECK_EQUAL(pos1.func, function.name);
+
+                found = true;
+            }
+        }
+    }
+
+    BOOST_CHECK (found);
+}
 
 BOOST_AUTO_TEST_CASE( simple_ucc ){
     gooda::options options;
@@ -50,10 +95,24 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
 
     auto& function = data.functions.front();
 
+    //Verify function properties
     BOOST_CHECK_EQUAL(function.name, "main");
     BOOST_CHECK_EQUAL(function.file, "simple.cpp");
     BOOST_CHECK_EQUAL(function.total_count, 4021);
     BOOST_CHECK_EQUAL(function.entry_count, 0);
+
+    //Basic Block 3
+    check_contains_stack(function, 19, 2, 22);
+
+    //Basic Block 7 (No discriminator here, should be the sum)
+    check_contains_stack(function, 16, 0, 137 + 102);
+
+    //Basic Block 8 (contains inlined functions)
+    check_contains_inline_stack(function, 22, 8, "simple.cpp", "compute_sum", 1245);
+    check_contains_inline_stack(function, 22, 9, "simple.cpp", "compute_sum", 2511);
+
+    //Basic Block 11 (contains function inlined from standard library)
+    check_contains_inline_stack(function, 24, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

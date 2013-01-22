@@ -238,7 +238,7 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
                 : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
-            stack.count = std::max(stack.count, static_cast<gcov_type>(count));
+            stack.count += static_cast<gcov_type>(count);
 
             auto cache_misses = asm_file.multiplex_line().get_double(asm_file.column(LOAD_LATENCY)) * asm_line.get_counter(asm_file.column(LOAD_LATENCY));
             stack.cache_misses = std::max(stack.cache_misses, static_cast<gcov_type>(cache_misses));
