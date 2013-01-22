@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "diff.hpp"
 #include "Options.hpp"
+#include "gooda_exception.hpp"
 
 namespace {
 
@@ -27,23 +28,28 @@ typedef std::chrono::milliseconds milliseconds;
 void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
-    //Read the Gooda Spreadsheets
-    auto report = gooda::read_spreadsheets(directory);
+    try {
+        //Read the Gooda Spreadsheets
+        auto report = gooda::read_spreadsheets(directory);
 
-    gooda::afdo_data data;
+        gooda::afdo_data data;
 
-    //Convert the Gooda report to AFDO
-    gooda::convert_to_afdo(report, data, vm);
+        //Convert the Gooda report to AFDO
+        gooda::convert_to_afdo(report, data, vm);
 
-    //Execute the specified action
-    if(vm.count("dump")){
-        gooda::dump_afdo_light(data, vm);
-    } else if(vm.count("full-dump")){
-        gooda::dump_afdo(data, vm);
-    } else {
-        gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
+        //Execute the specified action
+        if(vm.count("dump")){
+            gooda::dump_afdo_light(data, vm);
+        } else if(vm.count("full-dump")){
+            gooda::dump_afdo(data, vm);
+        } else {
+            gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
+        }
+    } catch (const gooda::gooda_exception& e){
+        log::emit<log::Error>() << e.what() << log::endl;
+        return;
     }
-    
+
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
 
