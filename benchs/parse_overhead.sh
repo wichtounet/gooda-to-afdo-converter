@@ -207,10 +207,10 @@ else
 	rm -f results_overhead_ucc
 	rm -f results_overhead_lbr
 
-	rm -f bench_base.dat
-	rm -f bench_instrumentation.dat
-	rm -f bench_ucc.dat
-	rm -f bench_lbr.dat
+	rm -f overhead_base.dat
+	rm -f overhead_instrumentation.dat
+	rm -f overhead_ucc.dat
+	rm -f overhead_lbr.dat
 	
 	rm -f table
 	rm -f temp_*

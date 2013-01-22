@@ -87,26 +87,26 @@ function bench(){
 
 	rm tmp
 	rm -f fbdata.afdo
-#	rm -rf spreadsheets
+	rm -rf spreadsheets
 	rm -f perf.data
 }
 
-#bench gcc-converter ucc
-#bench gcc-converter lbr
+bench gcc-converter ucc
+bench gcc-converter lbr
 
-#bench gcc-eddic ucc
-#bench gcc-eddic lbr
+bench gcc-eddic ucc
+bench gcc-eddic lbr
 
-#bench eddic-assembly ucc
-#bench eddic-assembly lbr
+bench eddic-assembly ucc
+bench eddic-assembly lbr
 
-#bench eddic-list ucc
-#bench eddic-list lbr 
+bench eddic-list ucc
+bench eddic-list lbr 
 
 bench converter-ucc ucc
-#bench converter-ucc lbr
+bench converter-ucc lbr
 
-#bench converter-lbr ucc
-#bench converter-lbr lbr
+bench converter-lbr ucc
+bench converter-lbr lbr
 
 tar czf results.tar.gz bench_converter_ucc.dat bench_converter_lbr.dat bench_gooda_ucc.dat bench_gooda_lbr.dat
