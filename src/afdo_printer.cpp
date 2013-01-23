@@ -61,25 +61,33 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
 
         auto stacks = function.stacks;
 
-        std::sort(stacks.begin(), stacks.end(), [](const gooda::afdo_stack& lhs, const gooda::afdo_stack& rhs){return lhs.stack.front().line < rhs.stack.front().line; });
+        std::sort(stacks.begin(), stacks.end(), [](const gooda::afdo_stack& lhs, const gooda::afdo_stack& rhs){
+                    return lhs.stack.empty() || rhs.stack.empty() ? false : lhs.stack.front().line < rhs.stack.front().line; 
+                });
 
         for(auto& stack : stacks){
-            std::cout << "   Stack of size " << stack.stack.size() 
-                << ", with " << stack.num_inst << " dynamic instructions " 
-                << "[count=" << stack.count;
-            
-            if(vm.count("cache-misses")){
-                std::cout << ", cache-misses=" << stack.cache_misses;
-            }
-            
-            std::cout << "]" << std::endl;
+            if(stack.stack.empty()){
+                std::cout << "   INVALID STACK of size " << stack.stack.size() 
+                    << ", with " << stack.num_inst << " dynamic instructions " 
+                    << "[count=" << stack.count << "]" << std::endl;
+            } else {
+                std::cout << "   Stack of size " << stack.stack.size() 
+                    << ", with " << stack.num_inst << " dynamic instructions " 
+                    << "[count=" << stack.count;
 
-            for(auto& pos : stack.stack){
-                std::cout << "      Instruction at ";
-                print_file(data, vm, pos.file);
-                std::cout << ":" << pos.line << ", func=";
-                print_file(data, vm, pos.func);
-                std::cout << ", discr=" << pos.discriminator << std::endl;
+                if(vm.count("cache-misses")){
+                    std::cout << ", cache-misses=" << stack.cache_misses;
+                }
+
+                std::cout << "]" << std::endl;
+
+                for(auto& pos : stack.stack){
+                    std::cout << "      Instruction at ";
+                    print_file(data, vm, pos.file);
+                    std::cout << ":" << pos.line << ", func=";
+                    print_file(data, vm, pos.func);
+                    std::cout << ", discr=" << pos.discriminator << std::endl;
+                }
             }
         }
 
