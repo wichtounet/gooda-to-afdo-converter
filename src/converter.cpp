@@ -557,9 +557,9 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                     discriminator = boost::lexical_cast<gcov_unsigned_t>(discriminator_str);
                 }
 
-		if(line_number != "?"){
-			inlining_cache[key].emplace_back(function_name, file_name, boost::lexical_cast<gcov_unsigned_t>(line_number), discriminator);
-		}
+                if(line_number != "?"){
+                    inlining_cache[key].emplace_back(function_name, file_name, boost::lexical_cast<gcov_unsigned_t>(line_number), discriminator);
+                }
             }
         }
     }
