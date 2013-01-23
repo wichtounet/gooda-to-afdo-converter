@@ -73,32 +73,6 @@ void check_contains_stack(const gooda::afdo_function& function, std::size_t coun
     BOOST_CHECK(found);
 }
 
-void check_contains_inline_stack(const gooda::afdo_function& function, unsigned int line1, unsigned int line2, std::string file, std::string inlined, std::size_t count){
-    bool found = false;
-
-    for(auto& stack : function.stacks){
-        if(stack.stack.size() == 2){
-            auto& pos1 = stack.stack.front();
-            auto& pos2 = stack.stack.back();
-
-            if(pos1.line == line1 && pos2.line == line2 && pos1.discriminator == 0 && pos2.discriminator == 0 && pos2.file == file){
-                BOOST_CHECK(!found);
-
-                BOOST_CHECK_EQUAL(pos2.func, inlined);
-                BOOST_CHECK_EQUAL(stack.count, count);
-                BOOST_CHECK_EQUAL(pos1.file, function.file);
-                BOOST_CHECK_EQUAL(pos1.func, function.name);
-
-                BOOST_CHECK(stack.num_inst > 0);
-
-                found = true;
-            }
-        }
-    }
-
-    BOOST_CHECK(found);
-}
-
 BOOST_AUTO_TEST_CASE( simple_ucc ){
     gooda::options options;
     parse_options(options, "--nows", "tests/cases/simple/");
