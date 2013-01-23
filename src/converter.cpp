@@ -768,6 +768,10 @@ void fill_file_name_table(gooda::afdo_data& data){
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
+    //Empty each cache
+    inlining_cache.clear();
+    discriminator_cache.clear();
+
     //Choose the correct counter
     std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
