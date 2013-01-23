@@ -34,19 +34,34 @@ inline void parse_options(gooda::options& options, std::string param1, std::stri
 
 BOOST_AUTO_TEST_SUITE(MainSuite)
 
-void check_contains_stack(const gooda::afdo_function& function, std::size_t count, std::pair<unsigned int, unsigned int> pos){
+struct P {
+    std::string func;
+    std::string file;
+    unsigned int line;
+    unsigned int discr;
+};
+
+void check_contains_stack(const gooda::afdo_function& function, std::size_t count, std::vector<P> positions){
     bool found = false;
 
     for(auto& stack : function.stacks){
-        if(stack.stack.size() == 1){
-            auto& pos1 = stack.stack.front();
+        if(stack.stack.size() == positions.size()){
+            bool exact = true;
 
-            if(pos1.line == pos.first && pos1.discriminator == pos.second){
+            for(std::size_t i = 0; i < stack.stack.size(); ++i){
+                auto& pos1 = stack.stack[i];
+                auto& pos = positions[i];
+
+                if(pos1.line != pos.line || pos1.discriminator != pos.discr || pos1.file != pos.file || pos1.func != pos.func){
+                    exact = false;
+                    break;
+                }
+            }
+
+            if(exact){
                 BOOST_CHECK(!found);
 
                 BOOST_CHECK_EQUAL(stack.count, count);
-                BOOST_CHECK_EQUAL(pos1.file, function.file);
-                BOOST_CHECK_EQUAL(pos1.func, function.name);
 
                 BOOST_CHECK(stack.num_inst > 0);
 
@@ -107,10 +122,10 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 11, {22, 2});
+    check_contains_stack(function, 11, {{"main", "simple.cpp", 22, 2}});
 
     //Basic Block 7 (No discriminator here, should be the sum)
-    check_contains_stack(function, 329, {20, 0});
+    check_contains_stack(function, 329, {{"main", "simple.cpp", 20, 0}});
 
     //Basic Block 8 (contains inlined functions)
     check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 787);
@@ -143,14 +158,14 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 360, {22, 2});
-    check_contains_stack(function, 360, {23, 2});
+    check_contains_stack(function, 360, {{"main", "simple.cpp", 22, 2}});
+    check_contains_stack(function, 360, {{"main", "simple.cpp", 23, 2}});
     
     //Basic Block 4 (Verify that the lines with different discriminators are different)
-    check_contains_stack(function, 0, {22, 0});
+    check_contains_stack(function, 0, {{"main", "simple.cpp", 22, 0}});
 
     //Basic Block 7
-    check_contains_stack(function, 93795, {20, 0});
+    check_contains_stack(function, 93795, {{"main", "simple.cpp", 20, 0}});
 
     //Basic Block 8 (contains inlined functions)
     check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 93795);
@@ -184,12 +199,12 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 91, {24, 2});
-    check_contains_stack(function, 0, {23, 0});
-    check_contains_stack(function, 0, {23, 2});
+    check_contains_stack(function, 91, {{"main", "simple.c", 24, 2}});
+    check_contains_stack(function, 0, {{"main", "simple.c", 23, 0}});
+    check_contains_stack(function, 0, {{"main", "simple.c", 23, 2}});
 
     //Basic Block 7 (No discriminator here, should be the sum)
-    check_contains_stack(function, 216, {20, 0});
+    check_contains_stack(function, 216, {{"main", "simple.c", 20, 0}});
     
     //Basic Block 8 (contains inlined functions)
     check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 1348);
@@ -222,12 +237,12 @@ BOOST_AUTO_TEST_CASE( simple_c_lbr ){
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 398, {24, 2});
-    check_contains_stack(function, 0, {23, 0});
-    check_contains_stack(function, 398, {23, 2});
+    check_contains_stack(function, 398, {{"main", "simple.c", 24, 2}});
+    check_contains_stack(function, 0, {{"main", "simple.c", 23, 0}});
+    check_contains_stack(function, 398, {{"main", "simple.c", 23, 2}});
 
     //Basic Block 7 (No discriminator here, should be the sum)
-    check_contains_stack(function, 93775, {20, 0});
+    check_contains_stack(function, 93775, {{"main", "simple.c", 20, 0}});
     
     //Basic Block 8 (contains inlined functions)
     check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 93776);
@@ -260,9 +275,9 @@ BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 34, {29, 2});
-    check_contains_stack(function, 0, {28, 0});
-    check_contains_stack(function, 0, {28, 2});
+    check_contains_stack(function, 34, {{"main", "inheritance.cpp", 29, 2}});
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 0}});
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 2}});
 
     //TODO
 }
