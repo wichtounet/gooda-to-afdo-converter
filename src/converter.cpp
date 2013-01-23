@@ -85,6 +85,8 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     return function.stacks.back(); 
 }
 
+gooda::afdo_stack fake_stack;
+
 /*!
  * \brief Get an inline stack for the given address that is coming from an inlined function
  * \param function The AFDO function
@@ -99,12 +101,17 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     if(inlining_cache.find(key) == inlining_cache.end()){
         log::emit<log::Warning>() << function.executable_file << ":" << address << " not in cache" << log::endl;
 
-        function.stacks.push_back({});
-
-        return function.stacks.back(); 
+        return fake_stack; 
     }
 
     auto& vector = inlining_cache[key];
+
+    if(vector.empty()){
+        log::emit<log::Warning>() << function.executable_file << ":" << address << " indicated an empty inline stack" << log::endl;
+
+        return fake_stack; 
+    }
+
     std::reverse(vector.begin(), vector.end());
 
     //Try to find an existing equivalent stack
@@ -190,7 +197,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
         } 
 
         //Get the entry basic block and the function file
-        if(boost::starts_with(disassembly, "Basic Block 1 <")){
+        if(boost::starts_with(disassembly, "Basic Block 1")){
             if(lbr){
                 function.entry_count = line.get_counter(file.column(BB_EXEC));
             } else {
