@@ -770,6 +770,10 @@ void fill_file_name_table(gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Remove all functions that have neither count nor a stack with a count. 
+ * \param data The data already filled by the previous passes
+ */
 void prune_uncounted_functions(gooda::afdo_data& data){
     auto it = data.functions.begin();
 
@@ -919,6 +923,9 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
         }
     }
 
+    //Prune uncounted functions
+    prune_uncounted_functions(data);
+
     //Fill the file name table with the strings from the AFDO profile
     fill_file_name_table(data);
 
@@ -927,8 +934,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
     //Set the sizes of the different sections
     compute_lengths(data);
-
-    prune_uncounted_functions(data);
 
     //Note: No need to fill the modules because it is not used by GCC
     //It will be automatically written empty by the AFDO generator
