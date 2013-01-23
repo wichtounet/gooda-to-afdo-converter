@@ -770,6 +770,39 @@ void fill_file_name_table(gooda::afdo_data& data){
     }
 }
 
+void prune_uncounted_functions(gooda::afdo_data& data){
+    auto it = data.functions.begin();
+
+    while(it != data.functions.end()){
+        auto& function = *it;
+
+        if(function.total_count == 0 && function.entry_count == 0){
+            bool count = 0;
+            for(auto& stack : function.stacks){
+                count += stack.count;
+            }
+            
+            if(count == 0){
+                it = data.functions.erase(it);
+                continue;
+            }
+        }
+
+        ++it;
+    }
+    for(auto& function : data.functions) {
+        data.add_file_name(function.name);
+        data.add_file_name(function.file);
+
+        for(auto& stack : function.stacks){
+            for(auto& pos : stack.stack){
+                data.add_file_name(pos.file);
+                data.add_file_name(pos.func);
+            }
+        }
+    }
+}
+
 } //End of anonymous namespace
 
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
@@ -905,6 +938,8 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
     //Set the sizes of the different sections
     compute_lengths(data);
+
+    prune_uncounted_functions(data);
 
     //Note: No need to fill the modules because it is not used by GCC
     //It will be automatically written empty by the AFDO generator
