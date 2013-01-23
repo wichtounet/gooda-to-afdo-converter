@@ -39,6 +39,8 @@ struct P {
     std::string file;
     unsigned int line;
     unsigned int discr;
+
+    P(std::string func, std::string file, unsigned int line, unsigned int discr = 0) : func(func), file(file), line(line), discr(discr) {}
 };
 
 void check_contains_stack(const gooda::afdo_function& function, std::size_t count, std::vector<P> positions){
@@ -102,11 +104,11 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
     check_contains_stack(function, 329, {{"main", "simple.cpp", 20, 0}});
 
     //Basic Block 8 (contains inlined functions)
-    check_contains_stack(function, 787, {{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 10, 0}});
-    check_contains_stack(function, 2817,{{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 11, 0}});
+    check_contains_stack(function, 787, {{"main", "simple.cpp", 26}, {"compute_sum", "simple.cpp", 10}});
+    check_contains_stack(function, 2817,{{"main", "simple.cpp", 26}, {"compute_sum", "simple.cpp", 11}});
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_stack(function, 0, {{"main", "simple.cpp", 28, 0}, {"_ZNSolsEPFRSoS_E", "ostream", 111, 0}});
+    check_contains_stack(function, 0, {{"main", "simple.cpp", 28}, {"_ZNSolsEPFRSoS_E", "ostream", 111}});
 }
 
 BOOST_AUTO_TEST_CASE( simple_lbr ){
@@ -252,8 +254,13 @@ BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     check_contains_stack(function, 34, {{"main", "inheritance.cpp", 29, 2}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 0}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 2}});
-
-    //TODO
+    
+    //Basic Block 8
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 13, 0}});
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}});
+    check_contains_stack(function, 72582, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11, 0}});
+    check_contains_stack(function, 2394, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 10}});
+    check_contains_stack(function, 11383, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11}, {"_ZN1A11compute_sumEiil", "inheritance.cpp", 18}});
 }
 
 BOOST_AUTO_TEST_SUITE_END()
