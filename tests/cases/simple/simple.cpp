@@ -2,11 +2,15 @@
 
 #define SIZE 10000000
 
+long compute_sum(int i, int j){
+    return i * j;
+}
+
 long compute_sum(long* array){
     long sum = 0;
     for(int i = 0; i < 250; ++i){
         for(int j = 0; j < SIZE; ++j){
-            sum += j * i * array[j];
+            sum += compute_sum(i, j) * array[j];
         }
     }
     return sum;
