@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     //Basic Block 4 (Verify that the lines with different discriminators are different)
     check_contains_stack(function, 18, 0, 0);
 
-    //Basic Block 7 (No discriminator here, should be the sum)
+    //Basic Block 7
     check_contains_stack(function, 16, 0, 93780);
 
     //Basic Block 8 (contains inlined functions)
