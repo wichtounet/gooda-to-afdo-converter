@@ -790,17 +790,6 @@ void prune_uncounted_functions(gooda::afdo_data& data){
 
         ++it;
     }
-    for(auto& function : data.functions) {
-        data.add_file_name(function.name);
-        data.add_file_name(function.file);
-
-        for(auto& stack : function.stacks){
-            for(auto& pos : stack.stack){
-                data.add_file_name(pos.file);
-                data.add_file_name(pos.func);
-            }
-        }
-    }
 }
 
 } //End of anonymous namespace
