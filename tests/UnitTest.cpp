@@ -103,21 +103,21 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
     //Verify function properties
     BOOST_CHECK_EQUAL(function.name, "main");
     BOOST_CHECK_EQUAL(function.file, "simple.cpp");
-    BOOST_CHECK_EQUAL(function.total_count, 4021);
+    BOOST_CHECK_EQUAL(function.total_count, 3971);
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 19, 2, 22);
+    check_contains_stack(function, 22, 2, 11);
 
     //Basic Block 7 (No discriminator here, should be the sum)
-    check_contains_stack(function, 16, 0, 137 + 102);
+    check_contains_stack(function, 20, 0, 329);
 
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 22, 8, "simple.cpp", "compute_sum", 1245);
-    check_contains_inline_stack(function, 22, 9, "simple.cpp", "compute_sum", 2511);
+    check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 787);
+    check_contains_inline_stack(function, 26, 11, "simple.cpp", "compute_sum", 2817);
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 24, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
+    check_contains_inline_stack(function, 28, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
 }
 
 BOOST_AUTO_TEST_CASE( simple_lbr ){
@@ -139,26 +139,26 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     //Verify function properties
     BOOST_CHECK_EQUAL(function.name, "main");
     BOOST_CHECK_EQUAL(function.file, "simple.cpp");
-    BOOST_CHECK_EQUAL(function.total_count, 939360);
+    BOOST_CHECK_EQUAL(function.total_count, 939390);
     BOOST_CHECK_EQUAL(function.entry_count, 0);
 
     //Basic Block 3
-    check_contains_stack(function, 18, 2, 390);
-    check_contains_stack(function, 19, 2, 390);
+    check_contains_stack(function, 22, 2, 360);
+    check_contains_stack(function, 23, 2, 360);
     
     //Basic Block 4 (Verify that the lines with different discriminators are different)
-    check_contains_stack(function, 18, 0, 0);
+    check_contains_stack(function, 22, 0, 0);
 
     //Basic Block 7
-    check_contains_stack(function, 16, 0, 93780);
+    check_contains_stack(function, 20, 0, 93795);
 
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 22, 8, "simple.cpp", "compute_sum", 93780);
-    check_contains_inline_stack(function, 22, 9, "simple.cpp", "compute_sum", 93780);
+    check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 93795);
+    check_contains_inline_stack(function, 26, 11, "simple.cpp", "compute_sum", 93795);
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 24, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
-    check_contains_inline_stack(function, 24, 165, "ostream", "_ZNSolsEl", 0);
+    check_contains_inline_stack(function, 28, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
+    check_contains_inline_stack(function, 28, 165, "ostream", "_ZNSolsEl", 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
