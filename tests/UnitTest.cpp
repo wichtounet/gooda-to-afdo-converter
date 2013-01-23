@@ -191,8 +191,6 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     //Basic Block 7 (No discriminator here, should be the sum)
     check_contains_stack(function, 20, 0, 216);
     
-    std::cout << "here" << std::endl;
-
     //Basic Block 8 (contains inlined functions)
     check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 1348);
     check_contains_inline_stack(function, 27, 12, "simple.c", "compute_sum", 2419);
@@ -201,5 +199,42 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     check_contains_inline_stack(function, 29, 105, "stdio2.h", "printf", 0);
 }
 
+BOOST_AUTO_TEST_CASE( simple_c_lbr ){
+    gooda::options options;
+    parse_options(options, "--lbr", "tests/cases/simple-c/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/simple-c/lbr/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 1);
+
+    auto& function = data.functions.front();
+
+    //Verify function properties
+    BOOST_CHECK_EQUAL(function.name, "main");
+    BOOST_CHECK_EQUAL(function.file, "simple.c");
+    BOOST_CHECK_EQUAL(function.total_count, 939346);
+    BOOST_CHECK_EQUAL(function.entry_count, 0);
+
+    //Basic Block 3
+    check_contains_stack(function, 24, 2, 398);
+    check_contains_stack(function, 23, 0, 0);
+    check_contains_stack(function, 23, 2, 398);
+
+    //Basic Block 7 (No discriminator here, should be the sum)
+    check_contains_stack(function, 20, 0, 93775);
+    
+    //Basic Block 8 (contains inlined functions)
+    check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 93776);
+    check_contains_inline_stack(function, 27, 12, "simple.c", "compute_sum", 93776);
+
+    //Basic Block 11 (contains function inlined from standard library)
+    check_contains_inline_stack(function, 29, 105, "stdio2.h", "printf", 0);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
