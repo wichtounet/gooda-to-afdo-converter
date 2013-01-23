@@ -263,4 +263,39 @@ BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     check_contains_stack(function, 11383, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11}, {"_ZN1A11compute_sumEiil", "inheritance.cpp", 18}});
 }
 
+BOOST_AUTO_TEST_CASE( inheritance_lbr ){
+    gooda::options options;
+    parse_options(options, "--lbr", "tests/cases/inheritance/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/inheritance/lbr/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 1);
+
+    auto& function = data.functions.front();
+
+    //Verify function properties
+    BOOST_CHECK_EQUAL(function.name, "main");
+    BOOST_CHECK_EQUAL(function.file, "inheritance.cpp");
+    BOOST_CHECK_EQUAL(function.total_count, 3565925);
+    BOOST_CHECK_EQUAL(function.entry_count, 0);
+
+    //Basic Block 3
+    check_contains_stack(function, 360, {{"main", "inheritance.cpp", 29, 2}});
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 0}});
+    check_contains_stack(function, 360, {{"main", "inheritance.cpp", 28, 2}});
+    
+    //Basic Block 8
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 13, 0}});
+    check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}});
+    check_contains_stack(function, 187608, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11, 0}});
+    check_contains_stack(function, 187608, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 10}});
+    check_contains_stack(function, 187608, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11}, {"_ZN1A11compute_sumEiil", "inheritance.cpp", 18}});
+}
+
 BOOST_AUTO_TEST_SUITE_END()
