@@ -197,7 +197,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
         } 
 
         //Get the entry basic block and the function file
-        if(boost::starts_with(disassembly, "Basic Block 1")){
+        if(boost::starts_with(disassembly, "Basic Block 1 ")){
             if(lbr){
                 function.entry_count = line.get_counter(file.column(BB_EXEC));
             } else {
