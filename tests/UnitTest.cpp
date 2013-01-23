@@ -128,11 +128,11 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
     check_contains_stack(function, 329, {{"main", "simple.cpp", 20, 0}});
 
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 787);
-    check_contains_inline_stack(function, 26, 11, "simple.cpp", "compute_sum", 2817);
+    check_contains_stack(function, 787, {{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 10, 0}});
+    check_contains_stack(function, 2817,{{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 11, 0}});
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 28, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
+    check_contains_stack(function, 0, {{"main", "simple.cpp", 28, 0}, {"_ZNSolsEPFRSoS_E", "ostream", 111, 0}});
 }
 
 BOOST_AUTO_TEST_CASE( simple_lbr ){
@@ -168,12 +168,12 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     check_contains_stack(function, 93795, {{"main", "simple.cpp", 20, 0}});
 
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 26, 10, "simple.cpp", "compute_sum", 93795);
-    check_contains_inline_stack(function, 26, 11, "simple.cpp", "compute_sum", 93795);
+    check_contains_stack(function, 93795, {{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 10, 0}});
+    check_contains_stack(function, 93795, {{"main", "simple.cpp", 26, 0}, {"compute_sum", "simple.cpp", 11, 0}});
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 28, 111, "ostream", "_ZNSolsEPFRSoS_E", 0);
-    check_contains_inline_stack(function, 28, 165, "ostream", "_ZNSolsEl", 0);
+    check_contains_stack(function, 0, {{"main", "simple.cpp", 28, 0}, {"_ZNSolsEPFRSoS_E", "ostream", 111, 0}});
+    check_contains_stack(function, 0, {{"main", "simple.cpp", 28, 0}, {"_ZNSolsEl", "ostream", 165, 0}});
 }
 
 BOOST_AUTO_TEST_CASE( simple_c_ucc ){
@@ -207,11 +207,11 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     check_contains_stack(function, 216, {{"main", "simple.c", 20, 0}});
     
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 1348);
-    check_contains_inline_stack(function, 27, 12, "simple.c", "compute_sum", 2419);
+    check_contains_stack(function, 1348, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 11, 0}});
+    check_contains_stack(function, 2419, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 12, 0}});
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 29, 105, "stdio2.h", "printf", 0);
+    check_contains_stack(function, 0, {{"main", "simple.c", 29, 0}, {"printf", "stdio2.h", 105, 0}});
 }
 
 BOOST_AUTO_TEST_CASE( simple_c_lbr ){
@@ -245,11 +245,11 @@ BOOST_AUTO_TEST_CASE( simple_c_lbr ){
     check_contains_stack(function, 93775, {{"main", "simple.c", 20, 0}});
     
     //Basic Block 8 (contains inlined functions)
-    check_contains_inline_stack(function, 27, 11, "simple.c", "compute_sum", 93776);
-    check_contains_inline_stack(function, 27, 12, "simple.c", "compute_sum", 93776);
+    check_contains_stack(function, 93776, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 11, 0}});
+    check_contains_stack(function, 93776, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 12, 0}});
 
     //Basic Block 11 (contains function inlined from standard library)
-    check_contains_inline_stack(function, 29, 105, "stdio2.h", "printf", 0);
+    check_contains_stack(function, 0, {{"main", "simple.c", 29, 0}, {"printf", "stdio2.h", 105, 0}});
 }
 
 BOOST_AUTO_TEST_CASE( inheritance_ucc ){
