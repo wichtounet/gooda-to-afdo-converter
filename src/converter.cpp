@@ -692,7 +692,6 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
                 auto& line = file.line(j);
 
                 auto address = line.get_string(file.column(ADDRESS));
-
                 if(!address.empty()){
                     function_addresses[function.i] = {function.executable_file, address};
                     asm_addresses[function.executable_file].push_back(std::move(address));
