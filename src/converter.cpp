@@ -359,6 +359,8 @@ void compute_working_set(gooda::afdo_data& data, boost::program_options::variabl
         return;
     }
 
+    static_assert(sizeof(std::size_t) == sizeof(uint64_t), "The sizes must be correct in order for the histogram to be valid");
+
     std::map<std::size_t, std::size_t> histogram;
     std::size_t total_count = 0;
     
