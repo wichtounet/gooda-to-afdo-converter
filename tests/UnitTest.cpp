@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         auto& function = data.functions[1];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "compute<0>");
+        BOOST_CHECK_EQUAL(function.name, "_Z7computeILi1EEll");
         BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 6959);
         BOOST_CHECK_EQUAL(function.entry_count, 273);
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         auto& function = data.functions[3];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "compute_third");
+        BOOST_CHECK_EQUAL(function.name, "compute_sum");
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 997);
         BOOST_CHECK_EQUAL(function.entry_count, 997);
@@ -390,7 +390,6 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         
         check_contains_stack(function, 0, {
                 {"main", "deep.cpp", 9},
-                {"compute_third", "deep_compute.hpp", 10},
                 {"compute<10>", "deep_sum.hpp", 6},
                 {"compute<9>", "deep_sum.hpp", 6},
                 {"compute<8>", "deep_sum.hpp", 6},
