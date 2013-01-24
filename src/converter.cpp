@@ -99,7 +99,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     //If the file does not exist, the cache will not be filled
     //It can also come from an error of addr2line
     if(inlining_cache.find(key) == inlining_cache.end()){
-        log::emit<log::Warning>() << function.executable_file << ":" << address << " not in cache" << log::endl;
+        log::emit<log::Warning>() << function.executable_file << ":" << address << " not in inlining cache" << log::endl;
 
         return fake_stack; 
     }
@@ -517,16 +517,20 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
 
         log::emit<log::Debug>() << "Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
-        std::stringstream ss;
-        ss << vm["addr2line"].as<std::string>() << " -f -a -i --exe=" << file << " ";
+        std::ofstream address_file;
+        address_file.open("addresses", std::ios::out );
 
         for(auto& address : address_set.second){
-            ss << address << " ";
+            address_file << address << " ";
         }
 
-        auto command = ss.str();
-        auto result = gooda::exec_command_result(command);
+        address_file << std::endl;
+
+        auto command = vm["addr2line"].as<std::string>() + " -f -a -i --exe=" + file + " @addresses";
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
+        auto result = gooda::exec_command_result(command);
+
+        remove("addresses");
 
         std::istringstream result_stream(result);
         std::string str_line;    
@@ -624,16 +628,20 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
             log::emit<log::Debug>() << "Discriminator Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
-            std::stringstream ss;
-            ss << vm["addr2line"].as<std::string>() << " -a --exe=" << file << " ";
+            std::ofstream address_file;
+            address_file.open("addresses", std::ios::out );
 
             for(auto& address : address_set.second){
-                ss << address << " ";
+                address_file << address << " ";
             }
 
-            auto command = ss.str();
-            auto result = gooda::exec_command_result(command);
+            address_file << std::endl;
+
+            auto command = vm["addr2line"].as<std::string>() + " -a --exe=" + file + " @addresses";
             log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
+            auto result = gooda::exec_command_result(command);
+
+            remove("addresses");
 
             std::istringstream result_stream(result);
             std::string str_line;    
@@ -711,14 +719,16 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         log::emit<log::Debug>() << "Mangled Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
 
-        std::stringstream ss;
-        ss << vm["addr2line"].as<std::string>() << " -a -f --exe=" << file << " ";
+        std::ofstream address_file;
+        address_file.open("addresses", std::ios::out );
 
         for(auto& address : address_set.second){
-            ss << address << " ";
+            address_file << address << " ";
         }
 
-        auto command = ss.str();
+        address_file << std::endl;
+
+        auto command = vm["addr2line"].as<std::string>() + " -a -f --exe=" + file + " @addresses";
         auto result = gooda::exec_command_result(command);
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 

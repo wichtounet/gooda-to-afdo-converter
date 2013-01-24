@@ -40,12 +40,18 @@ std::string gooda::exec_command_result(const std::string& command){
 
     FILE* stream = popen(command.c_str(), "r");
 
-    while (fgets(buffer, 1024, stream) != NULL) {
-        result += buffer;
+    if(!stream){
+        return "";
+    }
+
+    while(!feof(stream)) {
+        if(fgets(buffer, 1024, stream) != NULL){
+            result += buffer;
+        }
     }
 
     pclose(stream);
-
+    
     return result;
 }
 
