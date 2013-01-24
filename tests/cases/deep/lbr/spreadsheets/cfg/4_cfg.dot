@@ -1,9 +1,0 @@
-digraph "_Z11compute_sumll.part.0"{
-	rankdir=LR;
-	node[shape=box,colorscheme=ylorrd9, style=filled];
-
-	"Basic Block 1" [fillcolor=9];
-	"Addr 1";
-
-	"Basic Block 1"->"Addr 1";
-}
