@@ -732,6 +732,8 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
         auto result = gooda::exec_command_result(command);
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
+        remove("addresses");
+
         std::istringstream result_stream(result);
         std::string str_line;    
         bool next = false;
