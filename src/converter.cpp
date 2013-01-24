@@ -637,7 +637,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
             address_file << std::endl;
 
-            auto command = vm["addr2line"].as<std::string>() + " -a --exe=" + file + " @addresses";
+            auto command = vm["addr2line"].as<std::string>() + " -i -a --exe=" + file + " @addresses";
             log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
             auto result = gooda::exec_command_result(command);
 
