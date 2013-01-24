@@ -298,4 +298,69 @@ BOOST_AUTO_TEST_CASE( inheritance_lbr ){
     check_contains_stack(function, 187608, {{"main", "inheritance.cpp", 33}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 11}, {"_ZN1A11compute_sumEiil", "inheritance.cpp", 18}});
 }
 
+BOOST_AUTO_TEST_CASE( deep_ucc ){
+    gooda::options options;
+    parse_options(options, "--nows", "tests/cases/deep/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/deep/ucc/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 5);
+
+    {
+        auto& function = data.functions[0];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "_Z7computeILi4EEll");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 9375);
+        BOOST_CHECK_EQUAL(function.entry_count, 47);
+    }
+
+    {
+        auto& function = data.functions[1];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "compute<0>");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 6752);
+        BOOST_CHECK_EQUAL(function.entry_count, 308);
+    }
+
+    {
+        auto& function = data.functions[2];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "compute_third");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 949);
+        BOOST_CHECK_EQUAL(function.entry_count, 949);
+    }
+
+    {
+        auto& function = data.functions[3];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 1044);
+        BOOST_CHECK_EQUAL(function.entry_count, 0);
+    }
+
+    {
+        auto& function = data.functions[4];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "main");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 854);
+        BOOST_CHECK_EQUAL(function.entry_count, 0);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
