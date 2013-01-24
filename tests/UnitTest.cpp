@@ -390,7 +390,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         
         check_contains_stack(function, 0, {
                 {"main", "deep.cpp", 9},
-                {"compute_third", "deep_compute.hpp", 10}
+                {"compute_third", "deep_compute.hpp", 10},
                 {"compute<10>", "deep_sum.hpp", 6},
                 {"compute<9>", "deep_sum.hpp", 6},
                 {"compute<8>", "deep_sum.hpp", 6},
