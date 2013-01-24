@@ -235,6 +235,26 @@ void read_hotspot(const std::string& directory, gooda::gooda_report& report){
     log::emit<log::Debug>() << "Found " << report.functions() << " hotspot functions" << log::endl;
 }
 
+void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
+    parse_headers(file, gooda_file);
+
+    std::string line;
+
+    //The first line
+    std::getline(file, line);
+
+    while(line.size() > 3){
+        auto& gooda_line = gooda_file.new_line();
+        gooda_line.line() = line;
+
+        //Parse the contents of the line
+        parse_gooda_line(gooda_line.line(), gooda_line.contents());
+
+        //Next line
+        std::getline(file, line);
+    }
+}
+
 /*!
  * \brief Read the assembly view file for the given function. 
  * \param directory The spreadsheets directory. 
@@ -243,26 +263,11 @@ void read_hotspot(const std::string& directory, gooda::gooda_report& report){
  */
 void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
     std::ifstream asm_file;
+
+    //Try to open the file
     if(open_file(asm_file, directory + ASM_FOLDER + std::to_string(i) + ASM_CSV, false)){
-        auto& gooda_file = report.asm_file(i);
-
-        parse_headers(asm_file, gooda_file);
-
-        std::string line;
-
-        //The first asm line
-        std::getline(asm_file, line);
-
-        while(line.size() > 3){
-            auto& asm_line = gooda_file.new_line();
-            asm_line.line() = line;
-
-            //Parse the contents of the line
-            parse_gooda_line(asm_line.line(), asm_line.contents());
-
-            //Next line
-            std::getline(asm_file, line);
-        }
+        //Read and parse the gooda file
+        read_gooda_file(asm_file, report.asm_file(i));
     }
 }
 
@@ -274,26 +279,11 @@ void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_rep
  */
 void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
     std::ifstream src_file;
+    
+    //Try to open the file
     if(open_file(src_file, directory + SRC_FOLDER + std::to_string(i) + SRC_CSV, false)){
-        auto& gooda_file = report.src_file(i);
-
-        parse_headers(src_file, gooda_file);
-
-        std::string line;
-
-        //The first src line
-        std::getline(src_file, line);
-
-        while(line.size() > 3){
-            auto& src_line = gooda_file.new_line();
-            src_line.line() = line;
-
-            //Parse the contents of the line
-            parse_gooda_line(src_line.line(), src_line.contents());
-
-            //Next line
-            std::getline(src_file, line);
-        }
+        //Read and parse the gooda file
+        read_gooda_file(src_file, report.src_file(i));
     }
 }
 
