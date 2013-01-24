@@ -409,12 +409,7 @@ void compute_working_set(gooda::afdo_data& data, boost::program_options::variabl
  * \return The ELF file the function is located in. 
  */
 std::string get_application_file(const gooda::gooda_report& report, std::size_t i){
-    auto& line = report.hotspot_function(i);
-    auto application_file = line.get_string(report.get_hotspot_file().column(MODULE));
-
-    log::emit<log::Debug>() << "Found application file in \"" << application_file << "\"" << log::endl;
-
-    return application_file;
+    return report.hotspot_function(i).get_string(report.get_hotspot_file().column(MODULE));
 }
 
 /*!
