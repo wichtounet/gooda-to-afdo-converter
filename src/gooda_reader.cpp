@@ -166,75 +166,10 @@ bool open_file(std::ifstream& file, std::string file_name, bool must_exists){
 }
 
 /*!
- * \brief Read the list of the processes. 
- * \param directory The spreadsheets directory. 
- * \param report The gooda_report to fill.
+ * \brief Read a gooda file and fill the corresponding gooda_file
+ * \param file The file to read,
+ * \param gooda_file The gooda_file to fille.
  */
-void read_processes(const std::string& directory, gooda::gooda_report& report){
-    //Open the file
-    std::ifstream process_file;
-    open_file(process_file, directory + PROCESS_CSV, true);
-
-    parse_headers(process_file, report.get_process_file());
-
-    std::string line;
-
-    //The first process line
-    std::getline(process_file, line);
-
-    int i = 0;
-    
-    while(line.size() > 3){
-        auto& process_line = report.new_process();
-        process_line.line() = line;
-
-        //Parse the contents of the line
-        parse_gooda_line(process_line.line(), process_line.contents());
-
-        //Next line
-        std::getline(process_file, line);
-
-        ++i;
-    }
-
-    log::emit<log::Debug>() << "Found " << report.processes() << " processes" << log::endl;
-}
-
-/*!
- * \brief Read the hotspot function list
- * \param directory The spreadsheets directory. 
- * \param report The gooda_report to fill.
- */
-void read_hotspot(const std::string& directory, gooda::gooda_report& report){
-    //Open the file
-    std::ifstream hotspot_file;
-    open_file(hotspot_file, directory + HOTSPOT_CSV, true);
-
-    parse_headers(hotspot_file, report.get_hotspot_file());
-
-    std::string line;
-
-    //The first hotspot line
-    std::getline(hotspot_file, line);
-
-    int i = 0;
-    
-    while(line.size() > 3){
-        auto& hotspot_line = report.new_hotspot_function();
-        hotspot_line.line() = line;
-
-        //Parse the contents of the line
-        parse_gooda_line(hotspot_line.line(), hotspot_line.contents());
-
-        //Next line
-        std::getline(hotspot_file, line);
-
-        ++i;
-    }
-
-    log::emit<log::Debug>() << "Found " << report.functions() << " hotspot functions" << log::endl;
-}
-
 void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
     parse_headers(file, gooda_file);
 
@@ -253,6 +188,38 @@ void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
         //Next line
         std::getline(file, line);
     }
+}
+
+/*!
+ * \brief Read the list of the processes. 
+ * \param directory The spreadsheets directory. 
+ * \param report The gooda_report to fill.
+ */
+void read_processes(const std::string& directory, gooda::gooda_report& report){
+    //Open the file
+    std::ifstream process_file;
+    open_file(process_file, directory + PROCESS_CSV, true);
+
+    //Read and parse the gooda file
+    read_gooda_file(process_file, report.get_process_file());
+
+    log::emit<log::Debug>() << "Found " << report.processes() << " processes" << log::endl;
+}
+
+/*!
+ * \brief Read the hotspot function list
+ * \param directory The spreadsheets directory. 
+ * \param report The gooda_report to fill.
+ */
+void read_hotspot(const std::string& directory, gooda::gooda_report& report){
+    //Open the file
+    std::ifstream hotspot_file;
+    open_file(hotspot_file, directory + HOTSPOT_CSV, true);
+
+    //Read and parse the gooda file
+    read_gooda_file(hotspot_file, report.get_hotspot_file());
+
+    log::emit<log::Debug>() << "Found " << report.functions() << " hotspot functions" << log::endl;
 }
 
 /*!
