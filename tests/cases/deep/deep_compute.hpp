@@ -17,4 +17,3 @@ long compute_sum(long a, long b){
         return 676 + (compute_third(a, b, b) * a * a * compute_third(b, a, a * b) / (1 + abs(a + b)));
     }
 }
-

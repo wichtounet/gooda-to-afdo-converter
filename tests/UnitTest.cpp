@@ -320,6 +320,15 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 9512);
         BOOST_CHECK_EQUAL(function.entry_count, 59);
+
+        check_contains_stack(function, 1054, {
+                {"_Z7computeILi4EEll", "deep_sum.hpp", 6},
+                {"compute<3>", "deep_sum.hpp", 4},
+                {"compute<2>", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_sum.hpp", 2},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
     }
 
     {
@@ -330,6 +339,13 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 6959);
         BOOST_CHECK_EQUAL(function.entry_count, 273);
+
+        check_contains_stack(function, 1420, {
+                {"_Z7computeILi1EEll", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_sum.hpp", 2},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
     }
 
     {
@@ -340,6 +356,12 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 736);
         BOOST_CHECK_EQUAL(function.entry_count, 11);
+        
+        check_contains_stack(function, 128, {
+                {"_Z11compute_sumll", "deep_compute.hpp", 13},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
     }
 
     {
@@ -350,6 +372,11 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 997);
         BOOST_CHECK_EQUAL(function.entry_count, 997);
+        
+        check_contains_stack(function, 469, {
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
     }
 
     {
@@ -360,6 +387,19 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep.cpp");
         BOOST_CHECK_EQUAL(function.total_count, 771);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
+        
+        check_contains_stack(function, 0, {
+                {"main", "deep.cpp", 9},
+                {"compute_third", "deep_compute.hpp", 10}
+                {"compute<10>", "deep_sum.hpp", 6},
+                {"compute<9>", "deep_sum.hpp", 6},
+                {"compute<8>", "deep_sum.hpp", 6},
+                {"compute<7>", "deep_sum.hpp", 6},
+                {"compute<6>", "deep_sum.hpp", 6},
+                {"compute<5>", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_compute.hpp", 15},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
     }
 }
 
