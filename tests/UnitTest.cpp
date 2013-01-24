@@ -402,4 +402,108 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
     }
 }
 
+BOOST_AUTO_TEST_CASE( deep_lbr ){
+    gooda::options options;
+    parse_options(options, "--lbr", "tests/cases/deep/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/deep/lbr/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 5);
+
+    {
+        auto& function = data.functions[0];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "_Z7computeILi4EEll");
+        BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 278935);
+        BOOST_CHECK_EQUAL(function.entry_count, 1271);
+
+        check_contains_stack(function, 557, {
+                {"_Z7computeILi4EEll", "deep_sum.hpp", 6},
+                {"compute<3>", "deep_sum.hpp", 4},
+                {"compute<2>", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_sum.hpp", 2},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
+    }
+
+    {
+        auto& function = data.functions[1];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "_Z7computeILi1EEll");
+        BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 214674);
+        BOOST_CHECK_EQUAL(function.entry_count, 4861);
+
+        check_contains_stack(function, 2174, {
+                {"_Z7computeILi1EEll", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_sum.hpp", 2},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
+    }
+
+    {
+        auto& function = data.functions[2];
+        
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "main");
+        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
+        BOOST_CHECK_EQUAL(function.total_count, 39251);
+        BOOST_CHECK_EQUAL(function.entry_count, 0);
+        
+        check_contains_stack(function, 18, {
+                {"main", "deep.cpp", 9},
+                {"compute<10>", "deep_sum.hpp", 6},
+                {"compute<9>", "deep_sum.hpp", 6},
+                {"compute<8>", "deep_sum.hpp", 6},
+                {"compute<7>", "deep_sum.hpp", 6},
+                {"compute<6>", "deep_sum.hpp", 6},
+                {"compute<5>", "deep_sum.hpp", 6},
+                {"compute_sum", "deep_compute.hpp", 15},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
+    }
+
+    {
+        auto& function = data.functions[3];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll");
+        BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 22390);
+        BOOST_CHECK_EQUAL(function.entry_count, 645);
+        
+        check_contains_stack(function, 340, {
+                {"_Z11compute_sumll", "deep_compute.hpp", 13},
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
+    }
+
+    {
+        auto& function = data.functions[4];
+
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "compute_sum");
+        BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 23435);
+        BOOST_CHECK_EQUAL(function.entry_count, 545);
+        
+        check_contains_stack(function, 545, {
+                {"compute_sum", "deep_compute.hpp", 17},
+                {"compute_third", "deep_compute.hpp", 10}
+        });
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
