@@ -317,9 +317,9 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
 
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "_Z7computeILi4EEll");
-        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
-        BOOST_CHECK_EQUAL(function.total_count, 9375);
-        BOOST_CHECK_EQUAL(function.entry_count, 47);
+        BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 9512);
+        BOOST_CHECK_EQUAL(function.entry_count, 59);
     }
 
     {
@@ -327,29 +327,29 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
 
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "compute<0>");
-        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
-        BOOST_CHECK_EQUAL(function.total_count, 6752);
-        BOOST_CHECK_EQUAL(function.entry_count, 308);
+        BOOST_CHECK_EQUAL(function.file, "deep_sum.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 6959);
+        BOOST_CHECK_EQUAL(function.entry_count, 273);
     }
 
     {
         auto& function = data.functions[2];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "compute_third");
-        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
-        BOOST_CHECK_EQUAL(function.total_count, 949);
-        BOOST_CHECK_EQUAL(function.entry_count, 949);
+        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll");
+        BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 736);
+        BOOST_CHECK_EQUAL(function.entry_count, 11);
     }
 
     {
         auto& function = data.functions[3];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll");
-        BOOST_CHECK_EQUAL(function.file, "deep.cpp");
-        BOOST_CHECK_EQUAL(function.total_count, 1044);
-        BOOST_CHECK_EQUAL(function.entry_count, 0);
+        BOOST_CHECK_EQUAL(function.name, "compute_third");
+        BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
+        BOOST_CHECK_EQUAL(function.total_count, 997);
+        BOOST_CHECK_EQUAL(function.entry_count, 997);
     }
 
     {
@@ -358,7 +358,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "main");
         BOOST_CHECK_EQUAL(function.file, "deep.cpp");
-        BOOST_CHECK_EQUAL(function.total_count, 854);
+        BOOST_CHECK_EQUAL(function.total_count, 771);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
     }
 }
