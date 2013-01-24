@@ -728,7 +728,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         address_file << std::endl;
 
-        auto command = vm["addr2line"].as<std::string>() + " -a -f --exe=" + file + " @addresses";
+        auto command = vm["addr2line"].as<std::string>() + " -i -a -f --exe=" + file + " @addresses";
         auto result = gooda::exec_command_result(command);
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
@@ -736,19 +736,17 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
         std::istringstream result_stream(result);
         std::string str_line;    
-        bool next = false;
 
         std::string address;
 
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "0x000000")){
                 address = extract_address(str_line);
-
-                next = true;
-            } else if(next){
+            } else {
                 mangled_names[{address_set.first, address}] = str_line;
 
-                next = false;
+                //The next line contains the file name that is of no interest now
+                std::getline(result_stream, str_line);
             }
         }
     }
