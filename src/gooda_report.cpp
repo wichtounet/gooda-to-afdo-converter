@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_report.cpp
+ * \brief Implementation of gooda_report. 
+ */
+
 #include "gooda_report.hpp"
 
 std::size_t gooda::gooda_report::functions() const {

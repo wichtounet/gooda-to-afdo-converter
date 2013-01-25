@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file logger.cpp
+ * \brief Implementation of logging. 
+ */
+
 #include "logger.hpp"
 
 #ifdef LOGGING

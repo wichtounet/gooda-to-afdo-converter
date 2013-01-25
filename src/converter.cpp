@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file converter.cpp
+ * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
+ */
+
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -20,11 +25,6 @@
 #include "logger.hpp"
 #include "hash.hpp"
 #include "gooda_exception.hpp"
-
-/*!
- * \file converter.cpp
- * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
- */
 
 namespace {
 

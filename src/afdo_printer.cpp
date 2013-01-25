@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_printer.cpp
+ * \brief Implementation of the dumping of AFDO the console. 
+ */
+
 #include <iostream>
 #include <sstream>
 
