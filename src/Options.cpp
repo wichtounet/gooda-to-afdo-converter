@@ -31,7 +31,8 @@ int gooda::options::parse(int argc, const char **argv){
         
         po::options_description afdo("AFDO Options");
         afdo.add_options()
-            ("lbr", "Performs precise profile with LBR")
+            ("lbr", "Performs precise profile with LBR (The default is cycle accounting)")
+            ("auto", "Detect the type of the spreadsheets (Not valid with profile)")
             ("nows", "Do not compute the working set")
             ("cache-misses", "Fill cache misses information in the AFDO file")
             ("discriminators", "Find the DWARF discriminators of instructions, need >=binutils.2.23.1")
@@ -68,6 +69,16 @@ int gooda::options::parse(int argc, const char **argv){
         if(vm.count("help")){
             std::cout << description;
             return 1;
+        }
+
+        if(vm.count("profile") && vm.count("auto")){
+            log::emit<log::Error>() << "--auto and --profile cannot be used together" << log::endl;
+            return 2;
+        }
+        
+        if(vm.count("lbr") && vm.count("auto")){
+            log::emit<log::Error>() << "--auto and --lbr cannot be used together" << log::endl;
+            return 2;
         }
     } catch (std::exception& e ) {
         log::emit<log::Error>() << e.what() << log::endl;
