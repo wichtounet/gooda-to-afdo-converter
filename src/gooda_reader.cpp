@@ -186,10 +186,6 @@ void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
         gooda_line.line() = line;
 
         //Parse the contents of the line
-    variables_map      
-        ::parsed_options parsed_options;
-
-asifsjfajfdisjfq        
         parse_gooda_line(gooda_line.line(), gooda_line.contents());
 
         //Next line
