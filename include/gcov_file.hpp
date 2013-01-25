@@ -40,21 +40,21 @@ class gcov_file {
          * \param file The path to the file.
          * \return true if the file has been successfully opened, false otherwise. 
          */
-        bool open(const std::string& file);
+        void open(const std::string& file);
         
         /*!
          * \brief Open the file for writing.
          * \param file The path to the file.
          * \return true if the file has been successfully opened, false otherwise. 
          */
-        bool open_for_write(const std::string& file);
+        void open_for_write(const std::string& file);
 
         /*!
          * \brief Open the file for reading. 
          * \param file The path to the file.
          * \return true if the file has been successfully opened, false otherwise. 
          */
-        bool open_for_read(const std::string& file);
+        void open_for_read(const std::string& file);
         
         /*!
          * \brief Write GCOV header for AFDO. 

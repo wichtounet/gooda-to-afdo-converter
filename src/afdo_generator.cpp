@@ -132,11 +132,7 @@ void gooda::generate_afdo(const afdo_data& data, const std::string& file, boost:
     log::emit<log::Debug>() << "Generate AFDO profile in \"" << file << "\"" << log::endl;
 
     gooda::gcov_file gcov_file;
-
-    if(!gcov_file.open(file)){
-        std::cout << "Cannot open file for writing" << std::endl;
-        return;
-    }
+    gcov_file.open(file);
 
     gcov_file.write_header();
 
