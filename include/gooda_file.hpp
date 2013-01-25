@@ -101,17 +101,24 @@ class gooda_file {
 
         /*!
          * \brief Return the index at which the given column is. 
-         * \param column The textual name of the column ("Disassembly for instance")
+         * \param column The textual name of the column ("Disassembly" for instance)
          * \return The index of the column.
          */
         unsigned int& column(const std::string& column);
 
         /*!
          * \brief Return the index at which the given column is. 
-         * \param column The textual name of the column ("Disassembly for instance")
+         * \param column The textual name of the column ("Disassembly" for instance)
          * \return The index of the column.
          */
-        int column(const std::string& column) const;
+        unsigned int column(const std::string& column) const;
+
+        /*!
+         * \brief Test if the file has the given column
+         * \param column The textual name of the column ("Disassembly" for instance)
+         * \return true if the file has the given column, false otherwise
+         */
+        bool has_column(const std::string& column) const;
 
         /*!
          * \brief Return the number of lines of the file

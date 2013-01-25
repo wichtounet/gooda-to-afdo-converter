@@ -38,26 +38,21 @@ typedef std::chrono::milliseconds milliseconds;
 void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
-    try {
-        //Read the Gooda Spreadsheets
-        auto report = gooda::read_spreadsheets(directory);
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets(directory);
 
-        gooda::afdo_data data;
+    gooda::afdo_data data;
 
-        //Convert the Gooda report to AFDO
-        gooda::convert_to_afdo(report, data, vm);
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, vm);
 
-        //Execute the specified action
-        if(vm.count("dump")){
-            gooda::dump_afdo_light(data, vm);
-        } else if(vm.count("full-dump")){
-            gooda::dump_afdo(data, vm);
-        } else {
-            gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
-        }
-    } catch (const gooda::gooda_exception& e){
-        log::emit<log::Error>() << e.what() << log::endl;
-        return;
+    //Execute the specified action
+    if(vm.count("dump")){
+        gooda::dump_afdo_light(data, vm);
+    } else if(vm.count("full-dump")){
+        gooda::dump_afdo(data, vm);
+    } else {
+        gooda::generate_afdo(data, vm["output"].as<std::string>(), vm);
     }
 
     Clock::time_point t1 = Clock::now();
@@ -122,7 +117,7 @@ void process_afdo(const std::string& afdo_file, po::variables_map& vm){
  * \param parsed_options The parsed options. Used to get the parameters of the application to run
  * \return An integer code indicating the status of the profiling.
  */
-int profile_application(po::variables_map& vm, po::parsed_options& parsed_options){
+void profile_application(po::variables_map& vm, po::parsed_options& parsed_options){
     int processor_model = -1;
 
     if(vm.count("model")){
@@ -131,8 +126,7 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
         processor_model = gooda::processor_model();
 
         if(processor_model == -1){
-            log::emit<log::Error>() << "Cannot find your processor model. Please provide it with the --model option. " << log::endl;
-            return -1;
+            throw gooda::gooda_exception("Cannot find your processor model. Please provide it with the --model option. ");
         }
     }
 
@@ -148,9 +142,7 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
         log::emit<log::Debug>() << "Detected processor as \"Westmere\"" << log::endl;
         script = "run_record_cyc_wsm_ep.sh";
     } else {
-        std::cerr << "Sorry, your processor is not supported by Gooda" << std::endl;
-        std::cerr << "Only Westmere, Sandy Bridge and Ivy Bridge are currently supported" << std::endl;
-        return -1;
+        throw gooda::gooda_exception("Sorry, your processor is not supported by Gooda. \n Only Westmere, Sandy Bridge and Ivy Bridge are currently supported");
     }
 
     //There is only one script for LBR
@@ -216,123 +208,114 @@ int profile_application(po::variables_map& vm, po::parsed_options& parsed_option
         //Process the spreadsheets to generate AFDO
         process_spreadsheets("spreadsheets", vm); 
     }
-
-    return 0;
 }
 
 } //end of anonymous namespace
 
 int main(int argc, const char **argv){
-    gooda::options options;
-    
-    int code = options.parse(argc, argv);
+    try {
+        gooda::options options;
+        options.parse(argc, argv);
 
-    if(code != 0){
-        return code;
-    }
-
-    if(options.vm.count("lbr") && options.vm.count("cache-misses")){
-        log::emit<log::Error>() << "Gooda does not support cache misses in LBR mode" << log::endl;
-        return 1;
-    }
-
-    //Profiling mode
-    if(options.vm.count("profile")){
-        return profile_application(options.vm, options.parsed_options);
-    }
-    
-    code = options.notify();
-
-    if(code != 0){
-        return code;
-    }
-
-    auto& vm = options.vm;
-
-    if(!vm.count("input-file")){
-        log::emit<log::Error>() << "No file provided" << log::endl;
-
-        return 1;
-    }
-
-    auto input_files = vm["input-file"].as<std::vector<std::string>>();
-
-    //Test that there is a least one file
-    if(input_files.empty()){
-        log::emit<log::Error>() << "No file provided" << log::endl;
-
-        return 1;
-    }
-
-    if(vm.count("diff")){
-        //Verify that there are two difrections
-        if(input_files.size() != 2){
-            log::emit<log::Error>() << "Two directories are necessary to perform a diff" << log::endl;
-
-            return 1;
-        }
-        
-        std::string first = input_files[0];
-        std::string second = input_files[1];
-        
-        //The directories must exists
-        if(!gooda::exists(first)){
-            log::emit<log::Error>() << "\"" << first << "\" does not exists" << log::endl;
-            return 1;
-        }
-        
-        //The directories must exists
-        if(!gooda::exists(second)){
-            log::emit<log::Error>() << "\"" << second << "\" does not exists" << log::endl;
-            return 1;
-        }
-        
-        //The file must be a directory 
-        if(!gooda::is_directory(first)){
-            log::emit<log::Error>() << "\"" << first << "\" is not a directory" << log::endl;
-            return 1;
-        }
-        
-        //The file must be a directory 
-        if(!gooda::is_directory(second)){
-            log::emit<log::Error>() << "\"" << second << "\" is not a directory" << log::endl;
-            return 1;
+        //Profiling mode
+        if(options.vm.count("profile")){
+            profile_application(options.vm, options.parsed_options);
+            return 0;
         }
 
-        //Perform the diff
-        diff(first, second, vm);
+        options.notify();
 
-        return 0;
-    } else {
-        //Verify that only one directory is provided
-        if(input_files.size() > 1){
-            log::emit<log::Error>() << "Only one file can be analyzed at a time" << log::endl;
+        auto& vm = options.vm;
+
+        if(!vm.count("input-file")){
+            log::emit<log::Error>() << "No file provided" << log::endl;
 
             return 1;
         }
 
-        std::string input_file = input_files[0];
+        auto input_files = vm["input-file"].as<std::vector<std::string>>();
 
-        //The file must exists
-        if(!gooda::exists(input_file)){
-            log::emit<log::Error>() << "\"" << input_file << "\" does not exists" << log::endl;
+        //Test that there is a least one file
+        if(input_files.empty()){
+            log::emit<log::Error>() << "No file provided" << log::endl;
+
             return 1;
         }
 
-        if(vm.count("read-afdo")){
-            process_afdo(input_file, vm); 
-        } 
-        //By default, read spreadsheets
-        else {
-            //The file must be a directory 
-            if(!gooda::is_directory(input_file)){
-                log::emit<log::Error>() << "\"" << input_file << "\" is not a directory" << log::endl;
+        if(vm.count("diff")){
+            //Verify that there are two difrections
+            if(input_files.size() != 2){
+                log::emit<log::Error>() << "Two directories are necessary to perform a diff" << log::endl;
+
                 return 1;
             }
 
-            process_spreadsheets(input_file, vm);
-        }
+            std::string first = input_files[0];
+            std::string second = input_files[1];
 
-        return 0;
+            //The directories must exists
+            if(!gooda::exists(first)){
+                log::emit<log::Error>() << "\"" << first << "\" does not exists" << log::endl;
+                return 1;
+            }
+
+            //The directories must exists
+            if(!gooda::exists(second)){
+                log::emit<log::Error>() << "\"" << second << "\" does not exists" << log::endl;
+                return 1;
+            }
+
+            //The file must be a directory 
+            if(!gooda::is_directory(first)){
+                log::emit<log::Error>() << "\"" << first << "\" is not a directory" << log::endl;
+                return 1;
+            }
+
+            //The file must be a directory 
+            if(!gooda::is_directory(second)){
+                log::emit<log::Error>() << "\"" << second << "\" is not a directory" << log::endl;
+                return 1;
+            }
+
+            //Perform the diff
+            diff(first, second, vm);
+
+            return 0;
+        } else {
+            //Verify that only one directory is provided
+            if(input_files.size() > 1){
+                log::emit<log::Error>() << "Only one file can be analyzed at a time" << log::endl;
+
+                return 1;
+            }
+
+            std::string input_file = input_files[0];
+
+            //The file must exists
+            if(!gooda::exists(input_file)){
+                log::emit<log::Error>() << "\"" << input_file << "\" does not exists" << log::endl;
+                return 1;
+            }
+
+            if(vm.count("read-afdo")){
+                process_afdo(input_file, vm); 
+            } 
+            //By default, read spreadsheets
+            else {
+                //The file must be a directory 
+                if(!gooda::is_directory(input_file)){
+                    log::emit<log::Error>() << "\"" << input_file << "\" is not a directory" << log::endl;
+                    return 1;
+                }
+
+                process_spreadsheets(input_file, vm);
+            }
+        }
+    } catch (const gooda::gooda_exception& e){
+        log::emit<log::Error>() << e.what() << log::endl;
+
+        return -1;
     }
+
+    return 0;
 }

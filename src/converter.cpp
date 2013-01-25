@@ -19,6 +19,7 @@
 #include "utils.hpp"
 #include "logger.hpp"
 #include "hash.hpp"
+#include "gooda_exception.hpp"
 
 /*!
  * \file converter.cpp
@@ -347,8 +348,9 @@ void compute_lengths(gooda::afdo_data& data){
  * \param report The Gooda report
  * \param data the AFDO profile
  * \param vm The configuration
+ * \param lbr Indicate the mode. 
  */
-void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
+void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm, bool lbr){
     //Fill the working set with zero
     for(auto& working_set : data.working_set){
         working_set.num_counter = 0;
@@ -363,7 +365,7 @@ void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& da
     std::map<uint64_t, uint64_t> histogram;
     uint64_t total_count = 0;
 
-    auto counter = vm.count("lbr") ? SW_INST_RETIRED : UNHALTED_CORE_CYCLES;
+    auto counter = lbr ? SW_INST_RETIRED : UNHALTED_CORE_CYCLES;
     
     for(auto& function : data.functions){
         auto& asm_file = report.asm_file(function.i);
@@ -814,17 +816,40 @@ void prune_uncounted_functions(gooda::afdo_data& data){
     }
 }
 
+std::size_t total_count(const gooda::gooda_report& report, const std::string& counter_name){
+    auto& hotspot_file = report.get_hotspot_file();
+
+    std::size_t total = 0;
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        total += report.hotspot_function(i).get_counter(hotspot_file.column(counter_name));
+    }
+    return total;
+}
+
 } //End of anonymous namespace
 
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
-    bool lbr = vm.count("lbr");
+    bool lbr;
+    if(vm.count("auto")){
+        auto total_count_lbr = total_count(report, BB_EXEC); 
+        lbr = total_count_lbr > 0;
+    } else {
+        lbr = vm.count("lbr");
+    }
+
+    //Choose the correct counter
+    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
+
+    if(!vm.count("auto")){
+        //Verify that the file has the correct column
+        if(total_count(report, counter_name) == 0){
+            throw gooda::gooda_exception("The file is not valid for the current mode");
+        }
+    }
 
     //Empty each cache
     inlining_cache.clear();
     discriminator_cache.clear();
-
-    //Choose the correct counter
-    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
     auto filter = get_process_filter(report, vm, counter_name);
     log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
@@ -948,7 +973,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     fill_file_name_table(data);
 
     //Compute the working set
-    compute_working_set(report, data, vm);
+    compute_working_set(report, data, vm, lbr);
 
     //Set the sizes of the different sections
     compute_lengths(data);

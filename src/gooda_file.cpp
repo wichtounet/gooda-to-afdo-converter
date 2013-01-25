@@ -54,8 +54,12 @@ gooda::gooda_file::const_iterator gooda::gooda_file::end() const {
 unsigned int& gooda::gooda_file::column(const std::string& column_name){
     return m_columns[column_name];
 }
+        
+bool gooda::gooda_file::has_column(const std::string& column_name) const {
+    return m_columns.find(column_name) != m_columns.end();
+}
 
-int gooda::gooda_file::column(const std::string& column_name) const {
+unsigned int gooda::gooda_file::column(const std::string& column_name) const {
     return m_columns.at(column_name);
 }
 

@@ -11,8 +11,9 @@
 
 #include "Options.hpp"
 #include "logger.hpp"
+#include "gooda_exception.hpp"
 
-int gooda::options::parse(int argc, const char **argv){
+void gooda::options::parse(int argc, const char **argv){
     try {
         po::options_description input("Input actions");
         input.add_options()
@@ -31,7 +32,8 @@ int gooda::options::parse(int argc, const char **argv){
         
         po::options_description afdo("AFDO Options");
         afdo.add_options()
-            ("lbr", "Performs precise profile with LBR")
+            ("lbr", "Performs precise profile with LBR (The default is cycle accounting)")
+            ("auto", "Detect the type of the spreadsheets (Not valid with profile)")
             ("nows", "Do not compute the working set")
             ("cache-misses", "Fill cache misses information in the AFDO file")
             ("discriminators", "Find the DWARF discriminators of instructions, need >=binutils.2.23.1")
@@ -67,40 +69,46 @@ int gooda::options::parse(int argc, const char **argv){
 
         if(vm.count("help")){
             std::cout << description;
-            return 1;
+            return;
+        }
+
+        if(vm.count("profile") && vm.count("auto")){
+            throw gooda::gooda_exception("--auto and --profile cannot be used together");
+        }
+        
+        if(vm.count("lbr") && vm.count("auto")){
+            throw gooda::gooda_exception("--auto and --lbr cannot be used together");
+        }
+        
+        if(vm.count("lbr") && vm.count("cache-misses")){
+            throw gooda::gooda_exception("Gooda does not support cache misses in LBR mode");
         }
     } catch (std::exception& e ) {
-        log::emit<log::Error>() << e.what() << log::endl;
-        return 2;
+        throw gooda::gooda_exception(e.what());
     }
     
     log::set_level(vm["log"].as<int>());
-
-    return 0;
 }
 
-int gooda::options::notify(){
+void gooda::options::notify(){
     //No further options are allowed if not in profile mode
     auto further_options = po::collect_unrecognized(parsed_options.options, po::exclude_positional);
     if(!further_options.empty()){
-        std::cerr << "Error: Unrecognized options " << further_options[0];
+        std::string message = "Error: Unrecognized options " + further_options[0];
 
         for(std::size_t i = 1; i < further_options.size(); ++i){
-            std::cerr << ", " << further_options[i];
+            message += ", " + further_options[i];
         }
 
-        std::cerr << std::endl;
+        message += "\n";
 
-        return 1;
+        throw gooda::gooda_exception(message);
     }
 
     try {
         //Must be done after the test for help/profile to handle required arguments
         po::notify(vm);
     } catch (std::exception& e ) {
-        log::emit<log::Error>() << e.what() << log::endl;
-        return 1;
+        throw gooda::gooda_exception(e.what());
     }
-
-    return 0;
 }
