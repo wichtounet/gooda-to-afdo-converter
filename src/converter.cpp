@@ -347,7 +347,7 @@ void compute_lengths(gooda::afdo_data& data){
  * \param data the AFDO profile
  * \param vm The 
  */
-void compute_working_set(gooda::afdo_data& data, boost::program_options::variables_map& vm){
+void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //Fill the working set with zero
     for(auto& working_set : data.working_set){
         working_set.num_counter = 0;
@@ -359,15 +359,23 @@ void compute_working_set(gooda::afdo_data& data, boost::program_options::variabl
         return;
     }
 
-    static_assert(sizeof(std::size_t) == sizeof(uint64_t), "The sizes must be correct in order for the histogram to be valid");
+    std::map<uint64_t, uint64_t> histogram;
+    uint64_t total_count = 0;
 
-    std::map<std::size_t, std::size_t> histogram;
-    std::size_t total_count = 0;
+    auto counter = vm.count("lbr") ? SW_INST_RETIRED : UNHALTED_CORE_CYCLES;
     
     for(auto& function : data.functions){
-        for(auto& stack : function.stacks){
-            histogram[stack.count]++;
-            total_count += stack.count;
+        auto& asm_file = report.asm_file(function.i);
+
+        for(std::size_t j = 0; j < asm_file.lines(); ++j){
+            auto& asm_line = asm_file.line(j);
+
+            if(!asm_line.get_string(asm_file.column(ADDRESS)).empty() && !boost::starts_with(asm_line.get_string(asm_file.column(DISASSEMBLY)), "Basic Block")){
+                auto count = asm_file.multiplex_line().get_double(asm_file.column(counter)) * asm_line.get_counter(asm_file.column(counter));
+
+                histogram[count]++;
+                total_count += count;
+            }
         }
     }
 
@@ -375,13 +383,13 @@ void compute_working_set(gooda::afdo_data& data, boost::program_options::variabl
     auto rend = histogram.rend();
 
     unsigned int bucket_num = 0;
-    std::size_t accumulated_count = 0;
-    std::size_t accumulated_inst = 0;
-    std::size_t one_bucket_count = total_count / (gooda::WS_SIZE + 1);
+    uint64_t accumulated_count = 0;
+    uint64_t accumulated_inst = 0;
+    uint64_t one_bucket_count = total_count / (gooda::WS_SIZE + 1);
 
     while(rit != rend && bucket_num < gooda::WS_SIZE){
-        auto count = rit->first;
-        auto num_inst = rit->second;
+        uint64_t count = rit->first;
+        uint64_t num_inst = rit->second;
 
         while(count * num_inst + accumulated_count > one_bucket_count * (bucket_num + 1)){
             int offset = (one_bucket_count * (bucket_num + 1) - accumulated_count) / count;
@@ -390,6 +398,10 @@ void compute_working_set(gooda::afdo_data& data, boost::program_options::variabl
             accumulated_count += offset * count;
 
             num_inst -= offset;
+
+            if(bucket_num >= gooda::WS_SIZE){
+                break;
+            }
 
             data.working_set.at(bucket_num).num_counter = accumulated_inst;
             data.working_set.at(bucket_num).min_counter = count;
@@ -935,7 +947,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     fill_file_name_table(data);
 
     //Compute the working set
-    compute_working_set(data, vm);
+    compute_working_set(report, data, vm);
 
     //Set the sizes of the different sections
     compute_lengths(data);
