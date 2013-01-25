@@ -111,7 +111,7 @@ class gooda_file {
          * \param column The textual name of the column ("Disassembly for instance")
          * \return The index of the column.
          */
-        int column(const std::string& column) const;
+        unsigned int column(const std::string& column) const;
 
         /*!
          * \brief Return the number of lines of the file
