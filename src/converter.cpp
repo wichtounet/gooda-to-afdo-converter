@@ -19,6 +19,7 @@
 #include "utils.hpp"
 #include "logger.hpp"
 #include "hash.hpp"
+#include "gooda_exception.hpp"
 
 /*!
  * \file converter.cpp
@@ -819,12 +820,24 @@ void prune_uncounted_functions(gooda::afdo_data& data){
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr = vm.count("lbr");
 
+    //Choose the correct counter
+    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
+
+    auto& hotspot_file = report.get_hotspot_file();
+
+    std::size_t total = 0;
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        total += report.hotspot_function(i).get_counter(hotspot_file.column(counter_name));
+    }
+
+    //Verify that the file has the correct column
+    if(total == 0){
+        throw gooda::gooda_exception("The file is not valid for the current mode");
+    }
+
     //Empty each cache
     inlining_cache.clear();
     discriminator_cache.clear();
-
-    //Choose the correct counter
-    std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
     auto filter = get_process_filter(report, vm, counter_name);
     log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
