@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_data.hpp
+ * \brief Contains the data structures that are used to hold AFDO data. 
+ */
+
 #ifndef GOODA_DATA_HPP
 #define GOODA_DATA_HPP
 
@@ -14,11 +19,6 @@
 #include <array>
 
 #include "gcov_types.hpp"
-
-/*!
- * \file afdo_data.hpp
- * \brief Contains the data structures that are used to hold AFDO data. 
- */
 
 namespace gooda {
 

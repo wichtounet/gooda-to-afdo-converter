@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_printer.hpp
+ * \brief Contains functions necessary to dump AFDO data. 
+ */
+
 #ifndef GOODA_AFDO_PRINTER_HPP
 #define GOODA_AFDO_PRINTER_HPP
 
@@ -13,11 +18,6 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include "afdo_data.hpp"
-
-/*!
- * \file afdo_printer.hpp
- * \brief Contains functions necessary to dump AFDO data. 
- */
 
 namespace gooda {
 

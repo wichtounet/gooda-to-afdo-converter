@@ -5,13 +5,13 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef LIKELY_H
-#define LIKELY_H
-
 /*!
  * \file likely.hpp
  * \brief Contains macro helping GCC to produce efficient code.
  */
+
+#ifndef LIKELY_H
+#define LIKELY_H
 
 #ifdef __GNUC__
 

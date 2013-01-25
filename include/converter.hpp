@@ -5,6 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file converter.hpp
+ * \brief Contains the necessary functions to convert Gooda Spreadsheets 
+ * to AFDO file. 
+ */
+
 #ifndef GOODA_CONVERTER_HPP
 #define GOODA_CONVERTER_HPP
 
@@ -12,12 +18,6 @@
 
 #include "afdo_data.hpp"
 #include "gooda_report.hpp"
-
-/*!
- * \file converter.hpp
- * \brief Contains the necessary functions to convert Gooda Spreadsheets 
- * to AFDO file. 
- */
 
 namespace gooda {
 

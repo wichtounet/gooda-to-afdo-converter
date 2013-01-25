@@ -5,15 +5,15 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_UTILS_HPP
-#define GOODA_UTILS_HPP
-
-#include <string>
-
 /*!
  * \file utils.hpp
  * \brief Contains utility functions. 
  */
+
+#ifndef GOODA_UTILS_HPP
+#define GOODA_UTILS_HPP
+
+#include <string>
 
 namespace gooda {
 

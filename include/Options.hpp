@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file Options.hpp
+ * \brief Contains the command-line management system. 
+ */
+
 #ifndef GOODA_OPTIONS_HPP
 #define GOODA_OPTIONS_HPP
 

@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_reader.hpp
+ * \brief Contains the necessary functions to read AFDO profile. 
+ */
+
 #ifndef GOODA_AFDO_READER_HPP
 #define GOODA_AFDO_READER_HPP
 
@@ -13,11 +18,6 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include "afdo_data.hpp"
-
-/*!
- * \file afdo_reader.hpp
- * \brief Contains the necessary functions to read AFDO profile. 
- */
 
 namespace gooda {
 

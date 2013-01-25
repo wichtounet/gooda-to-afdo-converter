@@ -18,4 +18,4 @@
  */
 namespace gooda {
 
-} //end of eddic
+} //end of gooda

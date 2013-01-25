@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_HASH_HPP
-#define GOODA_HASH_HPP
-
 /*!
  * \file hash.hpp
  * \brief Contains utility functions for hashing.  
  */
+
+#ifndef GOODA_HASH_HPP
+#define GOODA_HASH_HPP
 
 namespace gooda {
 
