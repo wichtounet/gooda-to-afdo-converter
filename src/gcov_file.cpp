@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gcov_file.cpp
+ * \brief Implement of gcov_file
+ */
+
 #include <cstring>
 
 #include "gcov_file.hpp"

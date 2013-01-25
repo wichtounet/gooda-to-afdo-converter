@@ -25,6 +25,11 @@
 #define SRC_FOLDER "/src/"
 #define SRC_CSV "_src.csv"
 
+/*!
+ * \file gooda_reader.cpp
+ * \brief Implementation of the reading and parsing of Gooda spreadsheets into the gooda::gooda_report data structure. 
+ */
+
 namespace {
 
 /*!
@@ -142,7 +147,7 @@ void parse_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
  * \brief Open the given file_name into the given stream. 
  * \param file The ifstream to open.
  * \param file_name The path to the file.
- * \param must_exidsts If set to true and the file does not exists, throws an exception
+ * \param must_exists If set to true and the file does not exists, throws an exception
  * \return true if the file exists, false otherwise
  */
 bool open_file(std::ifstream& file, std::string file_name, bool must_exists){
@@ -181,6 +186,10 @@ void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
         gooda_line.line() = line;
 
         //Parse the contents of the line
+    variables_map      
+        ::parsed_options parsed_options;
+
+asifsjfajfdisjfq        
         parse_gooda_line(gooda_line.line(), gooda_line.contents());
 
         //Next line

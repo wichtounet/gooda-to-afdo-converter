@@ -344,8 +344,9 @@ void compute_lengths(gooda::afdo_data& data){
 
 /*!
  * \brief Compute the working set for the given data. 
+ * \param report The Gooda report
  * \param data the AFDO profile
- * \param vm The 
+ * \param vm The configuration
  */
 void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //Fill the working set with zero
