@@ -37,12 +37,12 @@ struct options {
      * \param argc The number of arguments
      * \param argv The arguments
      */
-    int parse(int argc, const char **argv);
+    void parse(int argc, const char **argv);
 
     /*!
      * \brief Validate the current arguments and verify that they are valid regarding to the configuration.
      */
-    int notify();
+    void notify();
 };
 
 } //end of namespace gooda

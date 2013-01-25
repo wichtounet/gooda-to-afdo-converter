@@ -28,8 +28,8 @@ inline void parse_options(gooda::options& options, std::string param1, std::stri
     argv[4] = folder_arg.c_str();
     argv[5] = "";
 
-    BOOST_REQUIRE_EQUAL (options.parse(6, argv), 0);
-    BOOST_REQUIRE_EQUAL (options.notify(), 0);
+    options.parse(6, argv);
+    options.notify();
 }
 
 BOOST_AUTO_TEST_SUITE(MainSuite)
