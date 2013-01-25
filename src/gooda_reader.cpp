@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_reader.cpp
+ * \brief Implementation of the reading and parsing of Gooda spreadsheets into the gooda::gooda_report data structure. 
+ */
+
 #include <iostream>
 #include <fstream>
 
@@ -24,11 +29,6 @@
 
 #define SRC_FOLDER "/src/"
 #define SRC_CSV "_src.csv"
-
-/*!
- * \file gooda_reader.cpp
- * \brief Implementation of the reading and parsing of Gooda spreadsheets into the gooda::gooda_report data structure. 
- */
 
 namespace {
 

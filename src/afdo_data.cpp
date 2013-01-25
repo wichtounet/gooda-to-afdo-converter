@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_data.cpp
+ * \brief Implementation of the AFDO data structures. 
+ */
+
 #include <iostream>
 
 #include "assert.hpp"

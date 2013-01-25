@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_ASSERT_HPP
-#define GOODA_ASSERT_HPP
-
 /*!
  * \file assert.hpp
  * \brief Contains assertion functions. 
  */
+
+#ifndef GOODA_ASSERT_HPP
+#define GOODA_ASSERT_HPP
 
 #include <cassert>
 

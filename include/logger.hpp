@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_LOGGER_HPP
-#define GOODA_LOGGER_HPP
-
 /*!
  * \file logger.hpp
  * \brief Contains the logging system. 
  */
+
+#ifndef GOODA_LOGGER_HPP
+#define GOODA_LOGGER_HPP
 
 #include <iostream>
 

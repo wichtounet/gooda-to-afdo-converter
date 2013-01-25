@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_file.cpp
+ * \brief Implementation of gooda_file. 
+ */
+
 #include "gooda_file.hpp"
 
 gooda::gooda_line& gooda::gooda_file::new_line(){

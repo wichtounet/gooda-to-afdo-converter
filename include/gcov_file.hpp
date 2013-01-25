@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_GCOV_FILE_HPP
-#define GOODA_GCOV_FILE_HPP
-
 /*!
  * \file gcov_file.hpp
  * \brief Utility to write and read GCOV files
  */
+
+#ifndef GOODA_GCOV_FILE_HPP
+#define GOODA_GCOV_FILE_HPP
 
 #include <iostream>
 #include <fstream>

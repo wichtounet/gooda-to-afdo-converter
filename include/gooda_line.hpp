@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_line.hpp
+ * \brief Contains the data structure representing a Gooda line. 
+ */
+
 #ifndef GOODA_GOODA_LINE_HPP
 #define GOODA_GOODA_LINE_HPP
 
@@ -12,11 +17,6 @@
 #include <vector>
 
 #include <boost/range/iterator_range.hpp>
-
-/*!
- * \file gooda_line.hpp
- * \brief Contains the data structure representing a Gooda line. 
- */
 
 /*!
  * \brief An iterator on a string

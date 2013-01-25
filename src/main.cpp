@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file main.cpp
+ * \brief Implementation of the interpreter of the options and execution of the correct functions for each use case. 
+ */
+
 #include <iostream>
 #include <chrono>
 
@@ -18,11 +23,6 @@
 #include "diff.hpp"
 #include "Options.hpp"
 #include "gooda_exception.hpp"
-
-/*!
- * \file main.cpp
- * \brief Implementation of the interpreter of the options and execution of the correct functions for each use case. 
- */
 
 namespace {
 

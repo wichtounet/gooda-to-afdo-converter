@@ -5,6 +5,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_exception.cpp
+ * \brief Implementation of gooda_exception. 
+ */
+
 #include "gooda_exception.hpp"
 
 gooda::gooda_exception::gooda_exception(const std::string& message) : m_message(message) {}

@@ -7,7 +7,7 @@
 
 /*!
  * \file gcov_file.cpp
- * \brief Implement of gcov_file
+ * \brief Implementation of gcov_file. 
  */
 
 #include <cstring>

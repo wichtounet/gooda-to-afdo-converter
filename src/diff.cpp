@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file diff.cpp
+ * \brief Prototype implementation of a diff between two sets of spreadsheets. 
+ */
+
 #include <unordered_map>
 
 #include "diff.hpp"

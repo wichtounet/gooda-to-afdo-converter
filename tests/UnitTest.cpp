@@ -46,6 +46,8 @@ struct P {
 void check_contains_stack(const gooda::afdo_function& function, std::size_t count, std::vector<P> positions){
     bool found = false;
 
+    std::reverse(positions.begin(), positions.end());
+
     for(auto& stack : function.stacks){
         if(stack.stack.size() == positions.size()){
             bool exact = true;

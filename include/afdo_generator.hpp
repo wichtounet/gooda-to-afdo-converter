@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file afdo_generator.hpp
+ * \brief Contains the functions necessary to write the AFDO file. 
+ */
+
 #ifndef GOODA_GENERATOR_HPP
 #define GOODA_GENERATOR_HPP
 
@@ -13,11 +18,6 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include "afdo_data.hpp"
-
-/*!
- * \file afdo_generator.hpp
- * \brief Contains the functions necessary to write the AFDO file. 
- */
 
 namespace gooda {
 

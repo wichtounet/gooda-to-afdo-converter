@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
-#ifndef GOODA_GCOV_TYPES_HPP
-#define GOODA_GCOV_TYPES_HPP
-
 /*!
  * \file gcov_types.hpp
  * \brief Contains the typedef for the GCOV types. 
  */
+
+#ifndef GOODA_GCOV_TYPES_HPP
+#define GOODA_GCOV_TYPES_HPP
 
 /*!
  * \brief Type to hold most of data in GCOV. 

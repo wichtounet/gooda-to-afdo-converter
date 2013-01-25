@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_line.cpp
+ * \brief Implementation of gooda_line. 
+ */
+
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 

@@ -5,17 +5,17 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_reader.hpp
+ * \brief Contains functions necessary to read Gooda spreadsheets. 
+ */
+
 #ifndef GOODA_GOODA_READER_HPP
 #define GOODA_GOODA_READER_HPP
 
 #include <string>
 
 #include "gooda_report.hpp"
-
-/*!
- * \file gooda_reader.hpp
- * \brief Contains functions necessary to read Gooda spreadsheets. 
- */
 
 namespace gooda {
 

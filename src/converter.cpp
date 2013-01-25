@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file converter.cpp
+ * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
+ */
+
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -20,11 +25,6 @@
 #include "logger.hpp"
 #include "hash.hpp"
 #include "gooda_exception.hpp"
-
-/*!
- * \file converter.cpp
- * \brief Implementation of the conversion from Gooda spreadsheets to AFDO profile.
- */
 
 namespace {
 
@@ -585,13 +585,23 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
             }
         }
     }
-
-    //There is a bug in addr2line 2.23.1 that gives discriminator for each element of the inlining stack
-    //However, only the one from the source is valid. DWARF does not allow discriminators in the inline stack
+   
+    //AFDO expects the stack ending with the instruction inside the current function
+    //Thus, it is necessary to reverse each stack
 
     for(auto& inlining_entry : inlining_cache){
         auto& inlining_stack = inlining_entry.second;
-        for(std::size_t i = 0; i < inlining_stack.size() - 1; ++i){
+
+        std::reverse(inlining_stack.begin(), inlining_stack.end());
+    }
+
+    //There is a bug in addr2line 2.23.1 that gives discriminator for each element of the inlining stack
+    //However, only the one from the source is valid. DWARF does not allow discriminators in the inline stack
+    //Thus, it is necessary to clear the others lines
+
+    for(auto& inlining_entry : inlining_cache){
+        auto& inlining_stack = inlining_entry.second;
+        for(std::size_t i = 1; i < inlining_stack.size(); ++i){
             inlining_stack.at(i).discriminator = 0;
         }
     }

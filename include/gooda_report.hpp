@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_report.hpp
+ * \brief Contains the data structures holding the Gooda report. 
+ */
+
 #ifndef GOODA_GOODA_REPORT_HPP
 #define GOODA_GOODA_REPORT_HPP
 
@@ -14,11 +19,6 @@
 
 #include "gooda_file.hpp"
 #include "gooda_line.hpp"
-
-/*!
- * \file gooda_report.hpp
- * \brief Contains the data structures holding the Gooda report. 
- */
 
 /*!
  * \def UNHALTED_CORE_CYCLES 

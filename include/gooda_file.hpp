@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file gooda_file.hpp
+ * \brief Contains the data structures holding a Gooda file. 
+ */
+
 #ifndef GOODA_GOODA_FILE_HPP
 #define GOODA_GOODA_FILE_HPP
 
@@ -13,11 +18,6 @@
 #include <unordered_map>
 
 #include "gooda_line.hpp"
-
-/*!
- * \file gooda_file.hpp
- * \brief Contains the data structures holding a Gooda file. 
- */
 
 namespace gooda {
 

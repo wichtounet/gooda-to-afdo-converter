@@ -5,17 +5,17 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file diff.hpp
+ * \brief Contains the necessary functions to perform diff between two sets of spreadsheets. 
+ */
+
 #ifndef GOODA_DIFF_HPP
 #define GOODA_DIFF_HPP
 
 #include <boost/program_options/variables_map.hpp>
 
 #include "gooda_report.hpp"
-
-/*!
- * \file diff.hpp
- * \brief Contains the necessary functions to perform diff between two sets of spreadsheets. 
- */
 
 namespace gooda {
 

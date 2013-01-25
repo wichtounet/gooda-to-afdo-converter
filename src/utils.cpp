@@ -5,6 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
 
+/*!
+ * \file utils.cpp
+ * \brief Implementation of the various utility functions. 
+ */
+
 #include <sstream>
 #include <iostream>
 #include <fstream>
