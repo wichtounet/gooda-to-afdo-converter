@@ -31,5 +31,4 @@ PROGRAM Triangle
      END DO
 
      PRINT *, 'Triangle''s area:  ', area_sum 
-
 END PROGRAM Triangle

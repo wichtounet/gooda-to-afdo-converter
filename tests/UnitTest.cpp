@@ -77,7 +77,7 @@ void check_contains_stack(const gooda::afdo_function& function, std::size_t coun
 
 BOOST_AUTO_TEST_CASE( simple_ucc ){
     gooda::options options;
-    parse_options(options, "--nows", "tests/cases/simple/");
+    parse_options(options, "--auto", "tests/cases/simple/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/simple/ucc/spreadsheets");
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
 
 BOOST_AUTO_TEST_CASE( simple_lbr ){
     gooda::options options;
-    parse_options(options, "--lbr", "tests/cases/simple/");
+    parse_options(options, "--auto", "tests/cases/simple/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/simple/lbr/spreadsheets");
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
 
 BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     gooda::options options;
-    parse_options(options, "--nows", "tests/cases/simple-c/");
+    parse_options(options, "--auto", "tests/cases/simple-c/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/simple-c/ucc/spreadsheets");
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
 
 BOOST_AUTO_TEST_CASE( simple_c_lbr ){
     gooda::options options;
-    parse_options(options, "--lbr", "tests/cases/simple-c/");
+    parse_options(options, "--auto", "tests/cases/simple-c/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/simple-c/lbr/spreadsheets");
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE( simple_c_lbr ){
 
 BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     gooda::options options;
-    parse_options(options, "--nows", "tests/cases/inheritance/");
+    parse_options(options, "--auto", "tests/cases/inheritance/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/inheritance/ucc/spreadsheets");
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE( inheritance_lbr ){
 
 BOOST_AUTO_TEST_CASE( deep_ucc ){
     gooda::options options;
-    parse_options(options, "--nows", "tests/cases/deep/");
+    parse_options(options, "--auto", "tests/cases/deep/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/deep/ucc/spreadsheets");
@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
 
 BOOST_AUTO_TEST_CASE( deep_lbr ){
     gooda::options options;
-    parse_options(options, "--lbr", "tests/cases/deep/");
+    parse_options(options, "--auto", "tests/cases/deep/");
 
     //Read the Gooda Spreadsheets
     auto report = gooda::read_spreadsheets("tests/cases/deep/lbr/spreadsheets");
@@ -513,5 +513,115 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
         });
     }
 }
+
+BOOST_AUTO_TEST_CASE( area_ucc ){
+    gooda::options options;
+    parse_options(options, "--auto", "tests/cases/area/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/area/ucc/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 2);
+    BOOST_CHECK_EQUAL (report.processes(), 8);
+    
+    {
+        auto& function = data.functions[0];
+        
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "__triangle_operations_MOD_area");
+        BOOST_CHECK_EQUAL(function.file, "area.f90");
+        BOOST_CHECK_EQUAL(function.total_count, 15654);
+        BOOST_CHECK_EQUAL(function.entry_count, 14098);
+
+        check_contains_stack(function, 143, {{"__triangle_operations_MOD_area", "area.f90", 4, 0}});
+        check_contains_stack(function, 13945, {{"__triangle_operations_MOD_area", "area.f90", 8, 0}});
+        check_contains_stack(function, 1301, {{"__triangle_operations_MOD_area", "area.f90", 9, 0}});
+        check_contains_stack(function, 249, {{"__triangle_operations_MOD_area", "area.f90", 10, 0}});
+        
+    }
+
+    {
+        auto& function = data.functions[1];
+        
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "triangle");
+        BOOST_CHECK_EQUAL(function.file, "area.f90");
+        BOOST_CHECK_EQUAL(function.total_count, 2333);
+        BOOST_CHECK_EQUAL(function.entry_count, 0);
+
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 13, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 20, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 22, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 23, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 24, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 25, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 25, 0}});
+        check_contains_stack(function, 453, {{"triangle", "area.f90", 26, 0}});
+        check_contains_stack(function, 704, {{"triangle", "area.f90", 27, 0}});
+        check_contains_stack(function, 1168, {{"triangle", "area.f90", 28, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 33, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 35, 0}});
+    }
+}
+
+BOOST_AUTO_TEST_CASE( area_lbr ){
+    gooda::options options;
+    parse_options(options, "--auto", "tests/cases/area/");
+
+    //Read the Gooda Spreadsheets
+    auto report = gooda::read_spreadsheets("tests/cases/area/lbr/spreadsheets");
+
+    gooda::afdo_data data;
+
+    //Convert the Gooda report to AFDO
+    gooda::convert_to_afdo(report, data, options.vm);
+
+    BOOST_CHECK_EQUAL (data.functions.size(), 2);
+    BOOST_CHECK_EQUAL (report.processes(), 7);
+    
+    {
+        auto& function = data.functions[0];
+        
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "__triangle_operations_MOD_area");
+        BOOST_CHECK_EQUAL(function.file, "area.f90");
+        BOOST_CHECK_EQUAL(function.total_count, 811626);
+        BOOST_CHECK_EQUAL(function.entry_count, 25138);
+
+        check_contains_stack(function, 25138, {{"__triangle_operations_MOD_area", "area.f90", 4, 0}});
+        check_contains_stack(function, 25138, {{"__triangle_operations_MOD_area", "area.f90", 8, 0}});
+        check_contains_stack(function, 43467, {{"__triangle_operations_MOD_area", "area.f90", 9, 0}});
+        check_contains_stack(function, 35075, {{"__triangle_operations_MOD_area", "area.f90", 10, 0}});
+    }
+
+    {
+        auto& function = data.functions[1];
+        
+        //Verify function properties
+        BOOST_CHECK_EQUAL(function.name, "triangle");
+        BOOST_CHECK_EQUAL(function.file, "area.f90");
+        BOOST_CHECK_EQUAL(function.total_count, 555732);
+        BOOST_CHECK_EQUAL(function.entry_count, 0);
+
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 13, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 20, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 22, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 23, 0}});
+        check_contains_stack(function, 32, {{"triangle", "area.f90", 24, 0}});
+        check_contains_stack(function, 28, {{"triangle", "area.f90", 25, 0}});
+        check_contains_stack(function, 28, {{"triangle", "area.f90", 25, 0}});
+        check_contains_stack(function, 37310, {{"triangle", "area.f90", 26, 0}});
+        check_contains_stack(function, 37310, {{"triangle", "area.f90", 27, 0}});
+        check_contains_stack(function, 37310, {{"triangle", "area.f90", 28, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 33, 0}});
+        check_contains_stack(function, 0, {{"triangle", "area.f90", 35, 0}});
+    }
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
