@@ -1,5 +1,5 @@
 //=======================================================================
-// Copyright Baptiste Wicht 2012.
+// Copyright Baptiste Wicht 2012-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -19,12 +19,22 @@
 #include "Options.hpp"
 #include "gooda_exception.hpp"
 
+/*!
+ * \file main.cpp
+ * \brief Implementation of the interpreter of the options and execution of the correct functions for each use case. 
+ */
+
 namespace {
 
 //Chrono typedefs
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds milliseconds;
 
+/*!
+ * \brief Process the Gooda spreadsheets
+ * \param directory The spreadsheets directory
+ * \param vm The configuration
+ */
 void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
@@ -56,6 +66,12 @@ void process_spreadsheets(const std::string& directory, po::variables_map& vm){
     log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
+/*!
+ * \brief Generate the difference between two sets of spreadsheets
+ * \param first The path to the first spreadsheets directory. 
+ * \param second The path to the second spreadsheets directory.
+ * \param vm The configuration
+ */
 void diff(const std::string& first, const std::string& second, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
@@ -71,6 +87,11 @@ void diff(const std::string& first, const std::string& second, po::variables_map
     log::emit<log::Debug>() << "Diff took " << ms.count() << "ms" << log::endl;
 }
 
+/*!
+ * \brief Read an AFDO file
+ * \param afdo_file The path to the AFDO file
+ * \param vm The configuration
+ */
 void process_afdo(const std::string& afdo_file, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
 
@@ -95,6 +116,12 @@ void process_afdo(const std::string& afdo_file, po::variables_map& vm){
     log::emit<log::Debug>() << "Conversion took " << ms.count() << "ms" << log::endl;
 }
 
+/*!
+ * \brief Profile the application given on the command line
+ * \param vm The configuration
+ * \param parsed_options The parsed options. Used to get the parameters of the application to run
+ * \return An integer code indicating the status of the profiling.
+ */
 int profile_application(po::variables_map& vm, po::parsed_options& parsed_options){
     int processor_model = -1;
 

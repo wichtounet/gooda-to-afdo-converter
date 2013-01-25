@@ -1,9 +1,14 @@
 //=======================================================================
-// Copyright Baptiste Wicht 2012.
+// Copyright Baptiste Wicht 2012-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //=======================================================================
+
+/*!
+ * \file afdo_generator.cpp
+ * \brief Implementation of the generation of the AFDO GCOV binary file from the AFDO profile. 
+ */
 
 #include <algorithm>
 
@@ -13,6 +18,16 @@
 
 namespace {
 
+/*!
+ * \brief Write a collection to the GCOV file. The size of the collection is written before each of the elements
+ * are written using the given functor. 
+ *
+ * \param values The values to write.  
+ * \param gcov_file The file to write to.
+ * 
+ * \tparam Type The type of values to write.
+ * \tparam Lambda The type of the functor to use. 
+ */
 template<typename Type, typename Lambda>
 void write_collection(const std::vector<Type>& values, gooda::gcov_file& gcov_file, Lambda functor){
     gcov_file.write_unsigned(values.size());
@@ -20,6 +35,11 @@ void write_collection(const std::vector<Type>& values, gooda::gcov_file& gcov_fi
     std::for_each(values.begin(), values.end(), functor);
 }
 
+/*!
+ * \brief Write the file name table.
+ * \param data The AFDO profile.  
+ * \param gcov_file The file to write to.
+ */
 void write_file_name_table(const gooda::afdo_data& data, gooda::gcov_file& gcov_file){
     gcov_file.write_section_header(GCOV_TAG_AFDO_FILE_NAMES, data.length_file_section);
 
@@ -30,6 +50,11 @@ void write_file_name_table(const gooda::afdo_data& data, gooda::gcov_file& gcov_
     }
 }
 
+/*!
+ * \brief Write the hotspot function table.
+ * \param data The AFDO profile.  
+ * \param gcov_file The file to write to.
+ */
 void write_function_table(const gooda::afdo_data& data, boost::program_options::variables_map& vm, gooda::gcov_file& gcov_file){
     gcov_file.write_section_header(GCOV_TAG_AFDO_FUNCTION, data.length_function_section);
 
@@ -60,6 +85,11 @@ void write_function_table(const gooda::afdo_data& data, boost::program_options::
     });
 }
 
+/*!
+ * \brief Write the module info.
+ * \param data The AFDO profile.  
+ * \param gcov_file The file to write to.
+ */
 void write_module_info(const gooda::afdo_data& data, gooda::gcov_file& gcov_file){
     gcov_file.write_section_header(GCOV_TAG_AFDO_MODULE_GROUPING, data.length_modules_section);
 
@@ -82,6 +112,11 @@ void write_module_info(const gooda::afdo_data& data, gooda::gcov_file& gcov_file
     });
 }
 
+/*!
+ * \brief Write the working set to the AFDO profile file. 
+ * \param data The AFDO profile. 
+ * \param gcov_file The file to write to.
+ */
 void write_working_set(const gooda::afdo_data& data, gooda::gcov_file& gcov_file){
     gcov_file.write_section_header(GCOV_TAG_AFDO_WORKING_SET, data.length_working_set_section);
 

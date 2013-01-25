@@ -1,5 +1,5 @@
 //=======================================================================
-// Copyright Baptiste Wicht 2012.
+// Copyright Baptiste Wicht 2012-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <cstring>
 
 #include <boost/algorithm/string.hpp>
 
@@ -27,8 +25,18 @@
 #define SRC_FOLDER "/src/"
 #define SRC_CSV "_src.csv"
 
+/*!
+ * \file gooda_reader.cpp
+ * \brief Implementation of the reading and parsing of Gooda spreadsheets into the gooda::gooda_report data structure. 
+ */
+
 namespace {
 
+/*!
+ * \brief Parse a Gooda line into a vector of pair of iterators denoting the columns. 
+ * \param line The string line
+ * \param contents The vector to fill
+ */
 void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     //Keep only the interesting part
     line = line.substr(2, line.size() - 5);
@@ -78,15 +86,18 @@ void parse_gooda_line(std::string& line, std::vector<string_view>& contents){
     if(length > 0){
         contents.emplace_back(it - length, it);
     }
-
-    /*std::cout << line << std::endl;
-    
-    for(std::size_t j = 0; j < contents.size(); ++j){
-        std::cout << j << ":" << contents[j] << std::endl;
-    }*/
 }
 
-void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
+/*!
+ * \brief Parse the headers of the given gooda_file
+ *
+ * Only the column names and the multipled information are extracted from the headers,
+ * the other header lines are ignored. 
+ *
+ * \param file The file currently read
+ * \param gooda_file The gooda_file to fill
+ */
+void parse_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
     std::string line;
 
     //Introduction of the array
@@ -132,143 +143,121 @@ void skip_headers(std::ifstream& file, gooda::gooda_file& gooda_file){
     std::getline(file, line);
 }
 
-bool read_processes(const std::string& directory, gooda::gooda_report& report){
-    std::string process_file_name = directory + PROCESS_CSV;
+/*!
+ * \brief Open the given file_name into the given stream. 
+ * \param file The ifstream to open.
+ * \param file_name The path to the file.
+ * \param must_exists If set to true and the file does not exists, throws an exception
+ * \return true if the file exists, false otherwise
+ */
+bool open_file(std::ifstream& file, std::string file_name, bool must_exists){
+    bool exists = gooda::exists(file_name);
 
-    std::ifstream process_file;
-    process_file.open (process_file_name, std::ios::in);
-
-    if(!process_file.is_open()){
-        throw gooda::gooda_exception("Unable to open \"" + process_file_name + "\"");
+    if(must_exists && !exists){
+        throw gooda::gooda_exception("\"" + file_name + "\" does not exist");
     }
 
-    skip_headers(process_file, report.get_process_file());
+    if(exists){
+        file.open (file_name, std::ios::in);
+
+        if(!file.is_open()){
+            throw gooda::gooda_exception("Unable to open \"" + file_name + "\"");
+        }
+    }
+
+    return exists;
+}
+
+/*!
+ * \brief Read a gooda file and fill the corresponding gooda_file
+ * \param file The file to read,
+ * \param gooda_file The gooda_file to fille.
+ */
+void read_gooda_file(std::ifstream& file, gooda::gooda_file& gooda_file){
+    parse_headers(file, gooda_file);
 
     std::string line;
 
-    //The first process line
-    std::getline(process_file, line);
+    //The first line
+    std::getline(file, line);
 
-    int i = 0;
-    
-    while(line.size() > 2){
-        auto& process_line = report.new_process();
-        process_line.line() = line;
+    while(line.size() > 3){
+        auto& gooda_line = gooda_file.new_line();
+        gooda_line.line() = line;
 
         //Parse the contents of the line
-        parse_gooda_line(process_line.line(), process_line.contents());
+    variables_map      
+        ::parsed_options parsed_options;
+
+asifsjfajfdisjfq        
+        parse_gooda_line(gooda_line.line(), gooda_line.contents());
 
         //Next line
-        std::getline(process_file, line);
-
-        ++i;
+        std::getline(file, line);
     }
+}
+
+/*!
+ * \brief Read the list of the processes. 
+ * \param directory The spreadsheets directory. 
+ * \param report The gooda_report to fill.
+ */
+void read_processes(const std::string& directory, gooda::gooda_report& report){
+    //Open the file
+    std::ifstream process_file;
+    open_file(process_file, directory + PROCESS_CSV, true);
+
+    //Read and parse the gooda file
+    read_gooda_file(process_file, report.get_process_file());
 
     log::emit<log::Debug>() << "Found " << report.processes() << " processes" << log::endl;
-
-    return true;
 }
 
-bool read_hotspot(const std::string& directory, gooda::gooda_report& report){
-    std::string hotspot_file_name = directory + HOTSPOT_CSV;
-
+/*!
+ * \brief Read the hotspot function list
+ * \param directory The spreadsheets directory. 
+ * \param report The gooda_report to fill.
+ */
+void read_hotspot(const std::string& directory, gooda::gooda_report& report){
+    //Open the file
     std::ifstream hotspot_file;
-    hotspot_file.open (hotspot_file_name, std::ios::in);
+    open_file(hotspot_file, directory + HOTSPOT_CSV, true);
 
-    if(!hotspot_file.is_open()){
-        throw gooda::gooda_exception("Unable to open \"" + hotspot_file_name + "\"");
-    }
-
-    skip_headers(hotspot_file, report.get_hotspot_file());
-
-    std::string line;
-
-    //The first hotspot line
-    std::getline(hotspot_file, line);
-
-    int i = 0;
-    
-    while(!line.empty()){
-        auto& hotspot_line = report.new_hotspot_function();
-        hotspot_line.line() = line;
-
-        //Parse the contents of the line
-        parse_gooda_line(hotspot_line.line(), hotspot_line.contents());
-
-        //Next line
-        std::getline(hotspot_file, line);
-
-        ++i;
-    }
+    //Read and parse the gooda file
+    read_gooda_file(hotspot_file, report.get_hotspot_file());
 
     log::emit<log::Debug>() << "Found " << report.functions() << " hotspot functions" << log::endl;
-
-    return true;
 }
 
+/*!
+ * \brief Read the assembly view file for the given function. 
+ * \param directory The spreadsheets directory. 
+ * \param i The index of the function
+ * \param report The gooda_report to fill.
+ */
 void read_asm_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
-    std::string asm_file_name = directory + ASM_FOLDER + std::to_string(i) + ASM_CSV;
+    std::ifstream asm_file;
 
-    if(gooda::exists(asm_file_name)){
-        std::ifstream asm_file;
-        asm_file.open (asm_file_name, std::ios::in);
-
-        if(!asm_file.is_open()){
-            throw gooda::gooda_exception("Unable to open \"" + asm_file_name + "\"");
-        }
-
-        auto& gooda_file = report.asm_file(i);
-
-        skip_headers(asm_file, gooda_file);
-
-        std::string line;
-
-        //The first asm line
-        std::getline(asm_file, line);
-
-        while(line.size() > 3){
-            auto& asm_line = gooda_file.new_line();
-            asm_line.line() = line;
-
-            //Parse the contents of the line
-            parse_gooda_line(asm_line.line(), asm_line.contents());
-
-            //Next line
-            std::getline(asm_file, line);
-        }
+    //Try to open the file
+    if(open_file(asm_file, directory + ASM_FOLDER + std::to_string(i) + ASM_CSV, false)){
+        //Read and parse the gooda file
+        read_gooda_file(asm_file, report.asm_file(i));
     }
 }
 
+/*!
+ * \brief Read the source view file for the given function. 
+ * \param directory The spreadsheets directory. 
+ * \param i The index of the function
+ * \param report The gooda_report to fill.
+ */
 void read_src_file(const std::string& directory, std::size_t i, gooda::gooda_report& report){
-    std::string src_file_name = directory + SRC_FOLDER + std::to_string(i) + SRC_CSV;
-
-    if(gooda::exists(src_file_name)){
-        std::ifstream src_file;
-        src_file.open (src_file_name, std::ios::in);
-
-        if(!src_file.is_open()){
-            throw gooda::gooda_exception("Unable to open \"" + src_file_name + "\"");
-        }
-
-        auto& gooda_file = report.src_file(i);
-
-        skip_headers(src_file, gooda_file);
-
-        std::string line;
-
-        //The first src line
-        std::getline(src_file, line);
-
-        while(line.size() > 3){
-            auto& src_line = gooda_file.new_line();
-            src_line.line() = line;
-
-            //Parse the contents of the line
-            parse_gooda_line(src_line.line(), src_line.contents());
-
-            //Next line
-            std::getline(src_file, line);
-        }
+    std::ifstream src_file;
+    
+    //Try to open the file
+    if(open_file(src_file, directory + SRC_FOLDER + std::to_string(i) + SRC_CSV, false)){
+        //Read and parse the gooda file
+        read_gooda_file(src_file, report.src_file(i));
     }
 }
 
@@ -279,13 +268,14 @@ gooda::gooda_report gooda::read_spreadsheets(const std::string& directory){
 
     gooda::gooda_report report;
 
+    //Read the process and hotspot views
     read_processes(directory, report);
+    read_hotspot(directory, report);
 
-    if(read_hotspot(directory, report)){
-        for(std::size_t i = 0; i < report.functions(); ++i){
-            read_asm_file(directory, i, report);
-            read_src_file(directory, i, report);
-        }
+    //Read the assembly and source views of each hotspot function
+    for(std::size_t i = 0; i < report.functions(); ++i){
+        read_asm_file(directory, i, report);
+        read_src_file(directory, i, report);
     }
 
     return report;

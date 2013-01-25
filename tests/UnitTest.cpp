@@ -88,6 +88,7 @@ BOOST_AUTO_TEST_CASE( simple_ucc ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 7);
 
     auto& function = data.functions.front();
 
@@ -124,6 +125,7 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 6);
 
     auto& function = data.functions.front();
 
@@ -165,6 +167,7 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 6);
 
     auto& function = data.functions.front();
 
@@ -203,6 +206,7 @@ BOOST_AUTO_TEST_CASE( simple_c_lbr ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 6);
 
     auto& function = data.functions.front();
 
@@ -241,6 +245,7 @@ BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 7);
 
     auto& function = data.functions.front();
 
@@ -276,6 +281,7 @@ BOOST_AUTO_TEST_CASE( inheritance_lbr ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 1);
+    BOOST_CHECK_EQUAL (report.processes(), 6);
 
     auto& function = data.functions.front();
 
@@ -311,6 +317,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 5);
+    BOOST_CHECK_EQUAL (report.processes(), 7);
 
     {
         auto& function = data.functions[0];
@@ -415,6 +422,7 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
     gooda::convert_to_afdo(report, data, options.vm);
 
     BOOST_CHECK_EQUAL (data.functions.size(), 5);
+    BOOST_CHECK_EQUAL (report.processes(), 6);
 
     {
         auto& function = data.functions[0];
