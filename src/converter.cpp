@@ -702,25 +702,32 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     std::unordered_map<std::size_t, std::pair<std::string, std::string>> function_addresses;
 
     //Collect one address for each function
+    
+    std::size_t cpp_files = 0;
 
-    for(std::size_t i = 0; i < report.functions(); ++i){
-        if(maps.at(i) >= 0){
-            auto& function = data.functions.at(maps.at(i));
-            auto& file = report.asm_file(function.i);
+    for(auto& function : data.functions){
+        auto& file = report.asm_file(function.i);
 
-            //Get the first non empty address and put it on the map
-            for(std::size_t j = 0; j < file.lines(); ++j){
-                auto& line = file.line(j);
+        //Get the first non empty address and put it on the map
+        for(std::size_t j = 0; j < file.lines(); ++j){
+            auto& line = file.line(j);
 
-                auto address = line.get_string(file.column(ADDRESS));
-                if(!address.empty()){
-                    function_addresses[function.i] = {function.executable_file, address};
-                    asm_addresses[function.executable_file].push_back(std::move(address));
-                    break;
+            auto address = line.get_string(file.column(ADDRESS));
+            if(!address.empty() && !boost::starts_with(line.get_string(file.column(DISASSEMBLY)), "Basic Block")){
+                function_addresses[function.i] = {function.executable_file, address};
+                asm_addresses[function.executable_file].push_back(std::move(address));
+
+                auto princ_file = line.get_string(file.column(PRINC_FILE));
+                if(boost::ends_with(princ_file, ".cpp")){
+                    ++cpp_files;
                 }
+
+                break;
             }
         }
     }
+    
+    bool cpp = cpp_files > data.functions.size() * 0.5;
 
     //Collect the mangled function names
 
@@ -773,11 +780,12 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 
     //Give the functions their names
     
-    for(std::size_t i = 0; i < report.functions(); ++i){
-        if(maps.at(i) >= 0){
-            auto& function = data.functions.at(maps.at(i));
+    for(auto& function : data.functions){
+        function.name = mangled_names[function_addresses[function.i]];
 
-            function.name = mangled_names[function_addresses[function.i]];
+        //In C++ mode this should be ensured
+        if(cpp && (function.name.empty() || function.name[0] != '_')){
+            log::emit<log::Warning>() << "addr2line reported invalid name for a function: " << function.name << log::endl;
         }
     }
 }
@@ -951,7 +959,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     }
 
     //Update function names (replace unmangled with mangled names)
-    update_function_names(report, data, maps, vm);
+    update_function_names(report, data, vm);
 
     //Fill the inlining cache (gets inlined function names)
     fill_inlining_cache(report, data, maps, vm);
