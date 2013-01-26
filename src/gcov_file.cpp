@@ -14,21 +14,26 @@
 
 #include "gcov_file.hpp"
 #include "logger.hpp"
+#include "gooda_exception.hpp"
 
-bool gooda::gcov_file::open(const std::string& file){
-    return open_for_write(file);
+void gooda::gcov_file::open(const std::string& file){
+    open_for_write(file);
 }
 
-bool gooda::gcov_file::open_for_write(const std::string& file){
+void gooda::gcov_file::open_for_write(const std::string& file){
     gcov_file_w.open(file.c_str(), std::ios::binary | std::ios::out );
 
-    return gcov_file_w;
+    if(!gcov_file_w){
+        throw gooda::gooda_exception("Cannot open \"" + file + "\" for writing");
+    }
 }
 
-bool gooda::gcov_file::open_for_read(const std::string& file){
+void gooda::gcov_file::open_for_read(const std::string& file){
     gcov_file_r.open(file.c_str(), std::ios::binary | std::ios::in );
 
-    return gcov_file_r;
+    if(!gcov_file_r){
+        throw gooda::gooda_exception("Cannot open \"" + file + "\" for reading");
+    }
 }
 
 //Writing

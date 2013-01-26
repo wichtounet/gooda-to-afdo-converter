@@ -38,7 +38,9 @@ struct logger {
      * \brief Construct a new logger.
      */
     logger(){
-        if(Level::level <= current_level){
+        if(Level::level == 0){
+            std::cerr << "[" << Level::label << "] ";
+        } else if(Level::level <= current_level){
             std::cout << "[" << Level::label << "] ";
         }
     }
@@ -51,7 +53,9 @@ struct logger {
      */
     template<typename T>
     logger& operator<<(T t){
-        if(Level::level <= current_level){
+        if(Level::level == 0){
+            std::cerr << t;
+        } else if(Level::level <= current_level){
             std::cout << t;
         }
         
