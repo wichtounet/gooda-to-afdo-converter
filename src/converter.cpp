@@ -693,10 +693,9 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
  * \brief Update the function names to use the mangled names. 
  * \param report The gooda report to fill
  * \param data The data already filled
- * \param maps The indexes map
  * \param vm The configuration
  */
-void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
+void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     std::unordered_map<std::string, std::vector<std::string>> asm_addresses;
     std::unordered_map<std::pair<std::string, std::string>, std::string> mangled_names;
     std::unordered_map<std::size_t, std::pair<std::string, std::string>> function_addresses;
@@ -744,22 +743,11 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
             continue;
         }
 
-        log::emit<log::Debug>() << "Mangled Query " << file << " with " << vm["addr2line"].as<std::string>() << log::endl;
+        log::emit<log::Debug>() << "Mangled Query " << file << " with objdump" << log::endl;
 
-        std::ofstream address_file;
-        address_file.open("addresses", std::ios::out );
-
-        for(auto& address : address_set.second){
-            address_file << address << " ";
-        }
-
-        address_file << std::endl;
-
-        auto command = vm["addr2line"].as<std::string>() + " -i -a -f --exe=" + file + " @addresses";
+        auto command = "objdump --section=.text --syms " + file;
         auto result = gooda::exec_command_result(command);
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
-
-        remove("addresses");
 
         std::istringstream result_stream(result);
         std::string str_line;    
@@ -767,24 +755,27 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
         std::string address;
 
         while (std::getline(result_stream, str_line)) {
-            if(boost::starts_with(str_line, "0x000000")){
-                address = extract_address(str_line);
-            } else {
-                mangled_names[{address_set.first, address}] = str_line;
+            if(boost::starts_with(str_line, "000000")){
+                auto address = "0x" + str_line.substr(10, 6);
 
-                //The next line contains the file name that is of no interest now
-                std::getline(result_stream, str_line);
-            }
+                std::string sep("              ");
+                auto search = str_line.find(sep);
+
+                if(search != std::string::npos){
+                    auto function_name = str_line.substr(search + sep.size(), str_line.size() - search - sep.size());
+                    mangled_names[{address_set.first, address}] = function_name;
+                }
+            } 
         }
     }
 
     //Give the functions their names
-    
+   
     for(auto& function : data.functions){
         function.name = mangled_names[function_addresses[function.i]];
 
-        //In C++ mode this should be ensured
-        if(cpp && (function.name.empty() || function.name[0] != '_')){
+        //In C++ mode the name always should always start with underscore
+        if(function.name.empty() || (cpp && function.name[0] != '_')){
             log::emit<log::Warning>() << "addr2line reported invalid name for a function: " << function.name << log::endl;
         }
     }
