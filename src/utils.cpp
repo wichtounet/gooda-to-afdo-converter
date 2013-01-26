@@ -20,6 +20,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "utils.hpp"
+#include "gooda_exception.hpp"
 
 bool gooda::exists(const std::string& file){
     struct stat buf;
@@ -39,15 +40,14 @@ int gooda::exec_command(const std::string& command) {
 }
 
 std::string gooda::exec_command_result(const std::string& command){
-    std::string result;
-
-    char buffer[1024];
-
     FILE* stream = popen(command.c_str(), "r");
 
     if(!stream){
-        return "";
+        throw gooda::gooda_exception("Unable to execute \"" + command + "\": Null pipe");
     }
+    
+    std::string result;
+    char buffer[1024];
 
     while(!feof(stream)) {
         if(fgets(buffer, 1024, stream) != NULL){
@@ -65,8 +65,7 @@ int gooda::processor_model(){
     cpuinfo_file.open ("/proc/cpuinfo", std::ios::in);
 
     if(!cpuinfo_file.is_open()){
-        std::cout << "Unable to open \"/proc/cpuinfo\"" << std::endl;
-        return -1;
+        throw gooda::gooda_exception("Unable to read /proc/cpuinfo");
     }
 
     std::string line;
@@ -85,5 +84,5 @@ int gooda::processor_model(){
         }
     }
 
-    return -1;
+    throw gooda::gooda_exception("Uhandled /proc/cpuinfo format");
 }
