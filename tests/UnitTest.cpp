@@ -377,7 +377,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         auto& function = data.functions[3];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "compute_sum");
+        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll.part.0");
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 997);
         BOOST_CHECK_EQUAL(function.entry_count, 997);
@@ -504,7 +504,7 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
         auto& function = data.functions[4];
 
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "compute_sum");
+        BOOST_CHECK_EQUAL(function.name, "_Z11compute_sumll.part.0");
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 23435);
         BOOST_CHECK_EQUAL(function.entry_count, 545);
@@ -551,23 +551,23 @@ BOOST_AUTO_TEST_CASE( area_ucc ){
         auto& function = data.functions[1];
         
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "triangle");
+        BOOST_CHECK_EQUAL(function.name, "MAIN__");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
         BOOST_CHECK_EQUAL(function.total_count, 2333);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
 
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 13, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 20, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 22, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 23, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 24, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 25, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 25, 0}});
-        check_contains_stack(function, 453, {{"triangle", "area.f90", 26, 0}});
-        check_contains_stack(function, 704, {{"triangle", "area.f90", 27, 0}});
-        check_contains_stack(function, 1168, {{"triangle", "area.f90", 28, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 33, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 35, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 13, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 20, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 22, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 23, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 24, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 25, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 25, 0}});
+        check_contains_stack(function, 453, {{"MAIN__", "area.f90", 26, 0}});
+        check_contains_stack(function, 704, {{"MAIN__", "area.f90", 27, 0}});
+        check_contains_stack(function, 1168, {{"MAIN__", "area.f90", 28, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 33, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 35, 0}});
     }
 }
 
@@ -605,23 +605,23 @@ BOOST_AUTO_TEST_CASE( area_lbr ){
         auto& function = data.functions[1];
         
         //Verify function properties
-        BOOST_CHECK_EQUAL(function.name, "triangle");
+        BOOST_CHECK_EQUAL(function.name, "MAIN__");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
         BOOST_CHECK_EQUAL(function.total_count, 555732);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
 
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 13, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 20, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 22, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 23, 0}});
-        check_contains_stack(function, 32, {{"triangle", "area.f90", 24, 0}});
-        check_contains_stack(function, 28, {{"triangle", "area.f90", 25, 0}});
-        check_contains_stack(function, 28, {{"triangle", "area.f90", 25, 0}});
-        check_contains_stack(function, 37310, {{"triangle", "area.f90", 26, 0}});
-        check_contains_stack(function, 37310, {{"triangle", "area.f90", 27, 0}});
-        check_contains_stack(function, 37310, {{"triangle", "area.f90", 28, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 33, 0}});
-        check_contains_stack(function, 0, {{"triangle", "area.f90", 35, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 13, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 20, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 22, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 23, 0}});
+        check_contains_stack(function, 32, {{"MAIN__", "area.f90", 24, 0}});
+        check_contains_stack(function, 28, {{"MAIN__", "area.f90", 25, 0}});
+        check_contains_stack(function, 28, {{"MAIN__", "area.f90", 25, 0}});
+        check_contains_stack(function, 37310, {{"MAIN__", "area.f90", 26, 0}});
+        check_contains_stack(function, 37310, {{"MAIN__", "area.f90", 27, 0}});
+        check_contains_stack(function, 37310, {{"MAIN__", "area.f90", 28, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 33, 0}});
+        check_contains_stack(function, 0, {{"MAIN__", "area.f90", 35, 0}});
     }
 }
 
