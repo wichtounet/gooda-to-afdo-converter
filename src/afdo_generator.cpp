@@ -24,6 +24,7 @@ namespace {
  *
  * \param values The values to write.  
  * \param gcov_file The file to write to.
+ * \param functor The functor to apply on each value of the collection. 
  * 
  * \tparam Type The type of values to write.
  * \tparam Lambda The type of the functor to use. 
@@ -53,6 +54,7 @@ void write_file_name_table(const gooda::afdo_data& data, gooda::gcov_file& gcov_
 /*!
  * \brief Write the hotspot function table.
  * \param data The AFDO profile.  
+ * \param vm The configuration. 
  * \param gcov_file The file to write to.
  */
 void write_function_table(const gooda::afdo_data& data, boost::program_options::variables_map& vm, gooda::gcov_file& gcov_file){

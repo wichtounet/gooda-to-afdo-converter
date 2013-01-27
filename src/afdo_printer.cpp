@@ -15,6 +15,13 @@
 
 #include "afdo_printer.hpp"
 
+namespace {
+
+/*!
+ * \brief Generate a pretty string from the size, including unit
+ * \param size The size in bytes
+ * \return A string representation of the size.
+ */
 std::string pretty_size(unsigned int size){
     std::stringstream stream;
     std::string unit = "B";
@@ -38,6 +45,12 @@ std::string pretty_size(unsigned int size){
     return stream.str();
 }
 
+/*!
+ * \brief Print a file with a verbosity depending on the configuration. 
+ * \param data The AFDO profile. 
+ * \param vm The configuration. 
+ * \param file The file to print. 
+ */
 void print_file(const gooda::afdo_data& data, boost::program_options::variables_map& vm, const std::string& file){
     if(vm.count("debug")){
         std::cout << file << "(" << data.get_file_index(file) << ")"; 
@@ -45,6 +58,8 @@ void print_file(const gooda::afdo_data& data, boost::program_options::variables_
         std::cout << file; 
     }
 }
+
+} //end of anonymous namespace
 
 void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_map& vm){
     std::cout << "The AFDO data contains " << data.functions.size() << " hotspot functions" << std::endl;

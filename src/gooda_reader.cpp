@@ -21,14 +21,14 @@
 #include "likely.hpp"
 #include "gooda_exception.hpp"
 
-#define HOTSPOT_CSV "/function_hotspots.csv"
-#define PROCESS_CSV "/process.csv"
+#define HOTSPOT_CSV "/function_hotspots.csv"    //!< The name of the hotspot functions spreadsheets file
+#define PROCESS_CSV "/process.csv"              //!< The name of the hotspot processes spreadsheets file
 
-#define ASM_FOLDER "/asm/"
-#define ASM_CSV "_asm.csv"
+#define ASM_FOLDER "/asm/"                      //!< The name of the assembly spreadsheets folder
+#define ASM_CSV "_asm.csv"                      //!< The name of the assembly spreadsheets file
 
-#define SRC_FOLDER "/src/"
-#define SRC_CSV "_src.csv"
+#define SRC_FOLDER "/src/"                      //!< The name of the source spreadsheets folder
+#define SRC_CSV "_src.csv"                      //!< The name of the source spreadsheets file
 
 namespace {
 

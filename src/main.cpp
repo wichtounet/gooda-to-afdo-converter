@@ -26,8 +26,16 @@
 
 namespace {
 
-//Chrono typedefs
+/*!
+ * \typedef Clock
+ * High precision clock of std::chrono
+ */
 typedef std::chrono::high_resolution_clock Clock;
+
+/*!
+ * \typedef milliseconds
+ * A milliseconds duration
+ */
 typedef std::chrono::milliseconds milliseconds;
 
 /*!

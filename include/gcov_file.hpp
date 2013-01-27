@@ -18,14 +18,14 @@
 
 #include "gcov_types.hpp"
 
-#define GCOV_VERSION ((gcov_unsigned_t)0x3430372a)      /* 407* */
-#define GCOV_DATA_MAGIC ((gcov_unsigned_t)0x67636461)   /* "gcda" */
+#define GCOV_VERSION ((gcov_unsigned_t)0x3430372a)      /* 407* */      //!< The version of GCOV for GCC 4.7
+#define GCOV_DATA_MAGIC ((gcov_unsigned_t)0x67636461)   /* "gcda" */    //!< The magic number for GCOV files
 
 //AFDO tag names
-#define GCOV_TAG_AFDO_FILE_NAMES ((gcov_unsigned_t)0xaa000000)
-#define GCOV_TAG_AFDO_FUNCTION ((gcov_unsigned_t)0xac000000)
-#define GCOV_TAG_AFDO_MODULE_GROUPING ((gcov_unsigned_t)0xae000000)
-#define GCOV_TAG_AFDO_WORKING_SET ((gcov_unsigned_t)0xaf000000)
+#define GCOV_TAG_AFDO_FILE_NAMES ((gcov_unsigned_t)0xaa000000)          //!< Tag for the file name section
+#define GCOV_TAG_AFDO_FUNCTION ((gcov_unsigned_t)0xac000000)            //!< Tag for the function profile section
+#define GCOV_TAG_AFDO_MODULE_GROUPING ((gcov_unsigned_t)0xae000000)     //!< Tag for the module section
+#define GCOV_TAG_AFDO_WORKING_SET ((gcov_unsigned_t)0xaf000000)         //!< Tag for the working set section
 
 namespace gooda {
 
