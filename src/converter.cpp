@@ -488,25 +488,21 @@ std::string extract_address(const std::string& str_line){
  * \brief Fill the inlining cache
  * \param report The gooda report to fill
  * \param data The data already filled
- * \param maps The indexes map
  * \param vm The configuration
  */
-void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
+void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     std::unordered_map<std::string, std::vector<std::string>> addresses;
     
     //Collect the inlined addresses
 
-    for(std::size_t i = 0; i < report.functions(); ++i){
-        if(maps.at(i) >= 0){
-            auto& function = data.functions.at(maps.at(i));
-            auto& file = report.asm_file(function.i);
+    for(auto& function : data.functions){
+        auto& file = report.asm_file(function.i);
 
-            for(std::size_t j = 0; j < file.lines(); ++j){
-                auto& line = file.line(j);
+        for(std::size_t j = 0; j < file.lines(); ++j){
+            auto& line = file.line(j);
 
-                if(!line.get_string(file.column(INIT_LINE)).empty()){
-                    addresses[function.executable_file].push_back(line.get_string(file.column(ADDRESS)));
-                }
+            if(!line.get_string(file.column(INIT_LINE)).empty()){
+                addresses[function.executable_file].push_back(line.get_string(file.column(ADDRESS)));
             }
         }
     }
@@ -611,25 +607,21 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
  * \brief Fill the discriminator cache
  * \param report The gooda report to fill
  * \param data The data already filled
- * \param maps The indexes map
  * \param vm The configuration
  */
-void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_data& data, std::vector<long>& maps, boost::program_options::variables_map& vm){
+void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     if(vm.count("discriminators")){
         std::unordered_map<std::string, std::vector<std::string>> asm_addresses;
 
-        for(std::size_t i = 0; i < report.functions(); ++i){
-            if(maps.at(i) >= 0){
-                auto& function = data.functions.at(maps.at(i));
-                auto& file = report.asm_file(function.i);
+        for(auto& function : data.functions){
+            auto& file = report.asm_file(function.i);
 
-                for(std::size_t j = 0; j < file.lines(); ++j){
-                    auto& line = file.line(j);
+            for(std::size_t j = 0; j < file.lines(); ++j){
+                auto& line = file.line(j);
 
-                    auto address = line.get_string(file.column(ADDRESS));
-                    if(!address.empty() && line.get_string(file.column(INIT_FILE)).empty()){
-                        asm_addresses[function.executable_file].push_back(std::move(address));
-                    }
+                auto address = line.get_string(file.column(ADDRESS));
+                if(!address.empty() && line.get_string(file.column(INIT_FILE)).empty()){
+                    asm_addresses[function.executable_file].push_back(std::move(address));
                 }
             }
         }
@@ -863,10 +855,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     auto filter = get_process_filter(report, vm, counter_name);
     log::emit<log::Debug>() << "Filter by \"" << filter << "\"" << log::endl;
 
-    //Maps index of report.functions() to index of data.functions. -1 indicates that there is no function
-    std::vector<long> maps(report.functions());
-    std::fill(maps.begin(), maps.end(), -1);
-
     for(std::size_t i = 0; i < report.functions(); ++i){
         auto& line = report.hotspot_function(i);
 
@@ -944,7 +932,6 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
             //Add the function
 
-            maps[i] = data.functions.size();
             data.functions.push_back(std::move(function));
         }
     }
@@ -953,25 +940,21 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     update_function_names(report, data, vm);
 
     //Fill the inlining cache (gets inlined function names)
-    fill_inlining_cache(report, data, maps, vm);
+    fill_inlining_cache(report, data, vm);
     
     //Fill the discriminator cache (gets the discriminators of each lines)
-    fill_discriminator_cache(report, data, maps, vm);
+    fill_discriminator_cache(report, data, vm);
 
     //Generate the inline stacks
 
-    for(std::size_t i = 0; i < report.functions(); ++i){
-        if(maps.at(i) >= 0){
-            auto& function = data.functions.at(maps.at(i));
+    for(auto& function : data.functions){
+        //Collect function.file and function.entry_count
+        auto bbs = collect_basic_blocks(report, function, lbr);
 
-            //Collect function.file and function.entry_count
-            auto bbs = collect_basic_blocks(report, function, lbr);
-
-            if(lbr){
-                lbr_annotate(report, function, bbs);
-            } else {
-                ca_annotate(report, function, bbs);
-            }
+        if(lbr){
+            lbr_annotate(report, function, bbs);
+        } else {
+            ca_annotate(report, function, bbs);
         }
     }
 
