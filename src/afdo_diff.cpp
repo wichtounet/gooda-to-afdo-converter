@@ -10,6 +10,8 @@
  * \brief Implementation of a diff between two AFDO profiles. 
  */
 
+#include <iostream>
+
 #include "afdo_diff.hpp"
 #include "assert.hpp"
 #include "afdo_printer.hpp"
