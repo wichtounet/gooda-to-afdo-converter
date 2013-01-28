@@ -82,7 +82,13 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
         auto stacks = function.stacks;
 
         std::sort(stacks.begin(), stacks.end(), [](const gooda::afdo_stack& lhs, const gooda::afdo_stack& rhs){
-                    return lhs.stack.empty() || rhs.stack.empty() ? false : lhs.stack.back().line < rhs.stack.back().line; 
+                    for(std::size_t i = 0; i < lhs.stack.size() && i < rhs.stack.size(); ++i){
+                        if(lhs.stack[i].line < rhs.stack[i].line){
+                            return true;
+                        }
+                    }
+
+                    return lhs.stack.size() > rhs.stack.size();
                 });
 
         for(auto& stack : stacks){
