@@ -102,8 +102,8 @@ void afdo_diff(const std::string& first, const std::string& second, po::variable
     gooda::read_afdo(second, data_second, vm);
     
     std::cout << "Diff of AFDO profiles" << std::endl;
-    std::cout << "\tFirst: " << first << std::endl;
-    std::cout << "\tSecond: " << second << std::endl;
+    std::cout << "   First: " << first << std::endl;
+    std::cout << "   Second: " << second << std::endl;
     std::cout << std::endl;
 
     afdo_diff(data_first, data_second, vm);
