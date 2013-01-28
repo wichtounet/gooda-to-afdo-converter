@@ -21,6 +21,7 @@
 #include "afdo_reader.hpp"
 #include "logger.hpp"
 #include "diff.hpp"
+#include "afdo_diff.hpp"
 #include "Options.hpp"
 #include "gooda_exception.hpp"
 
@@ -83,6 +84,23 @@ void diff(const std::string& first, const std::string& second, po::variables_map
     auto second_report = gooda::read_spreadsheets(second);
 
     diff(first_report, second_report, vm);
+    
+    Clock::time_point t1 = Clock::now();
+    milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
+
+    log::emit<log::Debug>() << "Diff took " << ms.count() << "ms" << log::endl;
+}
+
+void afdo_diff(const std::string& first, const std::string& second, po::variables_map& vm){
+    Clock::time_point t0 = Clock::now();
+    
+    gooda::afdo_data data_first;
+    gooda::afdo_data data_second;
+    
+    gooda::read_afdo(first, data_first, vm);
+    gooda::read_afdo(second, data_second, vm);
+
+    afdo_diff(data_first, data_second, vm);
     
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
