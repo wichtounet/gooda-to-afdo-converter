@@ -112,8 +112,6 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
         return fake_stack; 
     }
 
-    std::reverse(vector.begin(), vector.end());
-
     //Try to find an existing equivalent stack
 
     for(auto& stack : function.stacks){
@@ -580,15 +578,6 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                 }
             }
         }
-    }
-   
-    //AFDO expects the stack ending with the instruction inside the current function
-    //Thus, it is necessary to reverse each stack
-
-    for(auto& inlining_entry : inlining_cache){
-        auto& inlining_stack = inlining_entry.second;
-
-        std::reverse(inlining_stack.begin(), inlining_stack.end());
     }
 
     //There is a bug in addr2line 2.23.1 that gives discriminator for each element of the inlining stack
