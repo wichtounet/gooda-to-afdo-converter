@@ -12,7 +12,14 @@
 
 #include "afdo_diff.hpp"
 #include "assert.hpp"
+#include "afdo_printer.hpp"
 
+/*!
+ * \brief Test if two afdo_pos are referring to the same positions. Support mix of bfd and assembler names. 
+ * \param lhs The first object to compare
+ * \param rhs The second object to compare
+ * \return true if both afdo_pos are referring to the same position, false otherwise.
+ */
 bool same_pos(gooda::afdo_pos& lhs, gooda::afdo_pos& rhs){
     if(lhs.line != rhs.line || lhs.discriminator != rhs.discriminator || lhs.file != rhs.file){
         return false;   
@@ -28,6 +35,12 @@ bool same_pos(gooda::afdo_pos& lhs, gooda::afdo_pos& rhs){
     return longest.find(shortest) != std::string::npos;
 }
 
+/*!
+ * \brief Test if two afdo_stack are referring to the same positions. Support mix of bfd and assembler names. 
+ * \param lhs The first object to compare
+ * \param rhs The second object to compare
+ * \return true if both afdo_stack are referring to the same position, false otherwise. 
+ */
 bool same_stack(gooda::afdo_stack& lhs, gooda::afdo_stack& rhs){
     if(lhs.stack.size() == rhs.stack.size()){
         for(std::size_t i = 0; i < rhs.stack.size(); ++i){
@@ -62,7 +75,20 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_stack& 
     gooda_unreachable("Should not be called when the stack is not present in the function");
 }
 
-void diff(gooda::afdo_function& first, gooda::afdo_function& second){
+void print_difference(std::string name, long first, long second){
+    if(first != second){
+        std::cout << "   " << name << " differs (" << first << " and " << second << ")" << std::endl;
+        
+        double difference = 100 * (static_cast<double>(first) / static_cast<double>(second)) - 100;
+        if(difference > 0){
+            std::cout << "    difference: +" << (difference) << "% (+" << (first - second) << ")" << std::endl;
+        } else {
+            std::cout << "    difference: " << (difference) << "% (" << (first - second) << ")" << std::endl;
+        }
+    }
+}
+
+void diff(const gooda::afdo_data& first_data, const gooda::afdo_data& second_data, gooda::afdo_function& first, gooda::afdo_function& second, boost::program_options::variables_map& vm){
     std::cout << "Diff of " << first.name << " function " << std::endl;
 
     if(first.file != second.file){
@@ -71,27 +97,8 @@ void diff(gooda::afdo_function& first, gooda::afdo_function& second){
         std::cout << "    Second: " << second.file << std::endl;
     }
 
-    if(first.total_count != second.total_count){
-        double min = std::min(first.total_count, second.total_count);
-        double max = std::max(first.total_count, second.total_count);
-        
-        std::cout << "  total_count differs (" << first.total_count << " and " << second.total_count << ")" << std::endl;
-        std::cout << "    difference: " << (100 - 100 * (min / max)) << "% (" << (max - min) << ")" << std::endl;
-    }
-    
-    if(first.entry_count != second.entry_count){
-        double min = std::min(first.entry_count, second.entry_count);
-        double max = std::max(first.entry_count, second.entry_count);
-        
-        std::cout << "  entry_count differs (" << first.entry_count << " and " << second.entry_count << ")" << std::endl;
-        std::cout << "    difference: " << (100 - 100 * (min / max)) << "% (" << (max - min) << ")" << std::endl;
-    }
-
-    if(first.stacks.size() > second.stacks.size()){
-        std::cout << "  First has " << (first.stacks.size() - second.stacks.size()) << " more inline stacks than second" << std::endl;
-    } else if(second.stacks.size() > first.stacks.size()){
-        std::cout << "  Second has " << (second.stacks.size() - first.stacks.size()) << " more inline stacks than first" << std::endl;
-    }
+    print_difference("total_count", first.total_count, second.total_count);
+    print_difference("entry_count", first.entry_count, second.entry_count);
 
     int not_in_second = 0;
     int not_in_first = 0;
@@ -99,14 +106,8 @@ void diff(gooda::afdo_function& first, gooda::afdo_function& second){
     for(auto& first_stack : first.stacks){
         if(has_stack(second, first_stack)){
             auto& second_stack = get_stack(second, first_stack);
-
-            if(first_stack.count != second_stack.count){
-                double min = std::min(first_stack.count, second_stack.count);
-                double max = std::max(first_stack.count, second_stack.count);
-
-                std::cout << "  count differs (" << first_stack.count << " and " << second_stack.count << ")" << std::endl;
-                std::cout << "    difference: " << (100 - 100 * (min / max)) << "% (" << (max - min) << ")" << std::endl;
-            }
+            
+            print_difference("count", first_stack.count, second_stack.count);
         } else {
             ++not_in_second;
         }
@@ -117,15 +118,35 @@ void diff(gooda::afdo_function& first, gooda::afdo_function& second){
             ++not_in_first;
         }
     }
-    
-    std::cout << "  " << not_in_second << " inline stack present in first are not in second" << std::endl;
-    std::cout << "  " << not_in_first << " inline stack present in second are not in first" << std::endl;
 
+    if(first.stacks.size() > second.stacks.size()){
+        std::cout << "  First has " << (first.stacks.size() - second.stacks.size()) << " more inline stacks than second" << std::endl;
+    } else if(second.stacks.size() > first.stacks.size()){
+        std::cout << "  Second has " << (second.stacks.size() - first.stacks.size()) << " more inline stacks than first" << std::endl;
+    }
+    
+    if(not_in_second > 0){
+        std::cout << "  " << not_in_second << " inline stack present in first are not in second" << std::endl;
+        for(auto& first_stack : first.stacks){
+            if(!has_stack(second, first_stack)){
+                dump_afdo(first_data, first_stack, vm);
+            }
+        }
+    }
+
+    if(not_in_first > 0 ){
+        std::cout << "  " << not_in_first << " inline stack present in second are not in first" << std::endl;
+        for(auto& second_stack : second.stacks){
+            if(!has_stack(first, second_stack)){
+                dump_afdo(second_data, second_stack, vm);
+            }
+        }
+    }
 
     std::cout << std::endl;
 }
 
-void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::program_options::variables_map&){
+void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::program_options::variables_map& vm){
     if(first.functions.size() > second.functions.size()){
         std::cout << "First has " << (first.functions.size() - second.functions.size()) << " more hotpot functions than second" << std::endl<< std::endl;
     } else if(second.functions.size() > first.functions.size()){
@@ -159,7 +180,7 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
                     auto& first_function = first_functions[i];
                     auto& second_function = second_functions[j];
 
-                    diff(first_function, second_function);
+                    diff(first, second, first_function, second_function, vm);
 
                     found = true;
                     break;
@@ -179,7 +200,7 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
                     auto& first_function = first_functions[j];
                     auto& second_function = second_functions[i];
 
-                    diff(first_function, second_function);
+                    diff(first, second, first_function, second_function, vm);
 
                     found = true;
                     break;
@@ -193,7 +214,7 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
             auto& first_function = first_functions[i];
             auto& second_function = second_functions[i];
 
-            diff(first_function, second_function);
+            diff(first, second, first_function, second_function, vm);
         }
     }
 }
