@@ -21,13 +21,22 @@
 #include "afdo_reader.hpp"
 #include "logger.hpp"
 #include "diff.hpp"
+#include "afdo_diff.hpp"
 #include "Options.hpp"
 #include "gooda_exception.hpp"
 
 namespace {
 
-//Chrono typedefs
+/*!
+ * \typedef Clock
+ * High precision clock of std::chrono
+ */
 typedef std::chrono::high_resolution_clock Clock;
+
+/*!
+ * \typedef milliseconds
+ * A milliseconds duration
+ */
 typedef std::chrono::milliseconds milliseconds;
 
 /*!
@@ -75,6 +84,29 @@ void diff(const std::string& first, const std::string& second, po::variables_map
     auto second_report = gooda::read_spreadsheets(second);
 
     diff(first_report, second_report, vm);
+    
+    Clock::time_point t1 = Clock::now();
+    milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
+
+    log::emit<log::Debug>() << "Diff took " << ms.count() << "ms" << log::endl;
+}
+
+void afdo_diff(const std::string& first, const std::string& second, po::variables_map& vm){
+    Clock::time_point t0 = Clock::now();
+    
+    gooda::afdo_data data_first;
+    gooda::afdo_data data_second;
+
+    
+    gooda::read_afdo(first, data_first, vm);
+    gooda::read_afdo(second, data_second, vm);
+    
+    std::cout << "Diff of AFDO profiles" << std::endl;
+    std::cout << "   First: " << first << std::endl;
+    std::cout << "   Second: " << second << std::endl;
+    std::cout << std::endl;
+
+    afdo_diff(data_first, data_second, vm);
     
     Clock::time_point t1 = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
@@ -243,7 +275,7 @@ int main(int argc, const char **argv){
         }
 
         if(vm.count("diff")){
-            //Verify that there are two difrections
+            //Verify that there are two directories
             if(input_files.size() != 2){
                 log::emit<log::Error>() << "Two directories are necessary to perform a diff" << log::endl;
 
@@ -279,6 +311,45 @@ int main(int argc, const char **argv){
 
             //Perform the diff
             diff(first, second, vm);
+
+            return 0;
+        } else if(vm.count("afdo-diff")){
+            //Verify that there are two directories
+            if(input_files.size() != 2){
+                log::emit<log::Error>() << "Two AFDO profiles are necessary to perform a diff" << log::endl;
+
+                return 1;
+            }
+
+            std::string first = input_files[0];
+            std::string second = input_files[1];
+
+            //The files must exists
+            if(!gooda::exists(first)){
+                log::emit<log::Error>() << "\"" << first << "\" does not exists" << log::endl;
+                return 1;
+            }
+
+            //The files must exists
+            if(!gooda::exists(second)){
+                log::emit<log::Error>() << "\"" << second << "\" does not exists" << log::endl;
+                return 1;
+            }
+
+            //The file must be a file 
+            if(gooda::is_directory(first)){
+                log::emit<log::Error>() << "\"" << first << "\" is not a file" << log::endl;
+                return 1;
+            }
+
+            //The file must be a file 
+            if(gooda::is_directory(second)){
+                log::emit<log::Error>() << "\"" << second << "\" is not a file" << log::endl;
+                return 1;
+            }
+
+            //Perform the diff
+            afdo_diff(first, second, vm);
 
             return 0;
         } else {

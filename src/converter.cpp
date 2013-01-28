@@ -85,7 +85,7 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     return function.stacks.back(); 
 }
 
-gooda::afdo_stack fake_stack;
+gooda::afdo_stack fake_stack; //!< A fake stack used to return an empty stack
 
 /*!
  * \brief Get an inline stack for the given address that is coming from an inlined function
@@ -817,6 +817,12 @@ void prune_uncounted_functions(gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Return the total count of the given counter in the hotspot function list
+ * \param report The gooda report
+ * \param counter_name The name of the counter
+ * \return The sum of all the values of the given counter. 
+ */
 std::size_t total_count(const gooda::gooda_report& report, const std::string& counter_name){
     auto& hotspot_file = report.get_hotspot_file();
 
@@ -824,6 +830,7 @@ std::size_t total_count(const gooda::gooda_report& report, const std::string& co
     for(std::size_t i = 0; i < report.functions(); ++i){
         total += report.hotspot_function(i).get_counter(hotspot_file.column(counter_name));
     }
+
     return total;
 }
 

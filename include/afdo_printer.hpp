@@ -28,6 +28,8 @@ namespace gooda {
  */
 void dump_afdo(const afdo_data& data, boost::program_options::variables_map& vm);
 
+void dump_afdo(const afdo_data& data, const afdo_stack& stack, boost::program_options::variables_map& vm);
+
 /*!
  * \brief Dump a summary of the AFDO representation to the standard output. 
  * \param data The AFDO data. 

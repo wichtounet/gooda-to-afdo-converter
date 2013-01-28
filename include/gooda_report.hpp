@@ -20,113 +20,25 @@
 #include "gooda_file.hpp"
 #include "gooda_line.hpp"
 
-/*!
- * \def UNHALTED_CORE_CYCLES 
- * The column for unhalted core cycles
- */
-#define UNHALTED_CORE_CYCLES "unhalted_core_cycles"
+//Gooda columns
 
-/*!
- * \def BB_EXEC 
- * The column for basic block execution
- */
-#define BB_EXEC "BB_Exec"
-
-/*!
- * \def LOAD_LATENCY 
- * The column for load latency
- */
-#define LOAD_LATENCY "load_latency"
-
-/*!
- * \def SW_INST_RETIRED 
- * The column for software instruction retired
- */
-#define SW_INST_RETIRED "sw_inst_retired"
-
-/*!
- * \def FUNCTION_NAME
- * The column for the function name
- */
-#define FUNCTION_NAME "Function Name"
-
-/*!
- * \def LINE_NUMBER
- * The column for the line number
- */
-#define LINE_NUMBER "Line Number"
-
-/*!
- * \def SOURCE
- * The column for the source
- */
-#define SOURCE "Source"
-
-/*!
- * \def PRINC_FILE
- * The column for the principal file
- */
-#define PRINC_FILE "Principal File"
-
-/*!
- * \def PRINC_LINE
- * The column for the principal line
- */
-#define PRINC_LINE "Princ_L#"
-
-/*!
- * \def INIT_LINE
- * The column for the initial line
- */
-#define INIT_LINE "Init_L#"
-
-/*!
- * \def INIT_FILE
- * The column for the initial file
- */
-#define INIT_FILE "Initial File"
-
-/*!
- * \def DISASSEMBLY
- * The column for the disassembly
- */
-#define DISASSEMBLY "Disassembly"
-
-/*!
- * \def OFFSET
- * The column for the offset
- */
-#define OFFSET "Offset"
-
-/*!
- * \def LENGTH
- * The column for the length
- */
-#define LENGTH "Length"
-
-/*!
- * \def ADDRESS
- * The column for the address
- */
-#define ADDRESS "Address"
-
-/*!
- * \def MODULE
- * The column for the module
- */
-#define MODULE "Module"
-
-/*!
- * \def PROCESS
- * The column for the process
- */
-#define PROCESS "Process"
-
-/*!
- * \def PROCESS_PATH
- * The column for the process path
- */
-#define PROCESS_PATH "Process Path"
+#define UNHALTED_CORE_CYCLES "unhalted_core_cycles"     //!< The unhalted core cycles column
+#define BB_EXEC "BB_Exec"                               //!< The number of bb executions column
+#define LOAD_LATENCY "load_latency"                     //!< The Load Latency column
+#define SW_INST_RETIRED "sw_inst_retired"               //!< The number of software instruction retired
+#define FUNCTION_NAME "Function Name"                   //!< The name of the function
+#define LINE_NUMBER "Line Number"                       //!< The line number
+#define PRINC_FILE "Principal File"                     //!< The principal file
+#define PRINC_LINE "Princ_L#"                           //!< The principal line
+#define INIT_LINE "Init_L#"                             //!< The initial line 
+#define INIT_FILE "Initial File"                        //!< The initial file
+#define DISASSEMBLY "Disassembly"                       //!< The disassembly
+#define OFFSET "Offset"                                 //!< The offset of the function
+#define LENGTH "Length"                                 //!< The length of the function
+#define ADDRESS "Address"                               //!< The address
+#define MODULE "Module"                                 //!< The module the function is located in
+#define PROCESS "Process"                               //!< The process
+#define PROCESS_PATH "Process Path"                     //!< The path to the process
 
 namespace gooda {
 

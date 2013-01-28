@@ -15,6 +15,13 @@
 
 #include "afdo_printer.hpp"
 
+namespace {
+
+/*!
+ * \brief Generate a pretty string from the size, including unit
+ * \param size The size in bytes
+ * \return A string representation of the size.
+ */
 std::string pretty_size(unsigned int size){
     std::stringstream stream;
     std::string unit = "B";
@@ -38,11 +45,45 @@ std::string pretty_size(unsigned int size){
     return stream.str();
 }
 
+/*!
+ * \brief Print a file with a verbosity depending on the configuration. 
+ * \param data The AFDO profile. 
+ * \param vm The configuration. 
+ * \param file The file to print. 
+ */
 void print_file(const gooda::afdo_data& data, boost::program_options::variables_map& vm, const std::string& file){
     if(vm.count("debug")){
         std::cout << file << "(" << data.get_file_index(file) << ")"; 
     } else {
         std::cout << file; 
+    }
+}
+
+} //end of anonymous namespace
+
+void gooda::dump_afdo(const afdo_data& data, const afdo_stack& stack, boost::program_options::variables_map& vm){
+    if(stack.stack.empty()){
+        std::cout << "   INVALID STACK of size " << stack.stack.size() 
+            << ", with " << stack.num_inst << " dynamic instructions " 
+            << "[count=" << stack.count << "]" << std::endl;
+    } else {
+        std::cout << "   Stack of size " << stack.stack.size() 
+            << ", with " << stack.num_inst << " dynamic instructions " 
+            << "[count=" << stack.count;
+
+        if(vm.count("cache-misses")){
+            std::cout << ", cache-misses=" << stack.cache_misses;
+        }
+
+        std::cout << "]" << std::endl;
+
+        for(auto& pos : stack.stack){
+            std::cout << "      Instruction at ";
+            print_file(data, vm, pos.file);
+            std::cout << ":" << pos.line << ", func=";
+            print_file(data, vm, pos.func);
+            std::cout << ", discr=" << pos.discriminator << std::endl;
+        }
     }
 }
 
@@ -67,33 +108,11 @@ void gooda::dump_afdo(const afdo_data& data, boost::program_options::variables_m
         auto stacks = function.stacks;
 
         std::sort(stacks.begin(), stacks.end(), [](const gooda::afdo_stack& lhs, const gooda::afdo_stack& rhs){
-                    return lhs.stack.empty() || rhs.stack.empty() ? false : lhs.stack.back().line < rhs.stack.back().line; 
+                    return lhs.stack.empty() || rhs.stack.empty() ? false : lhs.stack.back().line < rhs.stack.back().line;
                 });
 
         for(auto& stack : stacks){
-            if(stack.stack.empty()){
-                std::cout << "   INVALID STACK of size " << stack.stack.size() 
-                    << ", with " << stack.num_inst << " dynamic instructions " 
-                    << "[count=" << stack.count << "]" << std::endl;
-            } else {
-                std::cout << "   Stack of size " << stack.stack.size() 
-                    << ", with " << stack.num_inst << " dynamic instructions " 
-                    << "[count=" << stack.count;
-
-                if(vm.count("cache-misses")){
-                    std::cout << ", cache-misses=" << stack.cache_misses;
-                }
-
-                std::cout << "]" << std::endl;
-
-                for(auto& pos : stack.stack){
-                    std::cout << "      Instruction at ";
-                    print_file(data, vm, pos.file);
-                    std::cout << ":" << pos.line << ", func=";
-                    print_file(data, vm, pos.func);
-                    std::cout << ", discr=" << pos.discriminator << std::endl;
-                }
-            }
+            dump_afdo(data, stack, vm);
         }
 
         std::cout << std::endl;

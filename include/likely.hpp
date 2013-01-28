@@ -15,7 +15,18 @@
 
 #ifdef __GNUC__
 
+/*!
+ * \def likely
+ * \brief Indicate that the x condition is expected to be likely true
+ * \param x The condition that is expected to be likely true
+ */
 #define likely(x)   __builtin_expect(!!(x), 1)
+
+/*!
+ * \def unlikely
+ * \brief Indicate that the x condition is expected to be likely false
+ * \param x The condition that is expected to be likely false
+ */
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
 #else

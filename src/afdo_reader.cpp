@@ -11,6 +11,11 @@
 
 namespace {
 
+/*!
+ * \brief Read the string table from the AFDO file. 
+ * \param gcov_file The GCOV file to read from. 
+ * \param data The AFDO profile to populate
+ */
 void read_string_table(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     log::emit<log::Debug>() << "Read the string table" << log::endl;
 
@@ -28,6 +33,12 @@ void read_string_table(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Read the function profile from the AFDO file. 
+ * \param gcov_file The GCOV file to read from. 
+ * \param data The AFDO profile to populate
+ * \param vm The configuration
+ */
 void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     //AFDO TAG
     gcov_file.read_unsigned();
@@ -72,6 +83,11 @@ void read_function_profile(gooda::gcov_file& gcov_file, gooda::afdo_data& data, 
     }
 }
 
+/*!
+ * \brief Read the module information from the AFDO file. 
+ * \param gcov_file The GCOV file to read from. 
+ * \param data The AFDO profile to populate
+ */
 void read_module_info(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     //AFDO TAG
     gcov_file.read_unsigned();
@@ -106,6 +122,11 @@ void read_module_info(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     }
 }
 
+/*!
+ * \brief Read the working set from the AFDO file. 
+ * \param gcov_file The GCOV file to read from. 
+ * \param data The AFDO profile to populate
+ */
 void read_working_set(gooda::gcov_file& gcov_file, gooda::afdo_data& data){
     //AFDO TAG
     gcov_file.read_unsigned();

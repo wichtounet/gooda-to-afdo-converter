@@ -26,6 +26,7 @@ void gooda::options::parse(int argc, const char **argv){
             ("read-afdo", "Read an existing AFDO profile")
             ("profile,p", "Profile the given application.")
             ("diff", "Diff between two sets of spreadsheets (prototype)")
+            ("afdo-diff", "Diff between two AFDO profile")
             ;
         
         po::options_description output("Output actions");
