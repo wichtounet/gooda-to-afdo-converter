@@ -22,7 +22,7 @@
 #endif
 
 #ifdef LOGGING
-extern int current_level;
+extern int current_level; //!< The current logging level, set by configuration
 #else
 static const int current_level = 0;
 #endif
