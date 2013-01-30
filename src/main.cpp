@@ -250,6 +250,12 @@ void profile_application(po::variables_map& vm, po::parsed_options& parsed_optio
 
 } //end of anonymous namespace
 
+/*!
+ * \brief Launch the converter, parse the arguments and perform the correct actions.
+ * \param argc The number of arguments
+ * \param argv The arguments. 
+ * \return The exit code of the converter
+ */
 int main(int argc, const char **argv){
     try {
         gooda::options options;
