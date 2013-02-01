@@ -51,7 +51,7 @@ function parse_results(){
 					index=`expr match "$raw_line" ".*reported_time: "`;
 					score=${raw_line:$index};
 
-					if [[ $score < $current_score ]]
+					if [[ $score > $current_score ]]
 					then
 						current_score=$score
 					fi
@@ -61,7 +61,7 @@ function parse_results(){
 						current_score=$score
 					fi
 					
-					current_score=$score
+					#current_score=$score
 				fi
 				
 				if [[ "$raw_line" == *selected:\ 1 ]]
@@ -84,10 +84,10 @@ function parse_results(){
 				fi
 			fi
 		done
-#
+
 #		if [[ "$4" == "time" ]]
 #		then
-#			#echo "${bench_name:4} $current_score" >> $2
+#			echo "${bench_name:4} $current_score" >> $2
 #		fi
 	done
 
@@ -200,7 +200,17 @@ else
 		echo "" >> table
 	done
 
-	awk -vORS= -f compute_overhead_table.awk table
+	sed -i 's/astarBigLakes/astar.bigLakes/g' table
+	sed -i 's/astarRivers/astar.rivers/g' table
+	sed -i 's/bzip2Combined/bzip2.combined/g' table
+	sed -i 's/bzip2Program/bzip2.program/g' table
+	sed -i 's/soplexRef/soplex.ref/g' table
+	sed -i 's/soplexPds50/soplex.pds-50/g' table
+	sed -i 's/h264Forebase/h264.forebase/g' table
+	sed -i 's/h264Foremain/h264.foremain/g' table
+	sed -i 's/h264Sss/h264.sss/g' table
+
+	sort table | awk -vORS= -f compute_overhead_table.awk
 	
 	rm -f results_overhead_base
 	rm -f results_overhead_instrumentation
@@ -212,7 +222,7 @@ else
 	rm -f overhead_ucc.dat
 	rm -f overhead_lbr.dat
 	
-	rm -f table
+	rm -f tabl
 	rm -f temp_*
 	rm -f new_temp_*
 fi
