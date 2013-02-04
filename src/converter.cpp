@@ -584,15 +584,14 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                 
                 auto start_disc = str_line.find("(discriminator ");
                 auto start_number = str_line.rfind(":");
-                //auto start_file = str_line.rfind("/");
 
                 if(start_disc == std::string::npos){
                     line_number = str_line.substr(start_number + 1, str_line.size() - start_number - 1);
-                    file_name = str_line.substr(0, start_number - 1);
+                    file_name = str_line.substr(0, start_number);
                     discriminator = 0;
                 } else {
                     line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
-                    file_name = str_line.substr(0, start_number - 1);
+                    file_name = str_line.substr(0, start_number);
 
                     auto end = str_line.find(")", start_disc); 
                     auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
@@ -691,11 +690,11 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 
                     if(start_disc == std::string::npos){
                         line_number = str_line.substr(start_number + 1, str_line.size() - start_number - 1);
-                        file_name = str_line.substr(0, start_number - 1);
+                        file_name = str_line.substr(0, start_number);
                         discriminator = 0;
                     } else {
                         line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
-                        file_name = str_line.substr(0, start_number - 1);
+                        file_name = str_line.substr(0, start_number);
 
                         auto end = str_line.find(")", start_disc); 
                         auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
@@ -803,6 +802,13 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
             log::emit<log::Warning>() << "addr2line reported invalid name for a function: " << function.name << log::endl;
         }
     }
+}
+
+void strip_paths(gooda::afdo_data& data){
+    auto command = "pwd";
+    auto pwd = gooda::exec_command_result(command);
+
+    //std::cout << pwd << std::endl;
 }
 
 /*!
@@ -999,6 +1005,9 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
     //Prune uncounted functions
     prune_uncounted_functions(data);
+
+    //Strip current directory from paths
+    //strip_paths(data);
 
     //Fill the file name table with the strings from the AFDO profile
     fill_file_name_table(data);
