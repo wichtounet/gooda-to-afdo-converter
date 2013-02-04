@@ -820,6 +820,11 @@ void strip_paths(gooda::afdo_data& data){
         pwd.erase(pwd.size() - 1, pwd.size());
     }
 
+    //Make sure that there will be no trailing slash in the resulting paths
+    if(pwd[pwd.size() - 1] != '/'){
+        pwd += '/';
+    }
+
     for(auto& function : data.functions){
         cleanup(function.name, pwd); 
 
