@@ -804,6 +804,11 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     }
 }
 
+/*!
+ * \brief Remove the current directory from the given file path if necessary. 
+ * \param file_name The file path to clean. 
+ * \param pwd The current directory. 
+ */
 inline void cleanup(std::string& file_name, const std::string& pwd){
     auto search_pwd = file_name.find(pwd);
     if(search_pwd != std::string::npos){
@@ -811,6 +816,10 @@ inline void cleanup(std::string& file_name, const std::string& pwd){
     }
 }
 
+/*!
+ * \brief Remove the current directory from the file paths. 
+ * \param data The AFDO profile to clean. 
+ */
 void strip_paths(gooda::afdo_data& data){
     auto command = "pwd";
     auto pwd = gooda::exec_command_result(command);
