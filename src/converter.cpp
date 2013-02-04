@@ -36,7 +36,7 @@ typedef std::pair<std::string, std::string> address_key;
 
 std::unordered_map<address_key, std::vector<gooda::afdo_pos>> inlining_cache;   //!< Inlining stack cache
 
-std::unordered_map<address_key, gcov_unsigned_t> discriminator_cache;           //!< Discriminator cache
+std::unordered_map<address_key, gooda::afdo_pos> discriminator_cache;           //!< Discriminator cache
 
 /*!
  * \struct gooda_bb
@@ -233,13 +233,26 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
     for(auto& block : basic_blocks){
         for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
             gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-
+            
             auto& asm_line = asm_file.line(j);
-            gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
+
+            auto& filled_entry = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
+
+            auto discriminator = filled_entry.discriminator;
+
+            std::string file_name; 
+            gcov_unsigned_t line_number;
+
+            if(filled_entry.file.empty()){
+                line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                file_name = function.file; 
+            } else {
+                line_number = filled_entry.line;
+                file_name = filled_entry.file; 
+            }
 
             auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
-                ? get_stack(function, {function.name, function.file, line_number, discriminator}) 
+                ? get_stack(function, {function.name, file_name, line_number, discriminator}) 
                 : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
@@ -268,11 +281,24 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
             gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
 
             auto& asm_line = asm_file.line(j);
-            gcov_unsigned_t line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-            auto discriminator = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
+
+            auto& filled_entry = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
+
+            auto discriminator = filled_entry.discriminator;
+
+            std::string file_name; 
+            gcov_unsigned_t line_number;
+
+            if(filled_entry.file.empty()){
+                line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
+                file_name = function.file; 
+            } else {
+                line_number = filled_entry.line;
+                file_name = filled_entry.file; 
+            }
 
             auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
-                ? get_stack(function, {function.name, function.file, line_number, discriminator}) 
+                ? get_stack(function, {function.name, file_name, line_number, discriminator}) 
                 : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             stack.count = std::max(stack.count, block.exec_count);
@@ -558,15 +584,15 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                 
                 auto start_disc = str_line.find("(discriminator ");
                 auto start_number = str_line.rfind(":");
-                auto start_file = str_line.rfind("/");
+                //auto start_file = str_line.rfind("/");
 
                 if(start_disc == std::string::npos){
                     line_number = str_line.substr(start_number + 1, str_line.size() - start_number - 1);
-                    file_name = str_line.substr(start_file + 1, start_number - start_file - 1);
+                    file_name = str_line.substr(0, start_number - 1);
                     discriminator = 0;
                 } else {
                     line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
-                    file_name = str_line.substr(start_file + 1, start_number - start_file - 1);
+                    file_name = str_line.substr(0, start_number - 1);
 
                     auto end = str_line.find(")", start_disc); 
                     auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
@@ -655,14 +681,31 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                     address = extract_address(str_line);
                 } else {
                     auto key = std::make_pair(address_set.first, address);
+                
+                    std::string file_name;
+                    std::string line_number;
+                    gcov_unsigned_t discriminator;
 
-                    auto search = str_line.find("(discriminator ");
-                    if(search == std::string::npos){
-                        discriminator_cache[key] = 0;    
+                    auto start_disc = str_line.find("(discriminator ");
+                    auto start_number = str_line.rfind(":");
+
+                    if(start_disc == std::string::npos){
+                        line_number = str_line.substr(start_number + 1, str_line.size() - start_number - 1);
+                        file_name = str_line.substr(0, start_number - 1);
+                        discriminator = 0;
                     } else {
-                        auto end = str_line.find(")", search); 
-                        auto discriminator = str_line.substr(search + 15, end - search - 15);
-                        discriminator_cache[key] = boost::lexical_cast<gcov_unsigned_t>(discriminator);    
+                        line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
+                        file_name = str_line.substr(0, start_number - 1);
+
+                        auto end = str_line.find(")", start_disc); 
+                        auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
+                        discriminator = boost::lexical_cast<gcov_unsigned_t>(discriminator_str);
+                    }
+
+                    if(line_number != "?"){
+                        discriminator_cache[key] = {"", file_name, boost::lexical_cast<gcov_unsigned_t>(line_number), discriminator};
+                    } else {
+                        discriminator_cache[key] = {"", "", 0, 0};
                     }
                 }
             }
