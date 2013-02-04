@@ -804,11 +804,31 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     }
 }
 
+inline void cleanup(std::string& file_name, const std::string& pwd){
+    auto search_pwd = file_name.find(pwd);
+    if(search_pwd != std::string::npos){
+       file_name.erase(search_pwd, search_pwd + pwd.size());
+    }
+}
+
 void strip_paths(gooda::afdo_data& data){
     auto command = "pwd";
     auto pwd = gooda::exec_command_result(command);
 
-    //std::cout << pwd << std::endl;
+    //Remove the trailing end of line character
+    if(pwd[pwd.size() - 1] == '\n'){
+        pwd.erase(pwd.size() - 1, pwd.size());
+    }
+
+    for(auto& function : data.functions){
+        cleanup(function.name, pwd); 
+
+        for(auto& stack : function.stacks){
+            for(auto& pos : stack.stack){
+                cleanup(pos.file, pwd);
+            }
+        }
+    }
 }
 
 /*!
@@ -1007,7 +1027,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     prune_uncounted_functions(data);
 
     //Strip current directory from paths
-    //strip_paths(data);
+    strip_paths(data);
 
     //Fill the file name table with the strings from the AFDO profile
     fill_file_name_table(data);
