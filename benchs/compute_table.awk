@@ -13,8 +13,16 @@ length($0) < 10 { next; }
 	ugain = (100 * ($8 / $4 - 1))
 	lgain = (100 * ($10 / $4 - 1))
 
-	ui = (100 * ($8 / $6))
-	li = (100 * ($10 / $6))
+	ui = (100 * (ugain / igain))
+	li = (100 * (lgain / igain))
+
+	if(li < 0){
+		li = 0;
+	}
+	
+	if(ui < 0){
+		ui = 0;
+	}
 
 	printf "%s & %.2f & %.2f & %.2f & %.2f & ", $2, $4, $6, $8, $10
 	printf "%.2f & ", igain
@@ -26,18 +34,16 @@ length($0) < 10 { next; }
 	sum_a += igain
 	sum_b += ugain
 	sum_c += lgain
-	sum_d += ui
-	sum_e += li
 
 	count += 1
     }
 
 END {
-	mean_a = (sum_a / count)
-	mean_b = (sum_b / count)
-	mean_c = (sum_c / count)
-	mean_d = (sum_d / count)
-	mean_e = (sum_e / count)
+	mean_a = sum_a / count
+	mean_b = sum_b / count
+	mean_c = sum_c / count
+	mean_d = 100 * (mean_b / mean_a)
+	mean_e = 100 * (mean_c / mean_a)
 
 	print "\\hline \n";
 	print "mean & & & & & " 

@@ -182,8 +182,18 @@ else
 		cat $file | tr "\\n" " " >> table
 		echo "" >> table
 	done
+	
+	sed -i 's/astarBigLakes/astar.bigLakes/g' table
+	sed -i 's/astarRivers/astar.rivers/g' table
+	sed -i 's/bzip2Combined/bzip2.combined/g' table
+	sed -i 's/bzip2Program/bzip2.program/g' table
+	sed -i 's/soplexRef/soplex.ref/g' table
+	sed -i 's/soplexPds50/soplex.pds-50/g' table
+	sed -i 's/h264Forebase/h264.forebase/g' table
+	sed -i 's/h264Foremain/h264.foremain/g' table
+	sed -i 's/h264Sss/h264.sss/g' table
 
-	awk -vORS= -f compute_table.awk table
+	sort table | awk -vORS= -f compute_table.awk
 
 	rm -f results_base
 	rm -f results_instrumentation
