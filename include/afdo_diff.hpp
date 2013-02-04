@@ -19,6 +19,12 @@
 
 namespace gooda {
 
+/*!
+ * \brief Perform the diff two AFDO profiles.
+ * \param first The first AFDO profile
+ * \param second The second AFDO profile
+ * \param vm The configuration, used to configure the printings
+ */
 void afdo_diff(const afdo_data& first, const afdo_data& second, boost::program_options::variables_map& vm);
 
 }

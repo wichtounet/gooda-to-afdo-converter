@@ -38,6 +38,8 @@ struct afdo_pos {
     gcov_unsigned_t line;               //!< Source line
     gcov_unsigned_t discriminator;      //!< The DWARF discriminator
 
+    afdo_pos(){};
+
     /*!
      * \brief Construct a new afdo_pos. 
      * \param func The source function

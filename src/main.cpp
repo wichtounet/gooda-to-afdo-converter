@@ -91,6 +91,12 @@ void diff(const std::string& first, const std::string& second, po::variables_map
     log::emit<log::Debug>() << "Diff took " << ms.count() << "ms" << log::endl;
 }
 
+/*!
+ * \brief Generate the differences between two AFDO profiles.
+ * \param first The path to the first profile.
+ * \param second The path to the second profile
+ * \param vm The configuration
+ */
 void afdo_diff(const std::string& first, const std::string& second, po::variables_map& vm){
     Clock::time_point t0 = Clock::now();
     
@@ -244,6 +250,12 @@ void profile_application(po::variables_map& vm, po::parsed_options& parsed_optio
 
 } //end of anonymous namespace
 
+/*!
+ * \brief Launch the converter, parse the arguments and perform the correct actions.
+ * \param argc The number of arguments
+ * \param argv The arguments. 
+ * \return The exit code of the converter
+ */
 int main(int argc, const char **argv){
     try {
         gooda::options options;

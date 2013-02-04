@@ -16,6 +16,8 @@
 #include "assert.hpp"
 #include "afdo_printer.hpp"
 
+namespace {
+
 /*!
  * \brief Test if two afdo_pos are referring to the same positions. Support mix of bfd and assembler names. 
  * \param lhs The first object to compare
@@ -57,6 +59,12 @@ bool same_stack(gooda::afdo_stack& lhs, gooda::afdo_stack& rhs){
     return false;
 }
 
+/*!
+ * \brief Test if the given function has an inline stack equivalent to the given one. 
+ * \param function The AFDO function
+ * \param stack The AFDO stack
+ * \return true if the function has an equivalent inline stack, false otherwise.
+ */
 bool has_stack(gooda::afdo_function& function, gooda::afdo_stack& stack){
     for(auto& s : function.stacks){
         if(same_stack(s, stack)){
@@ -67,6 +75,12 @@ bool has_stack(gooda::afdo_function& function, gooda::afdo_stack& stack){
     return false;
 }
 
+/*!
+ * \brief Return the equivalent stack of the given function. 
+ * \param function The AFDO function
+ * \param stack The AFDO stack
+ * \return A reference to the first stack that is equivalent.
+ */
 gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_stack& stack){
     for(auto& s : function.stacks){
         if(same_stack(s, stack)){
@@ -77,6 +91,12 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_stack& 
     gooda_unreachable("Should not be called when the stack is not present in the function");
 }
 
+/*!
+ * \brief Test the difference between the two numbers and print any difference, if any.
+ * \param name The name of the value to compare. 
+ * \param first The first value
+ * \param second The second value
+ */
 void print_difference(std::string name, long first, long second){
     if(first != second){
         std::cout << "   " << name << " differs (" << first << " and " << second << ")" << std::endl;
@@ -90,6 +110,14 @@ void print_difference(std::string name, long first, long second){
     }
 }
 
+/*!
+ * \brief Perform the diff between the two given functions
+ * \param first_data The first AFDO profile
+ * \param second_data The second AFDO profile
+ * \param first The first AFDO function
+ * \param second The second AFDO function
+ * \param vm The configuration
+ */
 void diff(const gooda::afdo_data& first_data, const gooda::afdo_data& second_data, gooda::afdo_function& first, gooda::afdo_function& second, boost::program_options::variables_map& vm){
     std::cout << "Diff of " << first.name << " function " << std::endl;
 
@@ -147,6 +175,8 @@ void diff(const gooda::afdo_data& first_data, const gooda::afdo_data& second_dat
 
     std::cout << std::endl;
 }
+
+} //end of anonymous namespace
 
 void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::program_options::variables_map& vm){
     if(first.functions.size() > second.functions.size()){
