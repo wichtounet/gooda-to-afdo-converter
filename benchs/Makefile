@@ -1,8 +1,6 @@
 #BENCHS = tonto bwaves milc sjeng 105.h264Forebase 106.h264Foremain 107.h264Sss 001.astarBigLakes 002.astarRivers lbm 005.bzip2Program 006.bzip2Combined calculix povray omnetpp 102.soplexRef 103.soplexPds50 libquantum xalancbmk
-#BENCHS = omnetpp libquantum xalancbmk
 
-#To relaunch later
-#BENCHS = 103.soplexPds50 povray milc 006.bzip2Combined sjeng 
+#BENCHS = libquantum xalancbmk calculix 103.soplexPds50 005.bzip2Program sjeng 107.h264Sss lbm
 BENCHS =
 
 define BENCH_REF
@@ -13,7 +11,7 @@ ALL += $(1)_ref base_results_ref_$(1) instrumentation_results_ref_$(1) ucc_resul
 $(1)_ref: base_results_ref_$(1) instrumentation_results_ref_$(1) ucc_results_ref_$(1) lbr_results_ref_$(1)
 
 base_results_ref_$(1):
-	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --rebuild --config=gcc_google_47_base $(1) > log_ref_base.$(1)
+	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --config=gcc_google_47_base $(1) > log_ref_base.$(1)
 
 instrumentation_results_ref_$(1):
 	+runspec --username=wichtounet --action=validate --iterations=3 --size=ref --rebuild --config=gcc_google_47_instrumentation $(1) > log_ref_instrumentation.$(1)
