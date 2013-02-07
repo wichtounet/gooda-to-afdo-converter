@@ -56,9 +56,13 @@ void check_contains_stack(const gooda::afdo_function& function, std::size_t coun
                 auto& pos1 = stack.stack[i];
                 auto& pos = positions[i];
 
-                if(pos1.line != pos.line || pos1.discriminator != pos.discr || pos1.file != pos.file || pos1.func != pos.func){
-                    exact = false;
-                    break;
+                if(pos1.line != pos.line || pos1.discriminator != pos.discr || pos1.func != pos.func){
+                    if(pos1.file != pos.file){
+                        if(pos1.file.substr(pos1.file.size() - pos.file.size(), pos1.file.size()) == pos.file){
+                            exact = false;
+                            break;
+                        }
+                    }
                 }
             }
 
