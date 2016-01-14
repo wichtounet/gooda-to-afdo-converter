@@ -773,8 +773,6 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
         std::istringstream result_stream(result);
         std::string str_line;
 
-        std::string address;
-
         while (std::getline(result_stream, str_line)) {
             if(boost::starts_with(str_line, "000000")){
                 auto address = "0x" + str_line.substr(10, 6);
