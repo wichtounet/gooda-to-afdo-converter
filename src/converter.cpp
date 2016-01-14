@@ -55,7 +55,7 @@ struct gooda_bb {
 typedef std::vector<gooda_bb> bb_vector;
 
 /*!
- * \brief Get an inline stack for the given position. 
+ * \brief Get an inline stack for the given position.
  *
  * If the inline stack already exists, a reference to it is returned, else a new one is created.
  *
@@ -67,22 +67,20 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_pos&& p
     //Try to find an equivalent stack
 
     for(auto& stack : function.stacks){
-        if(stack.stack.size() == 1){
-            if(stack.stack.front() == position){
-                return stack;
-            }
+        if(stack.stack.size() == 1 && stack.stack.front() == position){
+            return stack;
         }
     }
 
     //If not found, create a new stack
-    
+
     gooda::afdo_stack stack;
 
     stack.stack.push_back(std::move(position));
 
     function.stacks.push_back(std::move(stack));
 
-    return function.stacks.back(); 
+    return function.stacks.back();
 }
 
 gooda::afdo_stack fake_stack; //!< A fake stack used to return an empty stack
@@ -101,7 +99,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     if(inlining_cache.find(key) == inlining_cache.end()){
         log::emit<log::Warning>() << function.executable_file << ":" << address << " not in inlining cache" << log::endl;
 
-        return fake_stack; 
+        return fake_stack;
     }
 
     auto& vector = inlining_cache[key];
@@ -109,7 +107,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     if(vector.empty()){
         log::emit<log::Warning>() << function.executable_file << ":" << address << " indicated an empty inline stack" << log::endl;
 
-        return fake_stack; 
+        return fake_stack;
     }
 
     //Try to find an existing equivalent stack
@@ -131,7 +129,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
     }
 
     //If its not found, create a new stack
-    
+
     gooda::afdo_stack new_stack;
     new_stack.stack.reserve(vector.size());
 
@@ -141,7 +139,7 @@ gooda::afdo_stack& get_inlined_stack(gooda::afdo_function& function, std::string
 
     function.stacks.push_back(std::move(new_stack));
 
-    return function.stacks.back(); 
+    return function.stacks.back();
 }
 
 /*!
@@ -192,7 +190,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
             block.gooda_line_end = k == file.lines() ? k - 1 : k;
 
             basic_blocks.push_back(std::move(block));
-        } 
+        }
 
         //Get the entry basic block and the function file
         if(boost::starts_with(disassembly, "Basic Block 1 ")){
@@ -210,7 +208,7 @@ bb_vector collect_basic_blocks(const gooda::gooda_report& report, gooda::afdo_fu
             bb_found = false;
         }
 
-        auto address = line.get_address(file.column(ADDRESS)); 
+        auto address = line.get_address(file.column(ADDRESS));
         if(address != start_instruction && address >= last_instruction){
             break;
         }
@@ -233,26 +231,26 @@ void ca_annotate(const gooda::gooda_report& report, gooda::afdo_function& functi
     for(auto& block : basic_blocks){
         for(auto j = block.gooda_line_start + 1; j < block.gooda_line_end; ++j){
             gooda_assert(j < asm_file.lines(), "Something went wrong with BB collection");
-            
+
             auto& asm_line = asm_file.line(j);
 
             auto& filled_entry = discriminator_cache[{function.executable_file, asm_line.get_string(asm_file.column(ADDRESS))}];
 
             auto discriminator = filled_entry.discriminator;
 
-            std::string file_name; 
+            std::string file_name;
             gcov_unsigned_t line_number;
 
             if(filled_entry.file.empty()){
                 line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                file_name = function.file; 
+                file_name = function.file;
             } else {
                 line_number = filled_entry.line;
-                file_name = filled_entry.file; 
+                file_name = filled_entry.file;
             }
 
             auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
-                ? get_stack(function, {function.name, file_name, line_number, discriminator}) 
+                ? get_stack(function, {function.name, file_name, line_number, discriminator})
                 : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             auto count = asm_file.multiplex_line().get_double(asm_file.column(UNHALTED_CORE_CYCLES)) * asm_line.get_counter(asm_file.column(UNHALTED_CORE_CYCLES));
@@ -286,19 +284,19 @@ void lbr_annotate(const gooda::gooda_report& report, gooda::afdo_function& funct
 
             auto discriminator = filled_entry.discriminator;
 
-            std::string file_name; 
+            std::string file_name;
             gcov_unsigned_t line_number;
 
             if(filled_entry.file.empty()){
                 line_number = asm_line.get_counter(asm_file.column(PRINC_LINE));
-                file_name = function.file; 
+                file_name = function.file;
             } else {
                 line_number = filled_entry.line;
-                file_name = filled_entry.file; 
+                file_name = filled_entry.file;
             }
 
             auto& stack = asm_line.get_string(asm_file.column(INIT_FILE)).empty()
-                ? get_stack(function, {function.name, file_name, line_number, discriminator}) 
+                ? get_stack(function, {function.name, file_name, line_number, discriminator})
                 : get_inlined_stack(function, asm_line.get_string(asm_file.column(ADDRESS)));
 
             stack.count = std::max(stack.count, block.exec_count);
@@ -319,7 +317,7 @@ unsigned int sizeof_string(const std::string& str){
 }
 
 /*!
- * \brief Compute the length of each section of the AFDO data file. 
+ * \brief Compute the length of each section of the AFDO data file.
  * \param data the Data file
  */
 void compute_lengths(gooda::afdo_data& data){
@@ -335,13 +333,13 @@ void compute_lengths(gooda::afdo_data& data){
     for(auto& function : data.functions){
         //function name
         data.length_function_section += sizeof_string(function.name);
-        
+
         //file (1), total_count (2) and entry_count (2)
         data.length_function_section += 5;
-        
+
         //the number of stacks (1)
         data.length_function_section += 1;
-        
+
         //The size for each stack (number of pos (1), count (2), num_inst (2))
         data.length_function_section += 5 * function.stacks.size();
 
@@ -368,11 +366,11 @@ void compute_lengths(gooda::afdo_data& data){
 }
 
 /*!
- * \brief Compute the working set for the given data. 
+ * \brief Compute the working set for the given data.
  * \param report The Gooda report
  * \param data the AFDO profile
  * \param vm The configuration
- * \param lbr Indicate the mode. 
+ * \param lbr Indicate the mode.
  */
 void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm, bool lbr){
     //Fill the working set with zero
@@ -390,7 +388,7 @@ void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& da
     uint64_t total_count = 0;
 
     auto counter = lbr ? SW_INST_RETIRED : UNHALTED_CORE_CYCLES;
-    
+
     for(auto& function : data.functions){
         auto& asm_file = report.asm_file(function.i);
 
@@ -446,7 +444,7 @@ void compute_working_set(const gooda::gooda_report& report, gooda::afdo_data& da
  * \brief Return the application executable file of the function i
  * \param report The Gooda report
  * \param i The index of the function to get the executable from
- * \return The ELF file the function is located in. 
+ * \return The ELF file the function is located in.
  */
 std::string get_application_file(const gooda::gooda_report& report, std::size_t i){
     return report.hotspot_function(i).get_string(report.get_hotspot_file().column(MODULE));
@@ -454,9 +452,9 @@ std::string get_application_file(const gooda::gooda_report& report, std::size_t 
 
 /*!
  * \brief Return the process filter
- * \param report the report to fill. 
- * \param vm The configuration. 
- * \param counter_name The name of the counter. 
+ * \param report the report to fill.
+ * \param vm The configuration.
+ * \param counter_name The name of the counter.
  * \return the process filter
  */
 std::string get_process_filter(const gooda::gooda_report& report, boost::program_options::variables_map& vm, std::string& counter_name){
@@ -516,7 +514,7 @@ std::string extract_address(const std::string& str_line){
  */
 void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     std::unordered_map<std::string, std::vector<std::string>> addresses;
-    
+
     //Collect the inlined addresses
 
     for(auto& function : data.functions){
@@ -564,7 +562,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
         remove("addresses");
 
         std::istringstream result_stream(result);
-        std::string str_line;    
+        std::string str_line;
 
         std::string address;
 
@@ -581,7 +579,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                 std::string file_name;
                 std::string line_number;
                 gcov_unsigned_t discriminator;
-                
+
                 auto start_disc = str_line.find("(discriminator ");
                 auto start_number = str_line.rfind(":");
 
@@ -593,7 +591,7 @@ void fill_inlining_cache(const gooda::gooda_report& report, gooda::afdo_data& da
                     line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
                     file_name = str_line.substr(0, start_number);
 
-                    auto end = str_line.find(")", start_disc); 
+                    auto end = str_line.find(")", start_disc);
                     auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
                     discriminator = boost::lexical_cast<gcov_unsigned_t>(discriminator_str);
                 }
@@ -671,7 +669,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
             remove("addresses");
 
             std::istringstream result_stream(result);
-            std::string str_line;    
+            std::string str_line;
 
             std::string address;
 
@@ -680,7 +678,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                     address = extract_address(str_line);
                 } else {
                     auto key = std::make_pair(address_set.first, address);
-                
+
                     std::string file_name;
                     std::string line_number;
                     gcov_unsigned_t discriminator;
@@ -696,7 +694,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
                         line_number = str_line.substr(start_number + 1, start_disc - start_number - 2);
                         file_name = str_line.substr(0, start_number);
 
-                        auto end = str_line.find(")", start_disc); 
+                        auto end = str_line.find(")", start_disc);
                         auto discriminator_str = str_line.substr(start_disc + 15, end - start_disc - 15);
                         discriminator = boost::lexical_cast<gcov_unsigned_t>(discriminator_str);
                     }
@@ -713,7 +711,7 @@ void fill_discriminator_cache(const gooda::gooda_report& report, gooda::afdo_dat
 }
 
 /*!
- * \brief Update the function names to use the mangled names. 
+ * \brief Update the function names to use the mangled names.
  * \param report The gooda report to fill
  * \param data The data already filled
  * \param vm The configuration
@@ -724,7 +722,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
     std::unordered_map<std::size_t, std::pair<std::string, std::string>> function_addresses;
 
     //Collect one address for each function
-    
+
     std::size_t cpp_files = 0;
 
     for(auto& function : data.functions){
@@ -748,7 +746,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
             }
         }
     }
-    
+
     bool cpp = cpp_files > data.functions.size() * 0.5;
 
     //Collect the mangled function names
@@ -773,7 +771,7 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
         log::emit<log::Trace>() << "Run command \"" << command << "\"" << log::endl;
 
         std::istringstream result_stream(result);
-        std::string str_line;    
+        std::string str_line;
 
         std::string address;
 
@@ -788,12 +786,12 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
                     auto function_name = str_line.substr(search + sep.size(), str_line.size() - search - sep.size());
                     mangled_names[{address_set.first, address}] = function_name;
                 }
-            } 
+            }
         }
     }
 
     //Give the functions their names
-   
+
     for(auto& function : data.functions){
         function.name = mangled_names[function_addresses[function.i]];
 
@@ -805,9 +803,9 @@ void update_function_names(const gooda::gooda_report& report, gooda::afdo_data& 
 }
 
 /*!
- * \brief Remove the current directory from the given file path if necessary. 
- * \param file_name The file path to clean. 
- * \param pwd The current directory. 
+ * \brief Remove the current directory from the given file path if necessary.
+ * \param file_name The file path to clean.
+ * \param pwd The current directory.
  */
 inline void cleanup(std::string& file_name, const std::string& pwd){
     auto search_pwd = file_name.find(pwd);
@@ -817,8 +815,8 @@ inline void cleanup(std::string& file_name, const std::string& pwd){
 }
 
 /*!
- * \brief Remove the current directory from the file paths. 
- * \param data The AFDO profile to clean. 
+ * \brief Remove the current directory from the file paths.
+ * \param data The AFDO profile to clean.
  */
 void strip_paths(gooda::afdo_data& data){
     auto command = "pwd";
@@ -835,7 +833,7 @@ void strip_paths(gooda::afdo_data& data){
     }
 
     for(auto& function : data.functions){
-        cleanup(function.name, pwd); 
+        cleanup(function.name, pwd);
 
         for(auto& stack : function.stacks){
             for(auto& pos : stack.stack){
@@ -864,7 +862,7 @@ void fill_file_name_table(gooda::afdo_data& data){
 }
 
 /*!
- * \brief Remove all functions that have neither count nor a stack with a count. 
+ * \brief Remove all functions that have neither count nor a stack with a count.
  * \param data The data already filled by the previous passes
  */
 void prune_uncounted_functions(gooda::afdo_data& data){
@@ -878,7 +876,7 @@ void prune_uncounted_functions(gooda::afdo_data& data){
             for(auto& stack : function.stacks){
                 count += stack.count;
             }
-            
+
             if(count == 0){
                 it = data.functions.erase(it);
                 continue;
@@ -893,7 +891,7 @@ void prune_uncounted_functions(gooda::afdo_data& data){
  * \brief Return the total count of the given counter in the hotspot function list
  * \param report The gooda report
  * \param counter_name The name of the counter
- * \return The sum of all the values of the given counter. 
+ * \return The sum of all the values of the given counter.
  */
 std::size_t total_count(const gooda::gooda_report& report, const std::string& counter_name){
     auto& hotspot_file = report.get_hotspot_file();
@@ -911,7 +909,7 @@ std::size_t total_count(const gooda::gooda_report& report, const std::string& co
 void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data& data, boost::program_options::variables_map& vm){
     bool lbr;
     if(vm.count("auto")){
-        auto total_count_lbr = total_count(report, BB_EXEC); 
+        auto total_count_lbr = total_count(report, BB_EXEC);
         lbr = total_count_lbr > 0;
     } else {
         lbr = vm.count("lbr");
@@ -920,11 +918,9 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
     //Choose the correct counter
     std::string counter_name = lbr ? BB_EXEC : UNHALTED_CORE_CYCLES;
 
-    if(!vm.count("auto")){
-        //Verify that the file has the correct column
-        if(total_count(report, counter_name) == 0){
-            throw gooda::gooda_exception("The file is not valid for the current mode");
-        }
+    //Verify that the file has the correct column
+    if(!vm.count("auto") && total_count(report, counter_name) == 0){
+        throw gooda::gooda_exception("The file is not valid for the current mode");
     }
 
     //Empty each cache
@@ -955,19 +951,19 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
             if(lbr){
                 function.total_count = line.get_counter(report.get_hotspot_file().column(SW_INST_RETIRED));
             } else {
-                auto count = 
-                        report.get_hotspot_file().multiplex_line().get_double(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES)) 
+                auto count =
+                        report.get_hotspot_file().multiplex_line().get_double(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES))
                       * line.get_counter(report.get_hotspot_file().column(UNHALTED_CORE_CYCLES));
 
                 function.total_count = static_cast<gcov_type>(count);
             }
 
-            //We need the asm file to continue 
-            
+            //We need the asm file to continue
+
             if(!report.has_asm_file(function.i)){
                 continue;
             }
-            
+
             //Check that the function file is correctly set
 
             auto& file = report.asm_file(function.i);
@@ -1020,7 +1016,7 @@ void gooda::convert_to_afdo(const gooda::gooda_report& report, gooda::afdo_data&
 
     //Fill the inlining cache (gets inlined function names)
     fill_inlining_cache(report, data, vm);
-    
+
     //Fill the discriminator cache (gets the discriminators of each lines)
     fill_discriminator_cache(report, data, vm);
 
