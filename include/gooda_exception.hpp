@@ -28,9 +28,9 @@ class gooda_exception: public std::exception {
     public:
         /*!
          * \brief Construct an exception
-         * \param message The message to be displayed. 
+         * \param message The message to be displayed.
          */
-        gooda_exception(const std::string& message);
+        explicit gooda_exception(const std::string& message);
 
         /*!
          * \brief Destruct the exception
