@@ -7,7 +7,7 @@
 
 /*!
  * \file afdo_diff.cpp
- * \brief Implementation of a diff between two AFDO profiles. 
+ * \brief Implementation of a diff between two AFDO profiles.
  */
 
 #include <iostream>
@@ -19,14 +19,14 @@
 namespace {
 
 /*!
- * \brief Test if two afdo_pos are referring to the same positions. Support mix of bfd and assembler names. 
+ * \brief Test if two afdo_pos are referring to the same positions. Support mix of bfd and assembler names.
  * \param lhs The first object to compare
  * \param rhs The second object to compare
  * \return true if both afdo_pos are referring to the same position, false otherwise.
  */
 bool same_pos(gooda::afdo_pos& lhs, gooda::afdo_pos& rhs){
     if(lhs.line != rhs.line || lhs.discriminator != rhs.discriminator || lhs.file != rhs.file){
-        return false;   
+        return false;
     }
 
     if(lhs.func == rhs.func){
@@ -40,10 +40,10 @@ bool same_pos(gooda::afdo_pos& lhs, gooda::afdo_pos& rhs){
 }
 
 /*!
- * \brief Test if two afdo_stack are referring to the same positions. Support mix of bfd and assembler names. 
+ * \brief Test if two afdo_stack are referring to the same positions. Support mix of bfd and assembler names.
  * \param lhs The first object to compare
  * \param rhs The second object to compare
- * \return true if both afdo_stack are referring to the same position, false otherwise. 
+ * \return true if both afdo_stack are referring to the same position, false otherwise.
  */
 bool same_stack(gooda::afdo_stack& lhs, gooda::afdo_stack& rhs){
     if(lhs.stack.size() == rhs.stack.size()){
@@ -60,7 +60,7 @@ bool same_stack(gooda::afdo_stack& lhs, gooda::afdo_stack& rhs){
 }
 
 /*!
- * \brief Test if the given function has an inline stack equivalent to the given one. 
+ * \brief Test if the given function has an inline stack equivalent to the given one.
  * \param function The AFDO function
  * \param stack The AFDO stack
  * \return true if the function has an equivalent inline stack, false otherwise.
@@ -76,7 +76,7 @@ bool has_stack(gooda::afdo_function& function, gooda::afdo_stack& stack){
 }
 
 /*!
- * \brief Return the equivalent stack of the given function. 
+ * \brief Return the equivalent stack of the given function.
  * \param function The AFDO function
  * \param stack The AFDO stack
  * \return A reference to the first stack that is equivalent.
@@ -93,14 +93,14 @@ gooda::afdo_stack& get_stack(gooda::afdo_function& function, gooda::afdo_stack& 
 
 /*!
  * \brief Test the difference between the two numbers and print any difference, if any.
- * \param name The name of the value to compare. 
+ * \param name The name of the value to compare.
  * \param first The first value
  * \param second The second value
  */
 void print_difference(std::string name, long first, long second){
     if(first != second){
         std::cout << "   " << name << " differs (" << first << " and " << second << ")" << std::endl;
-        
+
         double difference = 100 * (static_cast<double>(first) / static_cast<double>(second)) - 100;
         if(difference > 0){
             std::cout << "    difference: +" << (difference) << "% (+" << (first - second) << ")" << std::endl;
@@ -136,7 +136,7 @@ void diff(const gooda::afdo_data& first_data, const gooda::afdo_data& second_dat
     for(auto& first_stack : first.stacks){
         if(has_stack(second, first_stack)){
             auto& second_stack = get_stack(second, first_stack);
-            
+
             print_difference("count", first_stack.count, second_stack.count);
         } else {
             ++not_in_second;
@@ -154,7 +154,7 @@ void diff(const gooda::afdo_data& first_data, const gooda::afdo_data& second_dat
     } else if(second.stacks.size() > first.stacks.size()){
         std::cout << "  Second has " << (second.stacks.size() - first.stacks.size()) << " more inline stacks than first" << std::endl;
     }
-    
+
     if(not_in_second > 0){
         std::cout << "  " << not_in_second << " inline stack present in first are not in second" << std::endl;
         for(auto& first_stack : first.stacks){
@@ -193,9 +193,11 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
 
     auto first_functions = first.functions;
     auto second_functions = second.functions;
-    
-    std::sort(first_functions.begin(), first_functions.end(), [](const gooda::afdo_function& lhs, const gooda::afdo_function& rhs){ return lhs.total_count > rhs.total_count; });
-    std::sort(second_functions.begin(), second_functions.end(), [](const gooda::afdo_function& lhs, const gooda::afdo_function& rhs){ return lhs.total_count > rhs.total_count; });
+
+    auto sorter = [](const gooda::afdo_function& lhs, const gooda::afdo_function& rhs){ return lhs.total_count > rhs.total_count; };
+
+    std::sort(first_functions.begin(), first_functions.end(), sorter);
+    std::sort(second_functions.begin(), second_functions.end(), sorter);
 
     for(std::size_t i = 0; i < limit; ++i){
         if(first_functions[i].name != second_functions[i].name){
@@ -208,7 +210,7 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
             for(std::size_t j = 0; j < second_functions.size(); ++j){
                 if(second_functions[j].name == first_functions[i].name){
                     std::cout << "     " << first_functions[i].name << " was found in Second, " << j << "th hottest" << std::endl;
-                    
+
                     auto& first_function = first_functions[i];
                     auto& second_function = second_functions[j];
 
@@ -218,17 +220,17 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
                     break;
                 }
             }
-                    
+
             if(!found){
                 std::cout << "     " << first_functions[i].name << " is not present in Second" << std::endl;
             }
 
             found = false;
-            
+
             for(std::size_t j = 0; j < first_functions.size(); ++j){
                 if(second_functions[i].name == first_functions[j].name){
                     std::cout << "     " << first_functions[j].name << " was found in Second, " << j << "th hottest" << std::endl;
-                    
+
                     auto& first_function = first_functions[j];
                     auto& second_function = second_functions[i];
 
@@ -238,7 +240,7 @@ void gooda::afdo_diff(const afdo_data& first, const afdo_data& second, boost::pr
                     break;
                 }
             }
-                    
+
             if(!found){
                 std::cout << "     " << second_functions[i].name << " is not present in First" << std::endl;
             }
