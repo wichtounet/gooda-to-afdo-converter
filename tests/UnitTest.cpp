@@ -11,7 +11,7 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE ConverterTestSuites
 #include <boost/test/unit_test.hpp>
-#include <boost/test/detail/unit_test_parameters.hpp>
+#include <boost/test/unit_test_parameters.hpp>
 
 #include "Options.hpp"
 #include "gooda_reader.hpp"
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE( simple_lbr ){
     //Basic Block 3
     check_contains_stack(function, 360, {{"main", "simple.cpp", 22, 2}});
     check_contains_stack(function, 360, {{"main", "simple.cpp", 23, 2}});
-    
+
     //Basic Block 4 (Verify that the lines with different discriminators are different)
     check_contains_stack(function, 0, {{"main", "simple.cpp", 22, 0}});
 
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE( simple_c_ucc ){
 
     //Basic Block 7 (No discriminator here, should be the sum)
     check_contains_stack(function, 216, {{"main", "simple.c", 20, 0}});
-    
+
     //Basic Block 8 (contains inlined functions)
     check_contains_stack(function, 1348, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 11, 0}});
     check_contains_stack(function, 2419, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 12, 0}});
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE( simple_c_lbr ){
 
     //Basic Block 7 (No discriminator here, should be the sum)
     check_contains_stack(function, 93775, {{"main", "simple.c", 20, 0}});
-    
+
     //Basic Block 8 (contains inlined functions)
     check_contains_stack(function, 93776, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 11, 0}});
     check_contains_stack(function, 93776, {{"main", "simple.c", 27, 0}, {"compute_sum", "simple.c", 12, 0}});
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE( inheritance_ucc ){
     check_contains_stack(function, 34, {{"main", "inheritance.cpp", 29, 2}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 0}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 2}});
-    
+
     //Basic Block 8
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 13, 0}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}});
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE( inheritance_lbr ){
     check_contains_stack(function, 360, {{"main", "inheritance.cpp", 29, 2}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 28, 0}});
     check_contains_stack(function, 360, {{"main", "inheritance.cpp", 28, 2}});
-    
+
     //Basic Block 8
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}, {"_ZN1A11compute_sumEiPl", "inheritance.cpp", 13, 0}});
     check_contains_stack(function, 0, {{"main", "inheritance.cpp", 33, 0}});
@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 736);
         BOOST_CHECK_EQUAL(function.entry_count, 11);
-        
+
         check_contains_stack(function, 128, {
                 {"_Z11compute_sumll", "deep_compute.hpp", 13},
                 {"compute_sum", "deep_compute.hpp", 17},
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 997);
         BOOST_CHECK_EQUAL(function.entry_count, 997);
-        
+
         check_contains_stack(function, 469, {
                 {"compute_sum", "deep_compute.hpp", 17},
                 {"compute_third", "deep_compute.hpp", 10}
@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE( deep_ucc ){
         BOOST_CHECK_EQUAL(function.file, "deep.cpp");
         BOOST_CHECK_EQUAL(function.total_count, 771);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
-        
+
         check_contains_stack(function, 0, {
                 {"main", "deep.cpp", 9},
                 {"compute<10>", "deep_sum.hpp", 6},
@@ -468,13 +468,13 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
 
     {
         auto& function = data.functions[2];
-        
+
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "main");
         BOOST_CHECK_EQUAL(function.file, "deep.cpp");
         BOOST_CHECK_EQUAL(function.total_count, 39251);
         BOOST_CHECK_EQUAL(function.entry_count, 0);
-        
+
         check_contains_stack(function, 18, {
                 {"main", "deep.cpp", 9},
                 {"compute<10>", "deep_sum.hpp", 6},
@@ -496,7 +496,7 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 22390);
         BOOST_CHECK_EQUAL(function.entry_count, 645);
-        
+
         check_contains_stack(function, 340, {
                 {"_Z11compute_sumll", "deep_compute.hpp", 13},
                 {"compute_sum", "deep_compute.hpp", 17},
@@ -512,7 +512,7 @@ BOOST_AUTO_TEST_CASE( deep_lbr ){
         BOOST_CHECK_EQUAL(function.file, "deep_compute.hpp");
         BOOST_CHECK_EQUAL(function.total_count, 23435);
         BOOST_CHECK_EQUAL(function.entry_count, 545);
-        
+
         check_contains_stack(function, 545, {
                 {"compute_sum", "deep_compute.hpp", 17},
                 {"compute_third", "deep_compute.hpp", 10}
@@ -534,10 +534,10 @@ BOOST_AUTO_TEST_CASE( area_ucc ){
 
     BOOST_CHECK_EQUAL (data.functions.size(), 2);
     BOOST_CHECK_EQUAL (report.processes(), 8);
-    
+
     {
         auto& function = data.functions[0];
-        
+
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "__triangle_operations_MOD_area");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
@@ -548,12 +548,12 @@ BOOST_AUTO_TEST_CASE( area_ucc ){
         check_contains_stack(function, 13945, {{"__triangle_operations_MOD_area", "area.f90", 8, 0}});
         check_contains_stack(function, 1301, {{"__triangle_operations_MOD_area", "area.f90", 9, 0}});
         check_contains_stack(function, 249, {{"__triangle_operations_MOD_area", "area.f90", 10, 0}});
-        
+
     }
 
     {
         auto& function = data.functions[1];
-        
+
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "MAIN__");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
@@ -589,10 +589,10 @@ BOOST_AUTO_TEST_CASE( area_lbr ){
 
     BOOST_CHECK_EQUAL (data.functions.size(), 2);
     BOOST_CHECK_EQUAL (report.processes(), 7);
-    
+
     {
         auto& function = data.functions[0];
-        
+
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "__triangle_operations_MOD_area");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
@@ -607,7 +607,7 @@ BOOST_AUTO_TEST_CASE( area_lbr ){
 
     {
         auto& function = data.functions[1];
-        
+
         //Verify function properties
         BOOST_CHECK_EQUAL(function.name, "MAIN__");
         BOOST_CHECK_EQUAL(function.file, "area.f90");
